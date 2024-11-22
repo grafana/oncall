@@ -140,7 +140,13 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                 blocks=blocks,
             )
 
-            alert_group.slack_messages.create(slack_id=result["ts"], channel=slack_channel)
+            # TODO: once organization and _slack_team_identity are migrated, remove them here
+            alert_group.slack_messages.create(
+                slack_id=result["ts"],
+                organization=alert_group.channel.organization,
+                _slack_team_identity=slack_team_identity,
+                channel=slack_channel,
+            )
 
             alert.delivered = True
         except SlackAPITokenError:
@@ -782,7 +788,6 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
 
         alert_group = log_record.alert_group
         slack_channel = alert_group.slack_message.channel
-        slack_channel_id = slack_channel.slack_id
 
         user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
         text = f"{user_verbal}, please confirm that you're still working on this Alert Group."
@@ -790,7 +795,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
         if alert_group.channel.organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
             try:
                 response = self._slack_client.chat_postMessage(
-                    channel=slack_channel_id,
+                    channel=slack_channel.slack_id,
                     text=text,
                     attachments=[
                         {
@@ -821,7 +826,13 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             except (SlackAPITokenError, SlackAPIChannelArchivedError, SlackAPIChannelNotFoundError):
                 pass
             else:
-                alert_group.slack_messages.create(slack_id=response["ts"], channel=slack_channel)
+                # TODO: once organization and _slack_team_identity are migrated, remove them here
+                alert_group.slack_messages.create(
+                    slack_id=response["ts"],
+                    organization=alert_group.channel.organization,
+                    _slack_team_identity=self.slack_team_identity,
+                    channel=slack_channel,
+                )
 
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])

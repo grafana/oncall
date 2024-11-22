@@ -223,7 +223,13 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            alert_group.slack_messages.create(slack_id=result["ts"], channel=slack_channel)
+            # TODO: once organization _slack_team_identity are migrated, remove them here
+            alert_group.slack_messages.create(
+                slack_id=result["ts"],
+                organization=self.organization,
+                _slack_team_identity=self.slack_team_identity,
+                channel=slack_channel,
+            )
 
             # create success record
             UserNotificationPolicyLogRecord.objects.create(

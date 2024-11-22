@@ -18,6 +18,8 @@ from apps.user_management.models import Organization, User
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.slack.models import SlackMessage
+
 logger = logging.getLogger(__name__)
 
 
@@ -103,7 +105,7 @@ class SlackUserIdentity(models.Model):
     def __str__(self):
         return self.slack_login
 
-    def send_link_to_slack_message(self, slack_message):
+    def send_link_to_slack_message(self, slack_message: "SlackMessage"):
         blocks = [
             {
                 "type": "section",

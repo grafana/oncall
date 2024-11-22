@@ -796,8 +796,6 @@ def test_step_format_alert(
 ):
     slack_team_identity = make_slack_team_identity()
     slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
-    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
-
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
@@ -805,7 +803,8 @@ def test_step_format_alert(
     alert_group = make_alert_group(alert_receive_channel, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+    make_slack_message(alert_group=alert_group, channel=slack_channel, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("alertgroup_appearance", "OpenAlertAppearanceDialogStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)

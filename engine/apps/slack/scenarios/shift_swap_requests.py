@@ -161,7 +161,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
             blocks=self._generate_blocks(shift_swap_request),
         )
 
-        # TODO: once organization _slack_team_identity are migrated, remove them here
+        # TODO: once organization and _slack_team_identity are migrated, remove them here
         return SlackMessage.objects.create(
             slack_id=result["ts"],
             organization=self.organization,

@@ -63,7 +63,7 @@ class AlertGroupActionsMixin:
             slack_team_identity=slack_team_identity,
         )
 
-        # TODO: once organization _slack_team_identity are migrated, remove them here
+        # TODO: once organization and _slack_team_identity are migrated, remove them here
         SlackMessage.objects.create(
             slack_id=message_id,
             organization=alert_group.channel.organization,

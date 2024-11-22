@@ -163,14 +163,17 @@ class TestBaseShiftSwapRequestStep:
 
     @patch("apps.slack.scenarios.shift_swap_requests.BaseShiftSwapRequestStep._generate_blocks")
     @pytest.mark.django_db
-    def test_update_message(self, mock_generate_blocks, setup, make_slack_message) -> None:
+    def test_update_message(self, mock_generate_blocks, setup, make_slack_channel, make_slack_message) -> None:
         ts = "12345.67"
 
         ssr, _, _, _ = setup()
         organization = ssr.organization
         slack_team_identity = organization.slack_team_identity
 
-        slack_message = make_slack_message(alert_group=None, organization=organization, slack_id=ts)
+        slack_channel = make_slack_channel(slack_team_identity)
+        slack_message = make_slack_message(
+            alert_group=None, organization=organization, channel=slack_channel, slack_id=ts
+        )
         ssr.slack_message = slack_message
         ssr.save()
 
@@ -198,17 +201,17 @@ class TestBaseShiftSwapRequestStep:
             mock_slack_client.chat_update.assert_not_called()
 
     @pytest.mark.django_db
-    def test_post_message_to_thread(self, setup, make_slack_message) -> None:
+    def test_post_message_to_thread(self, setup, make_slack_channel, make_slack_message) -> None:
         ts = "12345.67"
         blocks = [{"foo": "bar"}]
 
         ssr, _, _, _ = setup()
-        channel_id = "asdfadf"
         organization = ssr.organization
         slack_team_identity = organization.slack_team_identity
 
+        slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(
-            alert_group=None, organization=organization, slack_id=ts, channel_id=channel_id
+            alert_group=None, organization=organization, slack_id=ts, channel=slack_channel
         )
 
         step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
@@ -226,7 +229,7 @@ class TestBaseShiftSwapRequestStep:
             step.post_message_to_thread(ssr, blocks, True)
 
             mock_slack_client.chat_postMessage.assert_called_once_with(
-                channel=channel_id,
+                channel=slack_channel.slack_id,
                 thread_ts=ts,
                 reply_broadcast=True,
                 blocks=blocks,
