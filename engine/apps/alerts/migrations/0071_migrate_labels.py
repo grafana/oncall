@@ -48,7 +48,7 @@ def migrate_static_labels(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0065_alertreceivechannel_service_account'),
+        ('alerts', '0070_remove_resolutionnoteslackmessage__slack_channel_id_db'),
         ('labels', '0005_labelkeycache_prescribed_labelvaluecache_prescribed'),
     ]
 
