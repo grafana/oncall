@@ -878,11 +878,9 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
-    "config_integrations.heartbeat",
     "config_integrations.inbound_email",
     "config_integrations.maintenance",
     "config_integrations.manual",
-    "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
     # Actually it's Grafana 8 integration.
@@ -988,3 +986,5 @@ CUSTOM_RATELIMITS = getenv_custom_ratelimit("CUSTOM_RATELIMITS", default={})
 SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 6)
 SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 240)
 SYNC_V2_BATCH_SIZE = getenv_integer("SYNC_V2_BATCH_SIZE", 500)
+
+AUDITED_ALERT_GROUP_MAX_RETRIES = getenv_integer("AUDITED_ALERT_GROUP_MAX_RETRIES", 1)

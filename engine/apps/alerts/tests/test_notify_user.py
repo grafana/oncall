@@ -315,7 +315,7 @@ def test_perform_notification_slack_prevent_posting(
 
     mocked_send_slack_notification.assert_not_called()
     last_log_record = UserNotificationPolicyLogRecord.objects.last()
-    assert last_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+    assert last_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
     assert last_log_record.reason == "Prevented from posting in Slack"
     assert (
         last_log_record.notification_error_code

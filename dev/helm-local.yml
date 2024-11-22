@@ -39,7 +39,7 @@ engine:
   replicaCount: 1
 celery:
   replicaCount: 1
-  worker_beat_enabled: false
+  worker_beat_enabled: true
 
 externalGrafana:
   url: http://grafana:3000

@@ -1819,6 +1819,63 @@ def test_refresh_ical_final_schedule_ok(
 
 
 @pytest.mark.django_db
+def test_filter_events_during_dst_change(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        time_zone="America/Chicago",  # UTC-6 or UTC-5 depending on DST
+        schedule_class=OnCallScheduleCalendar,
+    )
+    start_datetime = timezone.datetime(2024, 10, 1, 0, 0, 0, tzinfo=timezone.utc)
+    duration = timezone.timedelta(seconds=60 * 60 * 24 * 7)  # 1 week
+    data = {
+        "start": start_datetime,
+        "rotation_start": start_datetime,
+        "duration": duration,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "week_start": CustomOnCallShift.MONDAY,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[u1]])
+    schedule.custom_on_call_shifts.add(on_call_shift)
+
+    schedule.refresh_ical_file()
+
+    # week with DST change
+    start_date = timezone.datetime(2024, 11, 4, 0, 0, 0, tzinfo=timezone.utc)
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(start_date, end_date)
+    expected = {
+        "start": timezone.datetime(2024, 10, 29, 5, 0, 0, tzinfo=timezone.utc),
+        "end": timezone.datetime(2024, 11, 5, 6, 0, 0, tzinfo=timezone.utc),
+    }
+    assert len(events) == 1
+    returned = {"start": events[0]["start"], "end": events[0]["end"]}
+    assert returned == expected
+
+    # week with DST change back
+    start_date = timezone.datetime(2025, 3, 10, 0, 0, 0, tzinfo=timezone.utc)
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(start_date, end_date)
+    expected = {
+        "start": timezone.datetime(2025, 3, 4, 6, 0, 0, tzinfo=timezone.utc),
+        "end": timezone.datetime(2025, 3, 11, 5, 0, 0, tzinfo=timezone.utc),
+    }
+    assert len(events) == 1
+    returned = {"start": events[0]["start"], "end": events[0]["end"]}
+    assert returned == expected
+
+
+@pytest.mark.django_db
 def test_refresh_ical_final_schedule_cancel_deleted_events(
     make_organization,
     make_user_for_organization,
