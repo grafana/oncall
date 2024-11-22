@@ -39,7 +39,7 @@ class SlackMessage(models.Model):
     """
 
     channel = models.ForeignKey(
-        "slack.SlackChannel", on_delete=models.CASCADE, null=True, default=None, related_name="slack_message"
+        "slack.SlackChannel", on_delete=models.CASCADE, null=True, default=None, related_name="slack_messages"
     )
     """
     TODO: once we've migrated the data in `_channel_id` to this field, set `null=False`
@@ -54,10 +54,10 @@ class SlackMessage(models.Model):
         related_name="slack_message",
     )
     """
-    DEPRECATED: this is no longer being referenced/set
-
     TODO: do we really need organization here? We now have a foreign key reference to channel, which has a foreign
     key reference to slack_team_identity, which has a foreign key reference to organization...
+
+    This can likely be dropped in a subsequent PR/release
     """
 
     _slack_team_identity = models.ForeignKey(
@@ -69,10 +69,10 @@ class SlackMessage(models.Model):
         db_column="slack_team_identity",
     )
     """
-    DEPRECATED: this is no longer being referenced/set
-
     TODO: drop this field in a separate PR/release
     since we now have a foreign key reference to channel, channel already has a reference to the team identity
+
+    This can likely be dropped in a subsequent PR/release
     """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)

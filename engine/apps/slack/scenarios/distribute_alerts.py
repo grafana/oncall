@@ -687,7 +687,6 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
         logger.debug(f"Started process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
         if log_record.type == AlertGroupLogRecord.TYPE_AUTO_UN_ACK:
-
             if log_record.author is not None:
                 user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
             else:
@@ -810,7 +809,9 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                                     "text": "Confirm",
                                     "type": "button",
                                     "style": "primary",
-                                    "value": make_value({"alert_group_pk": alert_group.pk}, alert_group.channel.organization),
+                                    "value": make_value(
+                                        {"alert_group_pk": alert_group.pk}, alert_group.channel.organization
+                                    ),
                                 },
                             ],
                         }

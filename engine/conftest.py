@@ -530,6 +530,7 @@ def make_slack_user_identity():
 def make_slack_message():
     def _make_slack_message(alert_group=None, **kwargs):
         return SlackMessageFactory(alert_group=alert_group, **kwargs)
+
     return _make_slack_message
 
 

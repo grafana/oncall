@@ -14,7 +14,6 @@ from apps.alerts.tasks.delete_alert_group import (
 )
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIMessageNotFoundError, SlackAPIRatelimitError
-from apps.slack.models import SlackMessage
 from apps.slack.tests.conftest import build_slack_response
 
 
