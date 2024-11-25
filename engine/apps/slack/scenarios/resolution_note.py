@@ -92,10 +92,13 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             return
 
         try:
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
                 organization__slack_team_identity=slack_team_identity,
-                channel__slack_id=channel_id,
+                _channel_id=channel_id,
+                # channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             if settings.UNIFIED_SLACK_APP_ENABLED:
@@ -161,10 +164,14 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                     slack_channel = SlackChannel.objects.get(
                         slack_id=channel_id, slack_team_identity=slack_team_identity
                     )
+
+                    # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                    # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
                     slack_message = SlackMessage.objects.get(
                         slack_id=thread_ts,
                         organization__slack_team_identity=slack_team_identity,
-                        channel__slack_id=channel_id,
+                        # channel__slack_id=channel_id,
+                        _channel_id=channel_id,
                     )
                     alert_group = slack_message.alert_group
 
