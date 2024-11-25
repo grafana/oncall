@@ -531,11 +531,10 @@ def make_slack_message():
     def _make_slack_message(alert_group=None, organization=None, **kwargs):
         organization = organization or alert_group.channel.organization
 
-        # TODO: remove organization and _slack_team_identity once we migrate this
+        # TODO: remove organization once we migrate that column
         return SlackMessageFactory(
             alert_group=alert_group,
             organization=organization,
-            _slack_team_identity=organization.slack_team_identity,
             **kwargs,
         )
 

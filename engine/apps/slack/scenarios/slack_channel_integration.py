@@ -66,13 +66,13 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         else:
             message_ts = payload["event"]["ts"]
 
-        print("Inside save_thread_message_for_resolution_note", pprint.pformat(payload))
+        print("Inside save_thread_message_for_resolution_note", pprint.pformat(payload), self.slack_team_identity, 'yoyoyoyo')
 
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=thread_ts,
+                channel__slack_team_identity=self.slack_team_identity,
                 channel__slack_id=channel_id,
-                _slack_team_identity=self.slack_team_identity,
             )
         except SlackMessage.DoesNotExist:
             return

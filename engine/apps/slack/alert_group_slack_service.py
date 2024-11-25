@@ -93,10 +93,9 @@ class AlertGroupSlackService:
         ):
             return
 
-        # TODO: once organization and _slack_team_identity are migrated, remove them here
+        # TODO: once organization has been migrated, remove it here
         alert_group.slack_messages.create(
             slack_id=result["ts"],
             organization=alert_group.channel.organization,
-            _slack_team_identity=self.slack_team_identity,
             channel=slack_message.channel,
         )

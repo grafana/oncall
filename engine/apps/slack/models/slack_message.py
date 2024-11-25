@@ -35,7 +35,7 @@ class SlackMessage(models.Model):
 
     _channel_id = models.CharField(max_length=100, null=True, default=None)
     """
-    DEPRECATED: this is no longer being referenced/set, drop in a separate PR/release
+    DEPRECATED/TODO: this is no longer being referenced/set, drop in a separate PR/release
     """
 
     channel = models.ForeignKey(
@@ -69,10 +69,10 @@ class SlackMessage(models.Model):
         db_column="slack_team_identity",
     )
     """
-    TODO: drop this field in a separate PR/release
-    since we now have a foreign key reference to channel, channel already has a reference to the team identity
+    DEPRECATED/TODO: drop this field in a separate PR/release
 
-    This can likely be dropped in a subsequent PR/release
+    it is no longer being set or referenced (we are only referencing SlackMessage.slack_team_identity
+    which is just a pointer to the slack message's channel's slack team identity)
     """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
@@ -219,11 +219,10 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            # TODO: once organization _slack_team_identity are migrated, remove them here
+            # TODO: once organization has been migrated, remove it here
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=self.organization,
-                _slack_team_identity=self.slack_team_identity,
                 channel=slack_channel,
             )
 

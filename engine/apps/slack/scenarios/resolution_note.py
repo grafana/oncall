@@ -97,7 +97,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
-                _slack_team_identity=slack_team_identity,
+                channel__slack_team_identity=slack_team_identity,
                 channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
@@ -168,7 +168,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                     )
                     slack_message = SlackMessage.objects.get(
                         slack_id=thread_ts,
-                        _slack_team_identity=slack_team_identity,
+                        channel__slack_team_identity=slack_team_identity,
                         channel__slack_id=channel_id,
                     )
                     alert_group = slack_message.alert_group
