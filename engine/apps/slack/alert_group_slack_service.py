@@ -39,7 +39,7 @@ class AlertGroupSlackService:
 
         try:
             self._slack_client.chat_update(
-                channel=alert_group.slack_message.channel_slack_id,
+                channel=alert_group.slack_message.channel.slack_id,
                 ts=alert_group.slack_message.slack_id,
                 attachments=alert_group.render_slack_attachments(),
                 blocks=alert_group.render_slack_blocks(),
@@ -78,7 +78,7 @@ class AlertGroupSlackService:
 
         try:
             result = self._slack_client.chat_postMessage(
-                channel=slack_message.channel_slack_id,
+                channel=slack_message.channel.slack_id,
                 text=text,
                 attachments=attachments,
                 thread_ts=slack_message.slack_id,

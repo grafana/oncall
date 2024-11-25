@@ -18,7 +18,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
 
         user = log_record.author
         alert_group = log_record.alert_group
-        slack_channel_id = alert_group.slack_message.channel_slack_id
+        slack_channel_id = alert_group.slack_message.channel.slack_id
 
         user_verbal_with_mention = user.get_username_with_slack_verbal(mention=True)
 

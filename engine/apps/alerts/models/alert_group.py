@@ -1983,7 +1983,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         if not self.channel.organization.slack_team_identity:
             return None
         elif self.slack_message:
-            return self.slack_message.channel_slack_id
+            return self.slack_message.channel.slack_id
         elif self.channel_filter:
             return self.channel_filter.slack_channel_id_or_org_default_id
         return None

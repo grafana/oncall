@@ -186,7 +186,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
             return
 
         self._slack_client.chat_postMessage(
-            channel=shift_swap_request.slack_message.channel_slack_id,
+            channel=shift_swap_request.slack_message.channel.slack_id,
             thread_ts=shift_swap_request.slack_message.slack_id,
             reply_broadcast=reply_broadcast,
             blocks=blocks,
