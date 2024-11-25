@@ -119,12 +119,24 @@ class SlackMessage(models.Model):
     def deep_link(self) -> str:
         return f"https://slack.com/app_redirect?channel={self.channel.slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
-    def send_slack_notification(self, user: "User", notification_policy: "UserNotificationPolicy") -> None:
+    @classmethod
+    def send_slack_notification(
+        cls, alert_group: "AlertGroup", user: "User", notification_policy: "UserNotificationPolicy"
+    ) -> None:
+        """
+        NOTE: the reason why we pass in `alert_group` as an argument here, as opposed to just doing
+        `self.alert_group`, is that it "looks like" we may have a race condition occuring between two celery tasks:
+        - one which sends out the initial slack message
+        - one which notifies the user (this method) inside of the above slack message's thread
+
+        Still some more investigation needed to confirm this, but for now, we'll pass in the `alert_group` as an argument
+        """
+
         from apps.base.models import UserNotificationPolicyLogRecord
 
-        alert_group = self.alert_group
         slack_message = alert_group.slack_message
         slack_channel = slack_message.channel
+        organization = alert_group.channel.organization
         channel_id = slack_channel.slack_id
 
         user_verbal = user.get_username_with_slack_verbal(mention=True)
@@ -161,7 +173,7 @@ class SlackMessage(models.Model):
             }
         ]
 
-        sc = SlackClient(self.slack_team_identity, enable_ratelimit_retry=True)
+        sc = SlackClient(organization.slack_team_identity, enable_ratelimit_retry=True)
 
         try:
             result = sc.chat_postMessage(
@@ -212,7 +224,7 @@ class SlackMessage(models.Model):
             # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
-                organization=self.organization,
+                organization=organization,
                 _channel_id=slack_channel.slack_id,
                 channel=slack_channel,
             )

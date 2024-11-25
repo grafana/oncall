@@ -69,7 +69,7 @@ class AlertGroupActionsMixin:
             slack_id=message_id,
             organization=alert_group.channel.organization,
             _channel_id=slack_channel.slack_id,
-            # channel=slack_channel,
+            channel=slack_channel,
             alert_group=alert_group,
         )
 
