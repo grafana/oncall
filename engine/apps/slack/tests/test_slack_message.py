@@ -54,7 +54,7 @@ def test_slack_message_deep_link(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
+    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     expected = (
         f"https://slack.com/app_redirect?channel={slack_channel.slack_id}"

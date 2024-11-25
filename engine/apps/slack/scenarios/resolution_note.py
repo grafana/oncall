@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import pprint
 import typing
 
 from django.conf import settings
@@ -91,17 +92,22 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             self.open_warning_window(payload, warning_text)
             return
 
+        print("inside AddToResolutionNoteStep", channel_id, pprint.pformat(payload), slack_team_identity)
+
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
                 _slack_team_identity=slack_team_identity,
-                channel_id=channel_id,
+                channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             if settings.UNIFIED_SLACK_APP_ENABLED:
                 # Message shortcut events are broadcasted to multiple regions by chatops-proxy
                 # Don't open a warning window as this event could be handled by another region
                 return
+
+            print("inside AddToResolutionNoteStep, SlackMessage.DoesNotExist")
+
             self.open_warning_window(payload, warning_text)
             return
 
@@ -163,7 +169,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                     slack_message = SlackMessage.objects.get(
                         slack_id=thread_ts,
                         _slack_team_identity=slack_team_identity,
-                        channel_id=channel_id,
+                        channel__slack_id=channel_id,
                     )
                     alert_group = slack_message.alert_group
 

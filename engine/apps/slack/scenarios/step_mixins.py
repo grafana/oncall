@@ -181,6 +181,6 @@ class AlertGroupActionsMixin:
         slack_message = SlackMessage.objects.get(
             slack_id=message_ts,
             _slack_team_identity=slack_team_identity,
-            channel_id=channel_id,
+            channel__slack_id=channel_id,
         )
         return slack_message.alert_group
