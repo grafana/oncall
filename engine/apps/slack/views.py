@@ -520,7 +520,7 @@ class SlackEventApiEndpointView(APIView):
             # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             slack_message = SlackMessage.objects.get(
                 slack_id=message_ts,
-                channel__slack_team_identity=slack_team_identity,
+                organization__slack_team_identity=slack_team_identity,
                 _channel_id=channel_id,
                 # channel__slack_id=channel_id,
             )

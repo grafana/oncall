@@ -65,7 +65,7 @@ class SlackMessage(models.Model):
     """
     DEPRECATED/TODO: drop this field in a separate PR/release
 
-    Instead of using this column we can simply do self.slack_team_identity.organization
+    Instead of using this column, we can simply do self.organization.slack_team_identity
     """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
