@@ -92,8 +92,6 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             self.open_warning_window(payload, warning_text)
             return
 
-        print("inside AddToResolutionNoteStep", channel_id, pprint.pformat(payload), slack_team_identity)
-
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
@@ -105,8 +103,6 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 # Message shortcut events are broadcasted to multiple regions by chatops-proxy
                 # Don't open a warning window as this event could be handled by another region
                 return
-
-            print("inside AddToResolutionNoteStep, SlackMessage.DoesNotExist")
 
             self.open_warning_window(payload, warning_text)
             return
