@@ -11,10 +11,13 @@ from apps.slack.scenarios import shift_swap_requests as scenarios
 
 
 @pytest.fixture
-def setup(make_organization_and_user_with_slack_identities, shift_swap_request_setup):
+def setup(make_organization_and_user_with_slack_identities, make_slack_channel, shift_swap_request_setup):
     def _setup(**kwargs):
         organization, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
         ssr, beneficiary, benefactor = shift_swap_request_setup(**kwargs)
+
+        ssr.schedule.slack_channel = make_slack_channel(slack_team_identity)
+        ssr.schedule.save()
 
         organization = ssr.organization
         organization.slack_team_identity = slack_team_identity

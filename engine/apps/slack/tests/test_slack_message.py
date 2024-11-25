@@ -11,19 +11,19 @@ from apps.slack.tests.conftest import build_slack_response
 
 @pytest.fixture
 def slack_message_setup(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_slack_message
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_channel,
+    make_slack_message,
 ):
     def _slack_message_setup(cached_permalink):
-        (
-            organization,
-            user,
-            slack_team_identity,
-            slack_user_identity,
-        ) = make_organization_and_user_with_slack_identities()
+        organization, _, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
+        slack_channel = make_slack_channel(slack_team_identity)
 
-        return make_slack_message(alert_group, cached_permalink=cached_permalink)
+        return make_slack_message(alert_group, channel=slack_channel, cached_permalink=cached_permalink)
 
     return _slack_message_setup
 

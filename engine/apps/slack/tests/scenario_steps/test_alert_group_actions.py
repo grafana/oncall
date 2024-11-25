@@ -86,7 +86,12 @@ def _get_payload(action_type="button", **kwargs):
 @pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
 @pytest.mark.django_db
 def test_alert_group_actions_unauthorized(
-    step_class, make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, role
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_channel,
+    step_class,
+    role,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(
         role=role
@@ -95,6 +100,8 @@ def test_alert_group_actions_unauthorized(
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
 
+    slack_channel = make_slack_channel(slack_team_identity)
+
     payload = {
         "actions": [
             {
@@ -102,7 +109,7 @@ def test_alert_group_actions_unauthorized(
                 "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
             }
         ],
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "channel": {"id": slack_channel.slack_id},
         "message": {"ts": "RANDOM_MESSAGE_TS"},
         "trigger_id": "RANDOM_TRIGGER_ID",
     }
@@ -117,12 +124,17 @@ def test_alert_group_actions_unauthorized(
 
 @pytest.mark.django_db
 def test_get_alert_group_button(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_channel,
 ):
     organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
+
+    slack_channel = make_slack_channel(slack_team_identity)
 
     payload = {
         "actions": [
@@ -131,7 +143,7 @@ def test_get_alert_group_button(
                 "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
             }
         ],
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "channel": {"id": slack_channel.slack_id},
         "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
@@ -145,12 +157,17 @@ def test_get_alert_group_button(
 
 @pytest.mark.django_db
 def test_get_alert_group_static_select(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_channel,
 ):
     organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
+
+    slack_channel = make_slack_channel(slack_team_identity)
 
     payload = {
         "actions": [
@@ -161,7 +178,7 @@ def test_get_alert_group_static_select(
                 },
             }
         ],
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "channel": {"id": slack_channel.slack_id},
         "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
@@ -175,12 +192,17 @@ def test_get_alert_group_static_select(
 
 @pytest.mark.django_db
 def test_get_alert_group_from_message(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_channel,
 ):
     organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
+
+    slack_channel = make_slack_channel(slack_team_identity)
 
     payload = {
         "actions": [
@@ -207,7 +229,7 @@ def test_get_alert_group_from_message(
                 }
             ],
         },
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "channel": {"id": slack_channel.slack_id},
     }
 
     step = TestScenario(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -823,6 +845,7 @@ def test_step_resolution_note(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
 
@@ -830,7 +853,9 @@ def test_step_resolution_note(
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group, raw_request_data={})
 
-    channel_id = "RANDOM_CHANNEL_ID"
+    slack_channel = make_slack_channel(slack_team_identity)
+    channel_id = slack_channel.slack_id
+
     payload = {
         "trigger_id": "RANDOM_TRIGGER_ID",
         "actions": [

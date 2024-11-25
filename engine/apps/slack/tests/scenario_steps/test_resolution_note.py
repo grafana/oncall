@@ -418,6 +418,7 @@ def test_add_to_resolution_note_deleted_org(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
     make_slack_message,
     make_organization,
     make_user_for_organization,
@@ -429,7 +430,9 @@ def test_add_to_resolution_note_deleted_org(
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
-    slack_message = make_slack_message(alert_group=alert_group)
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
     organization.delete()
 
     other_organization = make_organization(slack_team_identity=slack_team_identity)
