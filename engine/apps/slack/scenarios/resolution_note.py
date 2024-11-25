@@ -1,7 +1,6 @@
 import datetime
 import json
 import logging
-import pprint
 import typing
 
 from django.conf import settings

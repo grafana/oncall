@@ -1,5 +1,4 @@
 import logging
-import pprint
 import typing
 
 from apps.slack.scenarios import scenario_step
