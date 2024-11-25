@@ -53,12 +53,6 @@ class SlackMessage(models.Model):
         default=None,
         related_name="slack_message",
     )
-    """
-    TODO: do we really need organization here? We now have a foreign key reference to channel, which has a foreign
-    key reference to slack_team_identity, which has a foreign key reference to organization...
-
-    This can likely be dropped in a subsequent PR/release
-    """
 
     _slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity",
@@ -71,8 +65,7 @@ class SlackMessage(models.Model):
     """
     DEPRECATED/TODO: drop this field in a separate PR/release
 
-    it is no longer being set or referenced (we are only referencing SlackMessage.slack_team_identity
-    which is just a pointer to the slack message's channel's slack team identity)
+    Instead of using this column we can simply do self.slack_team_identity.organization
     """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
@@ -102,7 +95,7 @@ class SlackMessage(models.Model):
 
     @property
     def slack_team_identity(self):
-        return self.channel.slack_team_identity
+        return self.organization.slack_team_identity
 
     @property
     def permalink(self) -> typing.Optional[str]:
@@ -215,10 +208,12 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            # TODO: once organization has been migrated, remove it here
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=self.organization,
+                _channel_id=slack_channel.slack_id,
                 channel=slack_channel,
             )
 

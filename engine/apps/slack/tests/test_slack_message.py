@@ -23,7 +23,7 @@ def slack_message_setup(
         alert_group = make_alert_group(integration)
         slack_channel = make_slack_channel(slack_team_identity)
 
-        return make_slack_message(alert_group, channel=slack_channel, cached_permalink=cached_permalink)
+        return make_slack_message(alert_group=alert_group, channel=slack_channel, cached_permalink=cached_permalink)
 
     return _slack_message_setup
 

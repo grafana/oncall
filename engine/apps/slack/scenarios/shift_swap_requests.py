@@ -161,11 +161,12 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
             blocks=self._generate_blocks(shift_swap_request),
         )
 
-        # TODO: once organization and _slack_team_identity are migrated, remove them here
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         return SlackMessage.objects.create(
             slack_id=result["ts"],
             organization=self.organization,
-            _slack_team_identity=self.slack_team_identity,
+            _channel_id=shift_swap_request.slack_channel_id,
             channel=shift_swap_request.slack_channel,
         )
 

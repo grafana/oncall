@@ -66,10 +66,13 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             message_ts = payload["event"]["ts"]
 
         try:
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             slack_message = SlackMessage.objects.get(
                 slack_id=thread_ts,
-                channel__slack_team_identity=self.slack_team_identity,
-                channel__slack_id=channel_id,
+                organization__slack_team_identity=self.slack_team_identity,
+                _channel_id=channel_id,
+                # channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             return

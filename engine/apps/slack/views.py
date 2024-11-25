@@ -516,10 +516,13 @@ class SlackEventApiEndpointView(APIView):
             return None
 
         try:
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             slack_message = SlackMessage.objects.get(
                 slack_id=message_ts,
                 channel__slack_team_identity=slack_team_identity,
-                channel__slack_id=channel_id,
+                _channel_id=channel_id,
+                # channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             return None

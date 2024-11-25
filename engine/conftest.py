@@ -528,13 +528,14 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(alert_group=None, organization=None, **kwargs):
-        organization = organization or alert_group.channel.organization
-
-        # TODO: remove organization once we migrate that column
+    def _make_slack_message(channel, alert_group=None, organization=None, **kwargs):
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         return SlackMessageFactory(
             alert_group=alert_group,
-            organization=organization,
+            organization=organization or alert_group.channel.organization,
+            _channel_id=channel.slack_id,
+            channel=channel,
             **kwargs,
         )
 

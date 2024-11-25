@@ -234,7 +234,7 @@ class TestSlackChannelMessageEventStep:
         thread_ts = 16789.123
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(alert_group, slack_id=thread_ts, channel=slack_channel)
+        make_slack_message(alert_group=alert_group, slack_id=thread_ts, channel=slack_channel)
 
         mock_permalink = "http://example.com"
 
@@ -288,7 +288,7 @@ class TestSlackChannelMessageEventStep:
         thread_ts = 16789.123
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(alert_group, slack_id=thread_ts, channel=slack_channel)
+        make_slack_message(alert_group=alert_group, slack_id=thread_ts, channel=slack_channel)
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step._slack_client = Mock()
@@ -339,7 +339,7 @@ class TestSlackChannelMessageEventStep:
         thread_ts = 16789.123
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(alert_group, slack_id=thread_ts, channel=slack_channel)
+        make_slack_message(alert_group=alert_group, slack_id=thread_ts, channel=slack_channel)
 
         resolution_note_slack_message = None
         if resolution_note_slack_message_already_exists:
