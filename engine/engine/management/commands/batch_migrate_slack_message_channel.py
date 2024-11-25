@@ -1,11 +1,12 @@
 import time
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
-from django.db.models import Min, Max
+from django.db.models import Max, Min
 
-from apps.slack.models import SlackMessage, SlackChannel
+from apps.slack.models import SlackChannel, SlackMessage
 from apps.user_management.models import Organization
-from datetime import timedelta
 
 
 class Command(BaseCommand):
@@ -19,7 +20,7 @@ class Command(BaseCommand):
         qs = SlackMessage.objects.filter(
             _channel_id__isnull=False,  # old column
             organization__isnull=False,
-            channel_id__isnull=True,    # new column
+            channel_id__isnull=True,  # new column
         )
 
         total_records = qs.count()
@@ -27,8 +28,8 @@ class Command(BaseCommand):
             self.stdout.write("No records to update.")
             return
 
-        min_created_at = qs.aggregate(Min('created_at'))['created_at__min']
-        max_created_at = qs.aggregate(Max('created_at'))['created_at__max']
+        min_created_at = qs.aggregate(Min("created_at"))["created_at__min"]
+        max_created_at = qs.aggregate(Max("created_at"))["created_at__max"]
 
         self.stdout.write(f"Total records to update: {total_records}")
         self.stdout.write(f"Created_at range: {min_created_at} to {max_created_at}")
@@ -86,19 +87,13 @@ class Command(BaseCommand):
                         batch_records_updated = cursor.rowcount
                         records_updated += batch_records_updated
 
-                self.stdout.write(
-                    f"Batch {batch_number}/{total_batches}: Updated {batch_records_updated} records"
-                )
+                self.stdout.write(f"Batch {batch_number}/{total_batches}: Updated {batch_records_updated} records")
             except Exception as e:
-                self.stderr.write(
-                    f"Error updating batch {batch_number}: {e}"
-                )
+                self.stderr.write(f"Error updating batch {batch_number}: {e}")
                 # Optionally, decide whether to continue or abort
                 continue
 
         end_time = time.time()
         total_time = end_time - start_time
-        self.stdout.write(
-            f"Batch update completed successfully. Total records updated: {records_updated}"
-        )
+        self.stdout.write(f"Batch update completed successfully. Total records updated: {records_updated}")
         self.stdout.write(f"Total time taken: {total_time:.2f} seconds")
