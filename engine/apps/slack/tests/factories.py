@@ -41,7 +41,6 @@ class SlackChannelFactory(factory.DjangoModelFactory):
 
 class SlackMessageFactory(factory.DjangoModelFactory):
     slack_id = UniqueFaker("sentence", nb_words=3)
-    channel_id = factory.Faker("word")
 
     class Meta:
         model = SlackMessage

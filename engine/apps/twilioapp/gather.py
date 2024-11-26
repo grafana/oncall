@@ -24,16 +24,22 @@ def process_gather_data(call_sid: str, digit: str) -> VoiceResponse:
 
     response = VoiceResponse()
 
+    success_messages = {
+        "1": "Acknowledged",
+        "2": "Resolved",
+        "3": "Silenced",
+    }
     if digit in ["1", "2", "3"]:
         # Success case
-        response.say(f"You have pressed digit {digit}")
+        msg = success_messages.get(digit, f"You have pressed digit {digit}")
+        response.say(msg)
         process_digit(call_sid, digit)
     else:
         # Error wrong digit pressing
         gather = Gather(action=get_gather_url(), method="POST", num_digits=1)
 
         response.say("Wrong digit")
-        gather.say(get_gather_message())
+        gather.say(get_alert_group_gather_instructions())
 
         response.append(gather)
 
@@ -85,5 +91,5 @@ def get_gather_url():
     return create_engine_url(reverse("twilioapp:gather"))
 
 
-def get_gather_message():
-    return "Press 1 to acknowledge, 2 to resolve, 3 to silence to 30 minutes"
+def get_alert_group_gather_instructions():
+    return "Press 1 to acknowledge, 2 to resolve, 3 to silence for 30 minutes"

@@ -6,6 +6,7 @@ from django.db.models import F, Q
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
+from twilio.twiml.voice_response import Gather, Say, VoiceResponse
 
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
@@ -16,7 +17,7 @@ from apps.phone_notifications.exceptions import (
     FailedToStartVerification,
 )
 from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
-from apps.twilioapp.gather import get_gather_message, get_gather_url
+from apps.twilioapp.gather import get_alert_group_gather_instructions, get_gather_url
 from apps.twilioapp.models import (
     TwilioCallStatuses,
     TwilioPhoneCall,
@@ -34,13 +35,13 @@ class TwilioPhoneProvider(PhoneProvider):
     def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall | None:
         message = self._escape_call_message(message)
 
-        twiml_query = self._message_to_twiml(message, with_gather=True)
+        twiml = self._message_to_twiml_gather(message)
 
         response = None
         try_without_callback = False
 
         try:
-            response = self._call_create(twiml_query, number, with_callback=True)
+            response = self._call_create(twiml, number, with_callback=True)
         except TwilioRestException as e:
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
@@ -53,7 +54,7 @@ class TwilioPhoneProvider(PhoneProvider):
 
         if try_without_callback:
             try:
-                response = self._call_create(twiml_query, number, with_callback=False)
+                response = self._call_create(twiml, number, with_callback=False)
             except TwilioRestException as e:
                 logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
                 raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(e, number))
@@ -146,9 +147,9 @@ class TwilioPhoneProvider(PhoneProvider):
         return None
 
     def make_call(self, number: str, message: str):
-        twiml_query = self._message_to_twiml(message, with_gather=False)
+        twiml = self._message_to_twiml_say(message)
         try:
-            self._call_create(twiml_query, number, with_callback=False)
+            self._call_create(twiml, number, with_callback=False)
         except TwilioRestException as e:
             logger.error(f"TwilioPhoneProvider.make_call: failed {e}")
             raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(e, number))
@@ -160,18 +161,25 @@ class TwilioPhoneProvider(PhoneProvider):
             logger.error(f"TwilioPhoneProvider.send_sms: failed {e}")
             raise FailedToSendSMS(graceful_msg=self._get_graceful_msg(e, number))
 
-    def _message_to_twiml(self, message: str, with_gather=False):
-        q = f"<Response><Say>{message}</Say></Response>"
-        if with_gather:
-            gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
-            q = f"<Response><Say>{message}</Say>{gather_subquery}</Response>"
-        return urllib.parse.quote(
-            q,
-            safe="",
-        )
+    def _message_to_twiml_say(self, message: str) -> VoiceResponse:
+        response = VoiceResponse()
+        say = Say(message)
+        response.append(say)
+        return response
 
-    def _call_create(self, twiml_query: str, to: str, with_callback: bool):
+    def _message_to_twiml_gather(self, message: str) -> VoiceResponse:
+        response = VoiceResponse()
+        gather = Gather(action=get_gather_url(), method="POST", num_digits=1)
+        gather.say(message)
+        gather.pause(length=1)
+        gather.say(get_alert_group_gather_instructions())
+        response.append(gather)
+        return response
+
+    def _call_create(self, twiml: VoiceResponse, to: str, with_callback: bool):
         client, from_ = self._phone_sender(to)
+        # encode twiml VoiceResponse to use in url
+        twiml_query = urllib.parse.quote(str(twiml), safe="")
         url = "http://twimlets.com/echo?Twiml=" + twiml_query
         if with_callback:
             status_callback = get_call_status_callback_url()

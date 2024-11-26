@@ -153,9 +153,7 @@ def test_post_or_update_resolution_note_in_thread_truncate_message_text(
     alert_group = make_alert_group(alert_receive_channel)
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_channel_id = slack_channel.slack_id
-
-    make_slack_message(alert_group=alert_group, channel_id=slack_channel_id)
+    make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
 
@@ -191,9 +189,7 @@ def test_post_or_update_resolution_note_in_thread_update_truncate_message_text(
     alert_group = make_alert_group(alert_receive_channel)
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_channel_id = slack_channel.slack_id
-
-    make_slack_message(alert_group=alert_group, channel_id=slack_channel_id)
+    make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
     make_resolution_note_slack_message(
@@ -312,6 +308,7 @@ def test_resolution_notes_modal_closed_before_update(
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
+    make_slack_channel,
     make_slack_message,
 ):
     ResolutionNoteModalStep = ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
@@ -320,7 +317,9 @@ def test_resolution_notes_modal_closed_before_update(
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_slack_message(alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID")
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    make_slack_message(alert_group=alert_group, channel=slack_channel, slack_id="RANDOM_MESSAGE_ID")
 
     payload = {
         "trigger_id": "TEST",
@@ -366,12 +365,10 @@ def test_add_to_resolution_note(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_channel_id = slack_channel.slack_id
-
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel_id)
+    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     payload = {
-        "channel": {"id": slack_channel_id},
+        "channel": {"id": slack_channel.slack_id},
         "message_ts": "random_ts",
         "message": {
             "type": "message",
@@ -421,6 +418,7 @@ def test_add_to_resolution_note_deleted_org(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
     make_slack_message,
     make_organization,
     make_user_for_organization,
@@ -428,18 +426,20 @@ def test_add_to_resolution_note_deleted_org(
 ):
     settings.UNIFIED_SLACK_APP_ENABLED = True
 
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    organization, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
-    slack_message = make_slack_message(alert_group=alert_group)
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
     organization.delete()
 
     other_organization = make_organization(slack_team_identity=slack_team_identity)
     other_user = make_user_for_organization(organization=other_organization, slack_user_identity=slack_user_identity)
 
     payload = {
-        "channel": {"id": slack_message.channel_id},
+        "channel": {"id": slack_message.channel.slack_id},
         "message_ts": "random_ts",
         "message": {
             "type": "message",

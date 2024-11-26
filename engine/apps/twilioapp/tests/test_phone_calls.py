@@ -138,7 +138,7 @@ def test_acknowledge_by_phone(mock_has_permission, mock_get_gather_url, make_twi
     content = response.content.decode("utf-8")
 
     assert response.status_code == 200
-    assert "You have pressed digit 1" in content
+    assert "Acknowledged" in content
 
     alert_group.refresh_from_db()
     assert alert_group.acknowledged is True
@@ -173,7 +173,7 @@ def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_
     content = BeautifulSoup(content, features="xml").findAll(string=True)
 
     assert response.status_code == 200
-    assert "You have pressed digit 2" in content
+    assert "Resolved" in content
 
     alert_group.refresh_from_db()
     assert alert_group.resolved is True
@@ -207,7 +207,7 @@ def test_silence_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_
     content = response.content.decode("utf-8")
 
     assert response.status_code == 200
-    assert "You have pressed digit 3" in content
+    assert "Silenced" in content
 
     alert_group.refresh_from_db()
     assert alert_group.silenced_until is not None

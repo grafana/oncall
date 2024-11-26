@@ -3,7 +3,7 @@ import logging
 
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import user_is_authorized
-from apps.slack.models import SlackMessage, SlackTeamIdentity
+from apps.slack.models import SlackChannel, SlackMessage, SlackTeamIdentity
 from apps.slack.types import EventPayload
 
 logger = logging.getLogger(__name__)
@@ -44,24 +44,32 @@ class AlertGroupActionsMixin:
         )
 
     def _repair_alert_group(
-        self, slack_team_identity: SlackTeamIdentity, alert_group: AlertGroup, payload: EventPayload
+        self,
+        slack_team_identity: SlackTeamIdentity,
+        alert_group: AlertGroup,
+        payload: EventPayload,
     ) -> None:
         """
-        There's a possibility that OnCall failed to create a SlackMessage instance for an AlertGroup, but the message
-        was sent to Slack. This method creates SlackMessage instance for such orphaned messages.
+        There's a possibility that OnCall failed to create a `SlackMessage` instance for an `AlertGroup`,
+        but the message was sent to Slack. This method creates `SlackMessage` instance for such orphaned messages.
         """
-
-        channel_id = payload["channel"]["id"]
         try:
             message_id = payload["message"]["ts"]
         except KeyError:
             message_id = payload["original_message"]["ts"]
 
+        slack_channel = SlackChannel.objects.get(
+            slack_id=payload["channel"]["id"],
+            slack_team_identity=slack_team_identity,
+        )
+
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         SlackMessage.objects.create(
             slack_id=message_id,
             organization=alert_group.channel.organization,
-            _slack_team_identity=slack_team_identity,
-            channel_id=channel_id,
+            _channel_id=slack_channel.slack_id,
+            channel=slack_channel,
             alert_group=alert_group,
         )
 
@@ -171,9 +179,12 @@ class AlertGroupActionsMixin:
         logger.warning(f"alert_group_pk not found in payload, fetching SlackMessage from DB. message_ts: {message_ts}")
 
         # Get SlackMessage from DB
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         slack_message = SlackMessage.objects.get(
             slack_id=message_ts,
-            _slack_team_identity=slack_team_identity,
-            channel_id=channel_id,
+            organization__slack_team_identity=slack_team_identity,
+            _channel_id=channel_id,
+            # channel__slack_id=channel_id,
         )
         return slack_message.alert_group
