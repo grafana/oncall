@@ -1,4 +1,5 @@
 from apps.base.messaging import BaseMessagingBackend
+from apps.mattermost.tasks import notify_user_about_alert_async
 
 
 class MattermostBackend(BaseMessagingBackend):
@@ -21,3 +22,10 @@ class MattermostBackend(BaseMessagingBackend):
             "mattermost_user_id": mattermost_user.mattermost_user_id,
             "username": mattermost_user.username,
         }
+
+    def notify_user(self, user, alert_group, notification_policy):
+        notify_user_about_alert_async.delay(
+            user_pk=user.pk,
+            alert_group_pk=alert_group.pk,
+            notification_policy_pk=notification_policy.pk,
+        )

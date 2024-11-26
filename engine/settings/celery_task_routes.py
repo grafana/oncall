@@ -193,4 +193,5 @@ CELERY_TASK_ROUTES = {
     # MATTERMOST
     "apps.mattermost.tasks.on_create_alert_async": {"queue": "mattermost"},
     "apps.mattermost.tasks.on_alert_group_action_triggered_async": {"queue": "mattermost"},
+    "apps.mattermost.tasks.notify_user_about_alert_async": {"queue": "mattermost"},
 }
