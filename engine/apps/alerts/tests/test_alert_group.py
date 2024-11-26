@@ -152,11 +152,11 @@ def test_delete(
     # Check that appropriate Slack API calls are made
     assert mock_chat_delete.call_count == 2
     assert mock_chat_delete.call_args_list[0] == call(
-        channel=resolution_note_1.slack_channel_id, ts=resolution_note_1.ts
+        channel=resolution_note_1.slack_channel.slack_id, ts=resolution_note_1.ts
     )
     assert mock_chat_delete.call_args_list[1] == call(channel=slack_message.channel.slack_id, ts=slack_message.slack_id)
     mock_reactions_remove.assert_called_once_with(
-        channel=resolution_note_2.slack_channel_id, name="memo", timestamp=resolution_note_2.ts
+        channel=resolution_note_2.slack_channel.slack_id, name="memo", timestamp=resolution_note_2.ts
     )
 
 
