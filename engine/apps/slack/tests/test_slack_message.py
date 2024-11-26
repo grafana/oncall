@@ -55,7 +55,7 @@ def test_send_slack_notification(
 
     with patch("apps.slack.client.SlackClient.conversations_members") as mock_members:
         mock_members.return_value = {"members": [slack_user_identity.slack_id]}
-        slack_message.send_slack_notification(alert_group, user, notification_policy)
+        slack_message.send_slack_notification(user, alert_group, notification_policy)
 
     log_record = notification_policy.personal_log_records.last()
     assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS

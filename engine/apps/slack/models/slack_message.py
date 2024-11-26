@@ -121,7 +121,7 @@ class SlackMessage(models.Model):
 
     @classmethod
     def send_slack_notification(
-        cls, alert_group: "AlertGroup", user: "User", notification_policy: "UserNotificationPolicy"
+        cls, user: "User", alert_group: "AlertGroup", notification_policy: "UserNotificationPolicy"
     ) -> None:
         """
         NOTE: the reason why we pass in `alert_group` as an argument here, as opposed to just doing

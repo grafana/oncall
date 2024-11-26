@@ -539,7 +539,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
                 return
 
             if alert_group.slack_message:
-                alert_group.slack_message.send_slack_notification(alert_group, user, notification_policy)
+                alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
 
             # check how much time has passed since log record was created
