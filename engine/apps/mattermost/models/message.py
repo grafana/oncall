@@ -8,9 +8,14 @@ class MattermostMessage(models.Model):
     (
         ALERT_GROUP_MESSAGE,
         LOG_MESSAGE,
-    ) = range(2)
+        USER_NOTIFACTION_MESSAGE,
+    ) = range(3)
 
-    MATTERMOST_MESSAGE_CHOICES = ((ALERT_GROUP_MESSAGE, "Alert group message"), (LOG_MESSAGE, "Log message"))
+    MATTERMOST_MESSAGE_CHOICES = (
+        (ALERT_GROUP_MESSAGE, "Alert group message"),
+        (LOG_MESSAGE, "Log message"),
+        (USER_NOTIFACTION_MESSAGE, "User notifcation message"),
+    )
 
     post_id = models.CharField(max_length=100)
 
