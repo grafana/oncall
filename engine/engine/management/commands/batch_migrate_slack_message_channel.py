@@ -1,7 +1,9 @@
 import time
+
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
-from apps.slack.models import SlackMessage, SlackChannel
+
+from apps.slack.models import SlackChannel, SlackMessage
 from apps.user_management.models import Organization
 
 
@@ -19,8 +21,8 @@ class Command(BaseCommand):
         qs = SlackMessage.objects.filter(
             _channel_id__isnull=False,  # old column
             organization__isnull=False,
-            channel_id__isnull=True,    # new column
-        ).order_by('id')
+            channel_id__isnull=True,  # new column
+        ).order_by("id")
 
         total_records = qs.count()
         if total_records == 0:
@@ -51,12 +53,12 @@ class Command(BaseCommand):
             batch_qs = qs[:BATCH_SIZE]
 
             # collect the IDs to be updated
-            batch_ids = list(batch_qs.values_list('id', flat=True))
+            batch_ids = list(batch_qs.values_list("id", flat=True))
 
             if not batch_ids:
                 break  # No more records to process
 
-            placeholders = ', '.join(['%s'] * len(batch_ids))
+            placeholders = ", ".join(["%s"] * len(batch_ids))
             update_query = f"""
                 UPDATE
                     {SlackMessage._meta.db_table} AS sm
@@ -80,13 +82,9 @@ class Command(BaseCommand):
                         batch_records_updated = cursor.rowcount
                         records_updated += batch_records_updated
 
-                self.stdout.write(
-                    f"Batch {batch_number}/{total_batches}: Updated {batch_records_updated} records"
-                )
+                self.stdout.write(f"Batch {batch_number}/{total_batches}: Updated {batch_records_updated} records")
             except Exception as e:
-                self.stderr.write(
-                    f"Error updating batch {batch_number}: {e}"
-                )
+                self.stderr.write(f"Error updating batch {batch_number}: {e}")
                 # Optionally, decide whether to continue or abort
                 continue
 
@@ -97,7 +95,5 @@ class Command(BaseCommand):
 
         end_time = time.time()
         total_time = end_time - start_time
-        self.stdout.write(
-            f"Batch update completed successfully. Total records updated: {records_updated}"
-        )
+        self.stdout.write(f"Batch update completed successfully. Total records updated: {records_updated}")
         self.stdout.write(f"Total time taken: {total_time:.2f} seconds")
