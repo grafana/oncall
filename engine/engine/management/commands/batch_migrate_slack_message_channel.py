@@ -1,11 +1,7 @@
 import time
-from datetime import timedelta
-
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
-from django.db.models import Max, Min
-
-from apps.slack.models import SlackChannel, SlackMessage
+from apps.slack.models import SlackMessage, SlackChannel
 from apps.user_management.models import Organization
 
 
@@ -16,51 +12,51 @@ class Command(BaseCommand):
         start_time = time.time()
         self.stdout.write("Starting batch update of SlackMessage.channel_id...")
 
-        # Step 1: Determine the range of 'created_at' values to update
+        # Step 1: Determine the queryset to update
+        # qs is ordered by id to ensure consistent batching
+        # since id is indexed, this ordering operation "should" be more efficient (as opposed to say created_at
+        # which we don't have an index on)
         qs = SlackMessage.objects.filter(
             _channel_id__isnull=False,  # old column
             organization__isnull=False,
-            channel_id__isnull=True,  # new column
-        )
+            channel_id__isnull=True,    # new column
+        ).order_by('id')
 
         total_records = qs.count()
         if total_records == 0:
             self.stdout.write("No records to update.")
             return
 
-        min_created_at = qs.aggregate(Min("created_at"))["created_at__min"]
-        max_created_at = qs.aggregate(Max("created_at"))["created_at__max"]
-
         self.stdout.write(f"Total records to update: {total_records}")
-        self.stdout.write(f"Created_at range: {min_created_at} to {max_created_at}")
 
-        # Step 2: Define batch interval
-        BATCH_INTERVAL = timedelta(days=1)
-        self.stdout.write(f"Batch interval: {BATCH_INTERVAL}")
+        # some considerations here..
+        #
+        # Large IN clauses can be inefficient. Keep BATCH_SIZE reasonable (e.g., 1000)
+        # Fetching large batches of IDs consumes memory. With a BATCH_SIZE of 1000, this "should" be manageable
+        #
+        # references
+        # https://stackoverflow.com/a/5919165
+        BATCH_SIZE = 1000
 
-        # Step 3: Generate time ranges
-        batch_starts = []
-        current_start = min_created_at
-        while current_start <= max_created_at:
-            batch_starts.append(current_start)
-            current_start += BATCH_INTERVAL
-
-        total_batches = len(batch_starts)
+        total_batches = (total_records + BATCH_SIZE - 1) // BATCH_SIZE
+        self.stdout.write(f"Batch size: {BATCH_SIZE}")
         self.stdout.write(f"Total batches: {total_batches}")
 
         records_updated = 0
+        batch_number = 1
 
-        # Step 4: Process updates in time-based batches
-        for batch_number, batch_start in enumerate(batch_starts, start=1):
-            batch_end = batch_start + BATCH_INTERVAL
-            # Adjust the last batch's end time
-            if batch_end > max_created_at:
-                batch_end = max_created_at + timedelta(seconds=1)  # Include the max_created_at
+        # Process updates in batches
+        while True:
+            # Get the next batch of IDs
+            batch_qs = qs[:BATCH_SIZE]
 
-            self.stdout.write(
-                f"Batch {batch_number}/{total_batches}: Processing records from {batch_start} to {batch_end}"
-            )
+            # collect the IDs to be updated
+            batch_ids = list(batch_qs.values_list('id', flat=True))
 
+            if not batch_ids:
+                break  # No more records to process
+
+            placeholders = ', '.join(['%s'] * len(batch_ids))
             update_query = f"""
                 UPDATE
                     {SlackMessage._meta.db_table} AS sm
@@ -72,12 +68,9 @@ class Command(BaseCommand):
                 SET
                     sm.channel_id = sc.id
                 WHERE
-                    sm._channel_id IS NOT NULL
-                    AND sm.organization_id IS NOT NULL
-                    AND sm.channel_id IS NULL
-                    AND sm.created_at >= %s AND sm.created_at < %s
+                    sm.id IN ({placeholders})
             """
-            params = [batch_start, batch_end]
+            params = batch_ids
 
             try:
                 # Execute the update
@@ -87,13 +80,24 @@ class Command(BaseCommand):
                         batch_records_updated = cursor.rowcount
                         records_updated += batch_records_updated
 
-                self.stdout.write(f"Batch {batch_number}/{total_batches}: Updated {batch_records_updated} records")
+                self.stdout.write(
+                    f"Batch {batch_number}/{total_batches}: Updated {batch_records_updated} records"
+                )
             except Exception as e:
-                self.stderr.write(f"Error updating batch {batch_number}: {e}")
+                self.stderr.write(
+                    f"Error updating batch {batch_number}: {e}"
+                )
                 # Optionally, decide whether to continue or abort
                 continue
 
+            # Remove processed records from queryset for next batch
+            qs = qs.exclude(id__in=batch_ids)
+
+            batch_number += 1
+
         end_time = time.time()
         total_time = end_time - start_time
-        self.stdout.write(f"Batch update completed successfully. Total records updated: {records_updated}")
+        self.stdout.write(
+            f"Batch update completed successfully. Total records updated: {records_updated}"
+        )
         self.stdout.write(f"Total time taken: {total_time:.2f} seconds")
