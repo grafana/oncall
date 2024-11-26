@@ -24,6 +24,7 @@ def test_skip_escalations_error(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
     reason,
     slack_error,
 ):
@@ -33,16 +34,20 @@ def test_skip_escalations_error(
     alert_group = make_alert_group(alert_receive_channel)
     alert = make_alert(alert_group, raw_request_data="{}")
 
+    slack_channel = make_slack_channel(slack_team_identity)
+
     step = SlackAlertShootingStep(slack_team_identity)
 
     with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
         error_response = build_slack_response({"error": slack_error})
         error_class = get_error_class(error_response)
         mock_slack_api_call.side_effect = error_class(error_response)
-        channel_id = "channel-id"
+
+        channel = slack_channel
         if reason == AlertGroup.CHANNEL_NOT_SPECIFIED:
-            channel_id = None
-        step._post_alert_group_to_slack(slack_team_identity, alert_group, alert, None, channel_id, [])
+            channel = None
+
+        step._post_alert_group_to_slack(slack_team_identity, alert_group, alert, None, channel, [])
 
     alert_group.refresh_from_db()
     alert.refresh_from_db()
@@ -107,5 +112,4 @@ def test_alert_shooting_no_channel_filter(
     step = AlertShootingStep(slack_team_identity, organization)
     step.process_signal(alert)
 
-    mock_post_alert_group_to_slack.assert_called_once()
-    assert mock_post_alert_group_to_slack.call_args[1]["channel_id"] == "DEFAULT_CHANNEL_ID"
+    assert mock_post_alert_group_to_slack.call_args[1]["slack_channel"] == slack_channel

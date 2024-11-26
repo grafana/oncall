@@ -540,6 +540,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
             if alert_group.slack_message:
                 alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
+
             # check how much time has passed since log record was created
             # to prevent eternal loop of restarting perform_notification task
             elif timezone.now() < log_record.created_at + timezone.timedelta(hours=RETRY_TIMEOUT_HOURS):

@@ -232,19 +232,17 @@ def test_notify_user_perform_notification_skip_if_resolved(
 def test_perform_notification_reason_to_skip_escalation_in_slack(
     reason_to_skip_escalation,
     error_code,
-    make_organization,
-    make_slack_team_identity,
+    make_organization_with_slack_team_identity,
     make_user,
     make_user_notification_policy,
     make_alert_receive_channel,
     make_alert_group,
     make_user_notification_policy_log_record,
+    make_slack_channel,
     make_slack_message,
 ):
-    organization = make_organization()
-    slack_team_identity = make_slack_team_identity()
-    organization.slack_team_identity = slack_team_identity
-    organization.save()
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+
     user = make_user(organization=organization)
     user_notification_policy = make_user_notification_policy(
         user=user,
@@ -252,19 +250,26 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
         notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
     alert_receive_channel = make_alert_receive_channel(organization=organization)
-    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
-    alert_group.reason_to_skip_escalation = reason_to_skip_escalation
-    alert_group.save()
+
+    alert_group = make_alert_group(
+        alert_receive_channel=alert_receive_channel,
+        reason_to_skip_escalation=reason_to_skip_escalation,
+    )
+
     log_record = make_user_notification_policy_log_record(
         author=user,
         alert_group=alert_group,
         notification_policy=user_notification_policy,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
     )
+
     if not error_code:
-        make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+        slack_channel = make_slack_channel(slack_team_identity=slack_team_identity)
+        make_slack_message(alert_group=alert_group, channel=slack_channel)
+
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
         perform_notification(log_record.pk, False)
+
     last_log_record = UserNotificationPolicyLogRecord.objects.last()
 
     if error_code:
@@ -280,25 +285,24 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
 
 @pytest.mark.django_db
 def test_perform_notification_slack_prevent_posting(
-    make_organization,
-    make_slack_team_identity,
+    make_organization_with_slack_team_identity,
     make_user,
     make_user_notification_policy,
     make_alert_receive_channel,
     make_alert_group,
     make_user_notification_policy_log_record,
+    make_slack_channel,
     make_slack_message,
 ):
-    organization = make_organization()
-    slack_team_identity = make_slack_team_identity()
-    organization.slack_team_identity = slack_team_identity
-    organization.save()
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+
     user = make_user(organization=organization)
     user_notification_policy = make_user_notification_policy(
         user=user,
         step=UserNotificationPolicy.Step.NOTIFY,
         notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
+
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
     log_record = make_user_notification_policy_log_record(
@@ -308,7 +312,9 @@ def test_perform_notification_slack_prevent_posting(
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         slack_prevent_posting=True,
     )
-    make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+
+    slack_channel = make_slack_channel(slack_team_identity=slack_team_identity)
+    make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
         perform_notification(log_record.pk, False)

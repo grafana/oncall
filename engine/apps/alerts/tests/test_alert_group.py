@@ -14,7 +14,6 @@ from apps.alerts.tasks.delete_alert_group import (
 )
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIMessageNotFoundError, SlackAPIRatelimitError
-from apps.slack.models import SlackMessage
 from apps.slack.tests.conftest import build_slack_response
 
 
@@ -24,14 +23,15 @@ def test_render_for_phone_call(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
+    make_slack_message,
 ):
-    organization, _ = make_organization_with_slack_team_identity()
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
     alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
-    SlackMessage.objects.create(channel_id="CWER1ASD", alert_group=alert_group)
-
-    alert_group = make_alert_group(alert_receive_channel)
+    slack_channel = make_slack_channel(slack_team_identity)
+    make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     make_alert(
         alert_group,
@@ -105,7 +105,7 @@ def test_delete(
     make_alert(alert_group, raw_request_data={})
 
     # Create Slack messages
-    slack_message = make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel1)
     resolution_note_1 = make_resolution_note_slack_message(
         alert_group=alert_group,
         user=user,
@@ -154,7 +154,7 @@ def test_delete(
     assert mock_chat_delete.call_args_list[0] == call(
         channel=resolution_note_1.slack_channel_id, ts=resolution_note_1.ts
     )
-    assert mock_chat_delete.call_args_list[1] == call(channel=slack_message.channel_id, ts=slack_message.slack_id)
+    assert mock_chat_delete.call_args_list[1] == call(channel=slack_message.channel.slack_id, ts=slack_message.slack_id)
     mock_reactions_remove.assert_called_once_with(
         channel=resolution_note_2.slack_channel_id, name="memo", timestamp=resolution_note_2.ts
     )
@@ -188,7 +188,7 @@ def test_delete_slack_ratelimit(
     make_alert(alert_group, raw_request_data={})
 
     # Create Slack messages
-    make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    make_slack_message(alert_group=alert_group, channel=slack_channel1)
     make_resolution_note_slack_message(
         alert_group=alert_group,
         user=user,
@@ -259,7 +259,7 @@ def test_delete_slack_api_error_other_than_ratelimit(
     make_alert(alert_group, raw_request_data={})
 
     # Create Slack messages
-    make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    make_slack_message(alert_group=alert_group, channel=slack_channel1)
     make_resolution_note_slack_message(
         alert_group=alert_group,
         user=user,
