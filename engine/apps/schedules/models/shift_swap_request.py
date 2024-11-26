@@ -17,7 +17,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
     from apps.schedules.models.on_call_schedule import ScheduleEvents
-    from apps.slack.models import SlackMessage
+    from apps.slack.models import SlackChannel, SlackMessage
     from apps.user_management.models import Organization, User
 
 
@@ -164,7 +164,15 @@ class ShiftSwapRequest(models.Model):
         return self.Statuses.OPEN
 
     @property
-    def slack_channel_id(self) -> str | None:
+    def slack_channel(self) -> typing.Optional["SlackChannel"]:
+        """
+        This is only set if the schedule associated with the shift swap request
+        has a Slack channel configured for it.
+        """
+        return self.schedule.slack_channel
+
+    @property
+    def slack_channel_id(self) -> typing.Optional[str]:
         """
         This is only set if the schedule associated with the shift swap request
         has a Slack channel configured for it.

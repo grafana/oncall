@@ -42,12 +42,15 @@ def test_create_shift_swap_request_message_post_message_to_channel_called(
     schedule = ssr.schedule
     organization = schedule.organization
 
-    slack_message = make_slack_message(alert_group=None, organization=organization, slack_id="12345")
     slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_message = make_slack_message(
+        alert_group=None, channel=slack_channel, organization=organization, slack_id="12345"
+    )
 
     MockBaseShiftSwapRequestStep.return_value.create_message.return_value = slack_message
 
-    schedule.slack_channel = make_slack_channel(slack_team_identity)
+    schedule.slack_channel = slack_channel
     schedule.save()
 
     organization.slack_team_identity = slack_team_identity
