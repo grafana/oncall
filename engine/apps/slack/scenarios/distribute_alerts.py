@@ -870,7 +870,9 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
         # Remove "memo" emoji from resolution note messages
         for message in alert_group.resolution_note_slack_messages.filter(added_to_resolution_note=True):
             try:
-                self._slack_client.reactions_remove(channel=message.slack_channel_slack_id, name="memo", timestamp=message.ts)
+                self._slack_client.reactions_remove(
+                    channel=message.slack_channel_slack_id, name="memo", timestamp=message.ts
+                )
             except SlackAPIRatelimitError:
                 # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
                 raise

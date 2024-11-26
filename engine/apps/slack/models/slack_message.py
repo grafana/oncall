@@ -264,7 +264,7 @@ class SlackMessage(models.Model):
         except (SlackAPITokenError, SlackAPIMethodNotSupportedForChannelTypeError):
             pass
 
-    def update_alert_groups_message(self) -> None:
+    def update_alert_groups_message(self, bypass_debounce=False) -> None:
         """
         Schedule an update task for the associated alert group's Slack message, respecting the debounce interval.
 
@@ -279,6 +279,10 @@ class SlackMessage(models.Model):
         to respect the debounce interval.
         - Schedules the `update_alert_group_slack_message` task with the calculated countdown.
         - Stores the task ID in `active_update_task_id` to prevent multiple tasks from being scheduled.
+
+        bypass_debounce: bool - this is intended to be used when we want to force an update to the message, bypassing
+        the debounce mechanism. This is useful when we want to ensure that the message is updated immediately, such as
+        when a button is pressed, on the alert group Slack message.
         """
 
         if not self.alert_group:
@@ -286,7 +290,7 @@ class SlackMessage(models.Model):
                 f"skipping update_alert_groups_message as SlackMessage {self.pk} has no alert_group associated with it"
             )
             return
-        elif self.active_update_task_id:
+        elif not bypass_debounce and self.active_update_task_id:
             logger.info(
                 f"skipping update_alert_groups_message as SlackMessage {self.pk} has an active update task {self.active_update_task_id}"
             )
@@ -300,7 +304,7 @@ class SlackMessage(models.Model):
 
         time_since_last_update = (now - last_updated).total_seconds()
         remaining_time = self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS - int(time_since_last_update)
-        countdown = max(remaining_time, 10)
+        countdown = 0 if bypass_debounce else max(remaining_time, 10)
 
         logger.info(
             f"updating message for alert_group {self.alert_group.pk} in {countdown} seconds "
