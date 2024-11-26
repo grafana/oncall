@@ -107,7 +107,8 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE,
         ERROR_NOTIFICATION_FORMATTING_ERROR,
         ERROR_NOTIFICATION_IN_TELEGRAM_RATELIMIT,
-    ) = range(30)
+        ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST,
+    ) = range(31)
 
     # for this errors we want to send message to general log channel
     ERRORS_TO_SEND_IN_SLACK_CHANNEL = [
@@ -323,6 +324,11 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"failed to send push notification to {user_verbal} because user has no device set up"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORMATTING_ERROR:
                 result += f"failed to send message to {user_verbal} due to a formatting error"
+            elif (
+                self.notification_error_code
+                == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST
+            ):
+                result += f"failed to notify {user_verbal} in Mattermost, because {user_verbal} is not in Mattermost"
             else:
                 # TODO: handle specific backend errors
                 try:

@@ -14,3 +14,7 @@ class MattermostUser(models.Model):
         indexes = [
             models.Index(fields=["mattermost_user_id"]),
         ]
+
+    @property
+    def mention_username(self):
+        return f"@{self.username}"
