@@ -1674,8 +1674,8 @@ def test_alert_group_labels_put(
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
     label_1 = make_integration_label_association(organization, alert_receive_channel)
-    label_2 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
-    label_3 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
+    label_2 = make_integration_label_association(organization, alert_receive_channel)
+    label_3 = make_integration_label_association(organization, alert_receive_channel)
 
     custom = [
         # plain label
@@ -1714,7 +1714,7 @@ def test_alert_group_labels_put(
     assert response.status_code == status.HTTP_200_OK
     # check static labels were saved as integration labels
     assert response.json()["alert_group_labels"] == {
-        "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False, "hello": True},
+        "inheritable": {label_1.key_id: True, label_2.key_id: True, label_3.key_id: True, "hello": True},
         "custom": [
             {
                 "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
@@ -1782,7 +1782,7 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
         "template": "{{ payload.labels | tojson }}",
     }
     expected_alert_group_labels = {
-        "inheritable": {"test": False},
+        "inheritable": {"test": True},
         "custom": [
             {
                 "key": {"id": "test2", "name": "test2", "prescribed": False},
