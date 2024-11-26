@@ -186,8 +186,11 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         if not shift_swap_request.slack_message:
             return
 
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
         self._slack_client.chat_postMessage(
-            channel=shift_swap_request.slack_message.channel.slack_id,
+            # channel=shift_swap_request.slack_message.channel.slack_id,
+            channel=shift_swap_request.slack_message._channel_id,
             thread_ts=shift_swap_request.slack_message.slack_id,
             reply_broadcast=reply_broadcast,
             blocks=blocks,

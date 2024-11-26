@@ -477,7 +477,10 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             if slack_user_identity:
                 self._slack_client.chat_postEphemeral(
                     user=slack_user_identity.slack_id,
-                    channel=alert_group.slack_message.channel.slack_id,
+                    # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                    # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+                    # channel=alert_group.slack_message.channel.slack_id,
+                    channel=alert_group.slack_message._channel_id,
                     text="{}{}".format(ephemeral_text[:1].upper(), ephemeral_text[1:]),
                     unfurl_links=True,
                 )
@@ -717,7 +720,10 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
             if slack_message.ack_reminder_message_ts:
                 try:
                     self._slack_client.chat_update(
-                        channel=slack_message.channel.slack_id,
+                        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+                        # channel=slack_message.channel.slack_id,
+                        channel=slack_message._channel_id,
                         ts=slack_message.ack_reminder_message_ts,
                         text=text,
                         attachments=message_attachments,
@@ -864,7 +870,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
         # Remove "memo" emoji from resolution note messages
         for message in alert_group.resolution_note_slack_messages.filter(added_to_resolution_note=True):
             try:
-                self._slack_client.reactions_remove(channel=message.slack_channel_id, name="memo", timestamp=message.ts)
+                self._slack_client.reactions_remove(channel=message.slack_channel_slack_id, name="memo", timestamp=message.ts)
             except SlackAPIRatelimitError:
                 # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
                 raise
@@ -875,7 +881,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
         # Remove resolution note messages posted by OnCall bot
         for message in alert_group.resolution_note_slack_messages.filter(posted_by_bot=True):
             try:
-                self._slack_client.chat_delete(channel=message.slack_channel_id, ts=message.ts)
+                self._slack_client.chat_delete(channel=message.slack_channel_slack_id, ts=message.ts)
             except SlackAPIRatelimitError:
                 # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
                 raise
@@ -886,7 +892,13 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
         # Remove alert group Slack messages
         for message in alert_group.slack_messages.all():
             try:
-                self._slack_client.chat_delete(channel=message.channel.slack_id, ts=message.slack_id)
+                self._slack_client.chat_delete(
+                    # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                    # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+                    # channel=message.channel.slack_id,
+                    channel=message._channel_id,
+                    ts=message.slack_id,
+                )
             except SlackAPIRatelimitError:
                 # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
                 raise

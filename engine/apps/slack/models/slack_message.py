@@ -110,7 +110,11 @@ class SlackMessage(models.Model):
 
         try:
             result = SlackClient(self.slack_team_identity).chat_getPermalink(
-                channel=self.channel.slack_id, message_ts=self.slack_id
+                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+                # channel=self.channel.slack_id,
+                channel=self._channel_id,
+                message_ts=self.slack_id,
             )
         except SlackAPIError:
             return None
@@ -122,7 +126,9 @@ class SlackMessage(models.Model):
 
     @property
     def deep_link(self) -> str:
-        return f"https://slack.com/app_redirect?channel={self.channel.slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+        return f"https://slack.com/app_redirect?channel={self._channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
     @classmethod
     def send_slack_notification(

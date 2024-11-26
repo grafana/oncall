@@ -73,10 +73,12 @@ def test_slack_message_permalink_cache(mock_slack_api_call, slack_message_setup)
 @pytest.mark.django_db
 def test_slack_message_permalink_token_revoked(mock_slack_api_call, slack_message_setup):
     slack_message = slack_message_setup(cached_permalink=None)
-    slack_message._slack_team_identity.detected_token_revoked = timezone.now()
-    slack_message._slack_team_identity.save()
-    assert slack_message._slack_team_identity is not None
+    slack_message.slack_team_identity.detected_token_revoked = timezone.now()
+    slack_message.slack_team_identity.save()
+
+    assert slack_message.slack_team_identity is not None
     assert slack_message.permalink is None
+
     mock_slack_api_call.assert_not_called()
 
 
@@ -136,59 +138,6 @@ def test_slack_message_deep_link(
         f"&team={slack_team_identity.slack_id}&message={slack_message.slack_id}"
     )
     assert slack_message.deep_link == expected
-
-
-@patch.object(
-    SlackClient,
-    "chat_getPermalink",
-    return_value=build_slack_response({"ok": True, "permalink": "test_permalink"}),
-)
-@pytest.mark.django_db
-def test_slack_message_permalink(mock_slack_api_call, slack_message_setup):
-    slack_message = slack_message_setup(cached_permalink=None)
-    assert slack_message.permalink == "test_permalink"
-    mock_slack_api_call.assert_called_once()
-
-
-@patch.object(
-    SlackClient,
-    "chat_getPermalink",
-    side_effect=SlackAPIError(response=build_slack_response({"ok": False, "error": "message_not_found"})),
-)
-@pytest.mark.django_db
-def test_slack_message_permalink_error(mock_slack_api_call, slack_message_setup):
-    slack_message = slack_message_setup(cached_permalink=None)
-    assert slack_message.permalink is None
-    mock_slack_api_call.assert_called_once()
-
-
-@patch.object(
-    SlackClient,
-    "chat_getPermalink",
-    return_value=build_slack_response({"ok": True, "permalink": "test_permalink"}),
-)
-@pytest.mark.django_db
-def test_slack_message_permalink_cache(mock_slack_api_call, slack_message_setup):
-    slack_message = slack_message_setup(cached_permalink="cached_permalink")
-    assert slack_message.permalink == "cached_permalink"
-    mock_slack_api_call.assert_not_called()
-
-
-@patch.object(
-    SlackClient,
-    "chat_getPermalink",
-    return_value=build_slack_response({"ok": False, "error": "account_inactive"}),
-)
-@pytest.mark.django_db
-def test_slack_message_permalink_token_revoked(mock_slack_api_call, slack_message_setup):
-    slack_message = slack_message_setup(cached_permalink=None)
-    slack_message.slack_team_identity.detected_token_revoked = timezone.now()
-    slack_message.slack_team_identity.save()
-
-    assert slack_message.slack_team_identity is not None
-    assert slack_message.permalink is None
-
-    mock_slack_api_call.assert_not_called()
 
 
 class TestSlackMessageUpdateAlertGroupsMessage:
