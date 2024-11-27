@@ -45,7 +45,6 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
     Args:
         slack_message_pk (int): The primary key of the `SlackMessage` instance to update.
     """
-
     from apps.slack.models import SlackMessage
 
     current_task_id = update_alert_group_slack_message.request.id
@@ -76,7 +75,9 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         return
 
     slack_client = SlackClient(slack_message.slack_team_identity)
+
     alert_group_pk = alert_group.pk
+    alert_receive_channel = alert_group.channel
 
     try:
         slack_client.chat_update(
@@ -91,9 +92,9 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
 
         logger.info(f"Message has been updated for alert_group {alert_group_pk}")
     except SlackAPIRatelimitError as e:
-        if not alert_group.channel.is_maintenace_integration:
-            if not alert_group.channel.is_rate_limited_in_slack:
-                alert_group.channel.start_send_rate_limit_message_task("Updating", e.retry_after)
+        if not alert_receive_channel.is_maintenace_integration:
+            if not alert_receive_channel.is_rate_limited_in_slack:
+                alert_receive_channel.start_send_rate_limit_message_task("Updating", e.retry_after)
                 logger.info(f"Message has not been updated for alert_group {alert_group_pk} due to slack rate limit.")
         else:
             raise
