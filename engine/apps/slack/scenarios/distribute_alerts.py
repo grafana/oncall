@@ -740,7 +740,7 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
                     alert_group, attachments=message_attachments, text=text
                 )
 
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        slack_message.update_alert_groups_message()
         logger.debug(f"Finished process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
 
@@ -797,12 +797,14 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
         from apps.user_management.models import Organization
 
         alert_group = log_record.alert_group
-        slack_channel = alert_group.slack_message.channel
+        organization = alert_group.channel.organization
+        slack_message = alert_group.slack_message
+        slack_channel = slack_message.channel
 
         user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
         text = f"{user_verbal}, please confirm that you're still working on this Alert Group."
 
-        if alert_group.channel.organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
+        if organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
             try:
                 response = self._slack_client.chat_postMessage(
                     channel=slack_channel.slack_id,
@@ -824,14 +826,12 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                                     "text": "Confirm",
                                     "type": "button",
                                     "style": "primary",
-                                    "value": make_value(
-                                        {"alert_group_pk": alert_group.pk}, alert_group.channel.organization
-                                    ),
+                                    "value": make_value({"alert_group_pk": alert_group.pk}, organization),
                                 },
                             ],
                         }
                     ],
-                    thread_ts=alert_group.slack_message.slack_id,
+                    thread_ts=slack_message.slack_id,
                 )
             except (SlackAPITokenError, SlackAPIChannelArchivedError, SlackAPIChannelNotFoundError):
                 pass
@@ -840,13 +840,13 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
                 alert_group.slack_messages.create(
                     slack_id=response["ts"],
-                    organization=alert_group.channel.organization,
+                    organization=organization,
                     _channel_id=slack_channel.slack_id,
                     channel=slack_channel,
                 )
 
-                alert_group.slack_message.ack_reminder_message_ts = response["ts"]
-                alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
+                slack_message.ack_reminder_message_ts = response["ts"]
+                slack_message.save(update_fields=["ack_reminder_message_ts"])
         else:
             text = f"This is a reminder that the Alert Group is still acknowledged by {user_verbal}"
             self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)

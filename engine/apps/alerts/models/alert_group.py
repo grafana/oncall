@@ -1990,6 +1990,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_message(self) -> typing.Optional["SlackMessage"]:
+        """
+        `slack_message` property returns the first `SlackMessage` for the `AlertGroup`. This corresponds to the
+        Slack message representing the main message in Slack (ie. not a message in a thread).
+
+        This should not be confused with `slack_messages`, which is a related manager that returns all `SlackMessage`
+        instances for the `AlertGroup`.
+        """
         try:
             # prefetched_slack_messages could be set in apps.api.serializers.alert_group.AlertGroupListSerializer
             return self.prefetched_slack_messages[0] if self.prefetched_slack_messages else None

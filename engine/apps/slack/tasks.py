@@ -13,7 +13,11 @@ from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.client import SlackClient
 from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
+    SlackAPIChannelInactiveError,
+    SlackAPIChannelNotFoundError,
     SlackAPIInvalidAuthError,
+    SlackAPIMessageNotFoundError,
     SlackAPIPlanUpgradeRequiredError,
     SlackAPIRatelimitError,
     SlackAPITokenError,
@@ -35,7 +39,7 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
     This function is intended to be executed as a Celery task. It performs the following:
     - Compares the current task ID with the `active_update_task_id` stored in the `SlackMessage`.
       - If they do not match, it means a newer task has been scheduled, so the current task exits to prevent outdated updates.
-    - Uses the `AlertGroupSlackService` to perform the actual update of the Slack message.
+    - Does the actual update of the Slack message.
     - Upon successful completion, clears the `active_update_task_id` to allow future updates.
 
     Args:
@@ -71,7 +75,36 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         )
         return
 
-    AlertGroupSlackService(slack_message.slack_team_identity).update_alert_group_slack_message(alert_group)
+    slack_client = SlackClient(slack_message.slack_team_identity)
+    alert_group_pk = alert_group.pk
+
+    try:
+        slack_client.chat_update(
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+            # channel=slack_message.channel.slack_id,
+            channel=slack_message._channel_id,
+            ts=slack_message.slack_id,
+            attachments=alert_group.render_slack_attachments(),
+            blocks=alert_group.render_slack_blocks(),
+        )
+
+        logger.info(f"Message has been updated for alert_group {alert_group_pk}")
+    except SlackAPIRatelimitError as e:
+        if not alert_group.channel.is_maintenace_integration:
+            if not alert_group.channel.is_rate_limited_in_slack:
+                alert_group.channel.start_send_rate_limit_message_task("Updating", e.retry_after)
+                logger.info(f"Message has not been updated for alert_group {alert_group_pk} due to slack rate limit.")
+        else:
+            raise
+    except (
+        SlackAPIMessageNotFoundError,
+        SlackAPICantUpdateMessageError,
+        SlackAPIChannelInactiveError,
+        SlackAPITokenError,
+        SlackAPIChannelNotFoundError,
+    ):
+        pass
 
     slack_message.active_update_task_id = None
     slack_message.last_updated = timezone.now()
