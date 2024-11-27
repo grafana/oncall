@@ -62,6 +62,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         alert_group_pk = alert_group.pk
         alert_receive_channel = alert_group.channel
         slack_message_already_sent = alert_group.slack_message_sent
+        should_skip_escalation_in_slack = alert_group.skip_escalation_in_slack
 
         def _mark_alert_group_slack_message_as_sent(reason_to_skip_escalation=None):
             if not slack_message_already_sent:
@@ -79,9 +80,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
             return
 
         if not slack_message_already_sent:
-            # this will be the case in the event that we haven't created a Slack message for this alert group yet
-            # if a new alert comes in and is grouped to an existing alert group that has already been posted to Slack
-            # it is essentially a no-op
+            # this will be the case in the event that we haven't yet created a Slack message for this alert group
 
             slack_channel = (
                 alert_group.channel_filter.slack_channel
@@ -107,17 +106,25 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
             if alert_receive_channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE:
                 self._send_debug_mode_notice(alert_group, slack_channel)
 
-            if not alert_group.is_maintenance_incident and not alert_group.skip_escalation_in_slack:
+            if not alert_group.is_maintenance_incident and not should_skip_escalation_in_slack:
                 send_message_to_thread_if_bot_not_in_channel.apply_async(
                     (alert_group_pk, self.slack_team_identity.pk, slack_channel.slack_id),
                     countdown=1,  # delay for message so that the log report is published first
                 )
         else:
+            # if a new alert comes in, and is grouped to an existing alert group that has already been posted to Slack,
+            # then we will update that existing Slack message
+
             alert_group_slack_message = alert_group.slack_message
             if not alert_group_slack_message:
                 logger.info(
                     f"Skip updating alert group in Slack because alert_group {alert_group_pk} doesn't "
                     "have a slack message associated with it"
+                )
+                return
+            elif should_skip_escalation_in_slack:
+                logger.info(
+                    f"Skip updating alert group in Slack because alert_group {alert_group_pk} is set to skip escalation"
                 )
                 return
 
