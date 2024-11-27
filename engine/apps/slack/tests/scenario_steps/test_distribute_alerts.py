@@ -91,7 +91,7 @@ def test_timeout_error(
 
 @patch.object(IncomingAlertStep, "_post_alert_group_to_slack")
 @pytest.mark.django_db
-def test_create_alert_group_step_no_channel_filter(
+def test_incoming_alert_step_no_channel_filter(
     mock_post_alert_group_to_slack,
     make_slack_team_identity,
     make_slack_channel,
