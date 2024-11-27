@@ -674,7 +674,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         organization_id = user.organization_id if user else self.channel.organization_id
         logger.debug(f"Started acknowledge_by_user_or_backsync for alert_group {self.pk}")
 
-        # if incident was silenced or resolved, unsilence/unresolve it without starting escalation
+        # if alert group was silenced or resolved, unsilence/unresolve it without starting escalation
         if self.silenced:
             self.un_silence()
             self.log_records.create(
