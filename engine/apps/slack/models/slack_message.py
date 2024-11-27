@@ -33,7 +33,7 @@ class SlackMessage(models.Model):
     alert_group: typing.Optional["AlertGroup"]
     channel: "SlackChannel"
 
-    ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS = 45
+    ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS = 15
 
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
     slack_id = models.CharField(max_length=100)
@@ -284,6 +284,8 @@ class SlackMessage(models.Model):
         the debounce mechanism. This is useful when we want to ensure that the message is updated immediately, such as
         when a button is pressed, on the alert group Slack message.
         """
+
+        print(f"INSIDE update_alert_groups_message method bypass_debounce: {bypass_debounce} alert_group: {self.alert_group} active_update_task_id: {self.active_update_task_id}")
 
         if not self.alert_group:
             logger.warning(

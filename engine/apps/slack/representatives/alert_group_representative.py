@@ -43,8 +43,8 @@ def on_create_alert_slack_representative_async(alert_pk):
         logger.debug(
             f"Process on_create_alert_slack_representative for alert {alert_pk} from alert_group {alert.group_id}"
         )
-        AlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
-        step = AlertShootingStep(organization.slack_team_identity, organization)
+        CreateAlertGroupStep = ScenarioStep.get_step("distribute_alerts", "CreateAlertGroupStep")
+        step = CreateAlertGroupStep(organization.slack_team_identity, organization)
         step.process_signal(alert)
     else:
         logger.debug(
@@ -91,7 +91,7 @@ def on_alert_group_action_triggered_async(log_record_id):
 
 
 class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
-    def __init__(self, log_record):
+    def __init__(self, log_record: "AlertGroupLogRecord"):
         self.log_record = log_record
 
     def is_applicable(self):
@@ -138,6 +138,8 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
         if not log_record:
             return
         force_sync = kwargs.get("force_sync", False)
+
+        print("YOOOO HOMIE", log_record.action_source, ActionSource.SLACK, force_sync)
 
         if log_record.action_source == ActionSource.SLACK or force_sync:
             logger.debug(f"SLACK on_alert_group_action_triggered: sync {log_record.id} {force_sync}")

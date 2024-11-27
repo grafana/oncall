@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class AlertShootingStep(scenario_step.ScenarioStep):
+class CreateAlertGroupStep(scenario_step.ScenarioStep):
     def process_signal(self, alert: Alert) -> None:
         # do not try to post alert group message to slack if its channel is rate limited
         if alert.group.channel.is_rate_limited_in_slack:
@@ -671,7 +671,11 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.acknowledge_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        log_record.alert_group.slack_message.update_alert_groups_message()
+        # acknowledging an alert group should update the alert group' slack message immediately
+        # hence bypass_debounce=True
+        print("PROCESSING SIGNAL FOR ACKNOWLEDGE GROUP STEP", log_record.alert_group.pk)
+
+        log_record.alert_group.slack_message.update_alert_groups_message(bypass_debounce=True)
 
 
 class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):

@@ -16,9 +16,7 @@ def maintenance_test_setup(
 
 
 @pytest.mark.django_db
-def test_start_maintenance_integration(
-    maintenance_test_setup, make_alert_receive_channel, mock_start_disable_maintenance_task
-):
+def test_start_maintenance_integration(maintenance_test_setup, make_alert_receive_channel):
     organization, user = maintenance_test_setup
 
     alert_receive_channel = make_alert_receive_channel(
@@ -37,9 +35,7 @@ def test_start_maintenance_integration(
 
 
 @pytest.mark.django_db
-def test_start_maintenance_integration_multiple_previous_instances(
-    maintenance_test_setup, make_alert_receive_channel, mock_start_disable_maintenance_task
-):
+def test_start_maintenance_integration_multiple_previous_instances(maintenance_test_setup, make_alert_receive_channel):
     organization, user = maintenance_test_setup
 
     alert_receive_channel = make_alert_receive_channel(
@@ -64,9 +60,7 @@ def test_start_maintenance_integration_multiple_previous_instances(
 
 
 @pytest.mark.django_db
-def test_maintenance_integration_will_not_start_twice(
-    maintenance_test_setup, make_alert_receive_channel, mock_start_disable_maintenance_task
-):
+def test_maintenance_integration_will_not_start_twice(maintenance_test_setup, make_alert_receive_channel):
     organization, user = maintenance_test_setup
 
     alert_receive_channel = make_alert_receive_channel(
@@ -91,7 +85,6 @@ def test_alert_attached_to_maintenance_incident_integration(
     maintenance_test_setup,
     make_alert_receive_channel,
     make_alert_with_custom_create_method,
-    mock_start_disable_maintenance_task,
 ):
     organization, user = maintenance_test_setup
 
@@ -122,7 +115,6 @@ def test_stop_maintenance(
     maintenance_test_setup,
     make_alert_receive_channel,
     make_alert_with_custom_create_method,
-    mock_start_disable_maintenance_task,
 ):
     organization, user = maintenance_test_setup
     alert_receive_channel = make_alert_receive_channel(

@@ -126,7 +126,7 @@ def update_incident_slack_message(slack_team_identity_pk: int, alert_group_pk: i
         )
         return
 
-    alert_group.slack_message.update_alert_groups_message()
+    alert_group.slack_message.update_alert_groups_message(bypass_debounce=True)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
