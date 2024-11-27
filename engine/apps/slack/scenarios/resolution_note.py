@@ -222,7 +222,8 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 except SlackAPIError:
                     pass
 
-                slack_message.update_alert_groups_message()
+                # bypass debounce to update the button immediately, this isn't a high traffic activity
+                slack_message.update_alert_groups_message(bypass_debounce=True)
         else:
             warning_text = "Unable to add this message to resolution note."
             self.open_warning_window(payload, warning_text)
@@ -236,9 +237,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         else:
             self.post_or_update_resolution_note_in_thread(resolution_note)
 
-        self.update_alert_group_resolution_note_button(
-            alert_group=alert_group,
-        )
+        self.update_alert_group_resolution_note_button(alert_group)
 
     def remove_resolution_note_slack_message(self, resolution_note: "ResolutionNote") -> None:
         if (resolution_note_slack_message := resolution_note.resolution_note_slack_message) is not None:
@@ -324,7 +323,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def update_alert_group_resolution_note_button(self, alert_group: "AlertGroup") -> None:
         if alert_group.slack_message is not None:
-            alert_group.slack_message.update_alert_groups_message()
+            # bypass debounce to update the button immediately, this isn't a high traffic activity
+            alert_group.slack_message.update_alert_groups_message(bypass_debounce=True)
 
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:
@@ -660,11 +660,6 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         ]
 
 
-class ReadEditPostmortemStep(ResolutionNoteModalStep):
-    # Left for backward compatibility with slack messages created before postmortems -> resolution note change
-    pass
-
-
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
     def process_scenario(
         self,
@@ -726,9 +721,9 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
                     slack_thread_message.added_to_resolution_note = False
                     slack_thread_message.save(update_fields=["added_to_resolution_note"])
                     self.remove_resolution_note_reaction(slack_thread_message)
-        self.update_alert_group_resolution_note_button(
-            alert_group,
-        )
+
+        self.update_alert_group_resolution_note_button(alert_group)
+
         resolution_note_data = json.loads(payload["actions"][0]["value"])
         resolution_note_data["resolution_note_window_action"] = "edit_update"
         ResolutionNoteModalStep(slack_team_identity, self.organization, self.user).process_scenario(
@@ -740,12 +735,6 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
-    {
-        "payload_type": PayloadType.BLOCK_ACTIONS,
-        "block_action_type": BlockActionType.BUTTON,
-        "block_action_id": ReadEditPostmortemStep.routing_uid(),
-        "step": ReadEditPostmortemStep,
-    },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

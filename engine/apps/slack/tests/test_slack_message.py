@@ -160,7 +160,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
 
         assert slack_message.active_update_task_id is None
 
-        slack_message.update_alert_groups_message()
+        slack_message.update_alert_groups_message(bypass_debounce=False)
 
         # Ensure no task is scheduled
         mock_update_alert_group_slack_message.apply_async.assert_not_called()
@@ -191,7 +191,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             channel=slack_channel, alert_group=alert_group, active_update_task_id=task_id
         )
 
-        slack_message.update_alert_groups_message()
+        slack_message.update_alert_groups_message(bypass_debounce=False)
 
         # Ensure no task is scheduled
         mock_update_alert_group_slack_message.apply_async.assert_not_called()
@@ -224,7 +224,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group, last_updated=None)
 
-        slack_message.update_alert_groups_message()
+        slack_message.update_alert_groups_message(bypass_debounce=False)
 
         # Verify that apply_async was called with correct countdown
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(
@@ -266,7 +266,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             last_updated=timezone.now() - timedelta(seconds=10),
         )
 
-        slack_message.update_alert_groups_message()
+        slack_message.update_alert_groups_message(bypass_debounce=False)
 
         # Verify that apply_async was called with correct countdown
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(
@@ -310,7 +310,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             - timedelta(seconds=SlackMessage.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS + 1),
         )
 
-        slack_message.update_alert_groups_message()
+        slack_message.update_alert_groups_message(bypass_debounce=False)
 
         # Verify that apply_async was called with correct countdown
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(

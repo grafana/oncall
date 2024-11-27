@@ -347,17 +347,20 @@ def test_resolution_notes_modal_closed_before_update(
     assert call_args[0] == "views.update"
 
 
+@patch("apps.slack.models.SlackMessage.update_alert_groups_message")
+@patch.object(SlackClient, "reactions_add")
 @patch.object(SlackClient, "chat_getPermalink", return_value={"permalink": "https://example.com"})
 @pytest.mark.django_db
 def test_add_to_resolution_note(
-    _,
+    _mock_chat_getPermalink,
+    mock_reactions_add,
+    mock_update_alert_groups_message,
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_message,
     make_slack_channel,
-    settings,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -382,10 +385,11 @@ def test_add_to_resolution_note(
 
     AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
     step = AddToResolutionNoteStep(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    with patch.object(SlackClient, "reactions_add") as mock_reactions_add:
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+    step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     mock_reactions_add.assert_called_once()
+    mock_update_alert_groups_message.assert_called_once_with(bypass_debounce=True)
+
     assert alert_group.resolution_notes.get().text == "Test resolution note"
 
 
