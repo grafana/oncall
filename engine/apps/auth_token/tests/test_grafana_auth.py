@@ -107,7 +107,7 @@ def test_grafana_authentication_invalid_grafana_url():
     }
     request = APIRequestFactory().get("/", **headers)
 
-    request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true"
+    request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true"
     httpretty.register_uri(httpretty.POST, request_sync_url, status=404)
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
@@ -320,7 +320,7 @@ def test_grafana_authentication_token_setup_org_if_missing(make_organization):
     permissions = {"some-perm": "value"}
     setup_service_account_api_mocks(grafana_url, permissions)
 
-    request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true"
+    request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true"
     httpretty.register_uri(httpretty.POST, request_sync_url)
 
     assert Organization.objects.filter(grafana_url=grafana_url).count() == 0
