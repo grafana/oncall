@@ -303,3 +303,81 @@ jobs:
       grafana_version: ${{ matrix.grafana_version }}
       run-expensive-tests: false
       browsers: "chromium"
+
+  test-migrations:
+    name: "Test Django Migrations (database: ${{ matrix.database }})"
+    runs-on: ubuntu-latest-16-cores
+    strategy:
+      matrix:
+        include:
+          - database: sqlite3
+            DATABASE_TYPE: sqlite3
+          - database: mysql
+            DATABASE_TYPE: mysql
+            DATABASE_HOST: localhost
+            DATABASE_PORT: 3306
+            DATABASE_USER: root
+            DATABASE_PASSWORD: local_dev_pwd
+            DATABASE_NAME: oncall_local_dev
+          - database: postgresql
+            DATABASE_TYPE: postgresql
+            DATABASE_HOST: localhost
+            DATABASE_PORT: 5432
+            DATABASE_USER: postgres
+            DATABASE_PASSWORD: local_dev_pwd
+            DATABASE_NAME: oncall_local_dev
+    services:
+      mysql:
+        image: mysql:8.0.32
+        env:
+          MYSQL_DATABASE: oncall_local_dev
+          MYSQL_ROOT_PASSWORD: local_dev_pwd
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      postgres:
+        image: postgres:14.4
+        env:
+          POSTGRES_DB: oncall_local_dev
+          POSTGRES_PASSWORD: local_dev_pwd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
+      - name: Wait for Database to start
+        if: ${{ matrix.database != 'sqlite3' }}
+        run: |
+          if [ "${{ matrix.database }}" == "mysql" ]; then
+            until mysqladmin ping -h localhost --silent; do
+              echo 'Waiting for MySQL...'
+              sleep 1
+            done
+          elif [ "${{ matrix.database }}" == "postgresql" ]; then
+            until pg_isready -h localhost; do
+              echo 'Waiting for PostgreSQL...'
+              sleep 1
+            done
+          fi
+      - name: Run Migrations
+        working-directory: engine
+        env:
+          DATABASE_TYPE: ${{ matrix.DATABASE_TYPE }}
+          DATABASE_HOST: ${{ matrix.DATABASE_HOST }}
+          DATABASE_PORT: ${{ matrix.DATABASE_PORT }}
+          DATABASE_USER: ${{ matrix.DATABASE_USER }}
+          DATABASE_PASSWORD: ${{ matrix.DATABASE_PASSWORD }}
+          DATABASE_NAME: ${{ matrix.DATABASE_NAME }}
+        run: |
+          python manage.py migrate
