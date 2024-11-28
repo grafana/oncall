@@ -756,7 +756,7 @@ def test_actions_disabled_for_service_accounts(
     perms = {
         permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value: ["*"],
     }
-    setup_service_account_api_mocks(organization, perms=perms)
+    setup_service_account_api_mocks(organization.grafana_url, perms=perms)
 
     client = APIClient()
     disabled_actions = ["acknowledge", "unacknowledge", "resolve", "unresolve", "silence", "unsilence"]

@@ -10,7 +10,8 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.auth import X_GRAFANA_INSTANCE_ID, GrafanaServiceAccountAuthentication
 from apps.auth_token.models import ServiceAccountToken
 from apps.auth_token.tests.helpers import setup_service_account_api_mocks
-from apps.user_management.models import ServiceAccountUser
+from apps.user_management.models import Organization, ServiceAccountUser
+from common.constants.plugin_ids import PluginID
 from settings.base import CLOUD_LICENSE_NAME, OPEN_SOURCE_LICENSE_NAME, SELF_HOSTED_SETTINGS
 
 
@@ -98,12 +99,16 @@ def test_grafana_authentication_missing_org():
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_invalid_grafana_url():
+    grafana_url = "http://grafana.test"
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
         "HTTP_AUTHORIZATION": token,
-        "HTTP_X_GRAFANA_URL": "http://grafana.test",  # no org for this URL
+        "HTTP_X_GRAFANA_URL": grafana_url,  # no org for this URL
     }
     request = APIRequestFactory().get("/", **headers)
+
+    request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true"
+    httpretty.register_uri(httpretty.POST, request_sync_url, status=404)
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
@@ -145,7 +150,7 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
 
     # setup Grafana API responses
     # permissions endpoint returns a 401
-    setup_service_account_api_mocks(organization, perms_status=401)
+    setup_service_account_api_mocks(organization.grafana_url, perms_status=401)
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
@@ -178,7 +183,7 @@ def test_grafana_authentication_existing_token(
     request = APIRequestFactory().get("/", **headers)
 
     # setup Grafana API responses
-    setup_service_account_api_mocks(organization, {"some-perm": "value"})
+    setup_service_account_api_mocks(organization.grafana_url, {"some-perm": "value"})
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
@@ -214,7 +219,7 @@ def test_grafana_authentication_token_created(make_organization):
     # setup Grafana API responses
     permissions = {"some-perm": "value"}
     user_data = {"login": "some-login", "uid": "service-account:42"}
-    setup_service_account_api_mocks(organization, permissions, user_data)
+    setup_service_account_api_mocks(organization.grafana_url, permissions, user_data)
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
@@ -256,7 +261,7 @@ def test_grafana_authentication_token_created_older_grafana(make_organization):
     # setup Grafana API responses
     permissions = {"some-perm": "value"}
     # User API fails for older Grafana versions
-    setup_service_account_api_mocks(organization, permissions, user_status=400)
+    setup_service_account_api_mocks(organization.grafana_url, permissions, user_status=400)
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
@@ -290,10 +295,50 @@ def test_grafana_authentication_token_reuse_service_account(make_organization, m
         "login": service_account.login,
         "uid": f"service-account:{service_account.grafana_id}",
     }
-    setup_service_account_api_mocks(organization, permissions, user_data)
+    setup_service_account_api_mocks(organization.grafana_url, permissions, user_data)
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
     assert isinstance(user, ServiceAccountUser)
     assert user.service_account == service_account
     assert auth_token.service_account == service_account
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_grafana_authentication_token_setup_org_if_missing(make_organization):
+    grafana_url = "http://grafana.test"
+    token_string = "glsa_the-token"
+
+    headers = {
+        "HTTP_AUTHORIZATION": token_string,
+        "HTTP_X_GRAFANA_URL": grafana_url,
+    }
+    request = APIRequestFactory().get("/", **headers)
+
+    # setup Grafana API responses
+    permissions = {"some-perm": "value"}
+    setup_service_account_api_mocks(grafana_url, permissions)
+
+    request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true"
+    httpretty.register_uri(httpretty.POST, request_sync_url)
+
+    assert Organization.objects.filter(grafana_url=grafana_url).count() == 0
+
+    def sync_org():
+        make_organization(grafana_url=grafana_url, is_rbac_permissions_enabled=True)
+        return (True, {"status_code": 200})
+
+    with patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.setup_organization") as mock_setup_org:
+        mock_setup_org.side_effect = sync_org
+        user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
+
+    mock_setup_org.assert_called_once()
+
+    assert isinstance(user, ServiceAccountUser)
+    service_account = user.service_account
+    # organization is created
+    organization = Organization.objects.filter(grafana_url=grafana_url).get()
+    assert organization.grafana_url == grafana_url
+    assert service_account.organization == organization
+    assert auth_token.service_account == user.service_account

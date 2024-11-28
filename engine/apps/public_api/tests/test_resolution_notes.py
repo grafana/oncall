@@ -168,7 +168,7 @@ def test_create_resolution_note_via_service_account(
     perms = {
         permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value: ["*"],
     }
-    setup_service_account_api_mocks(organization, perms)
+    setup_service_account_api_mocks(organization.grafana_url, perms)
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
