@@ -317,14 +317,14 @@ jobs:
             DATABASE_TYPE: sqlite3
           - database: mysql
             DATABASE_TYPE: mysql
-            DATABASE_HOST: localhost
+            DATABASE_HOST: mysql # Use the service hostname
             DATABASE_PORT: 3306
             DATABASE_USER: root
             DATABASE_PASSWORD: local_dev_pwd
             DATABASE_NAME: oncall_local_dev
           - database: postgresql
             DATABASE_TYPE: postgresql
-            DATABASE_HOST: localhost
+            DATABASE_HOST: postgres # Use the service hostname
             DATABASE_PORT: 5432
             DATABASE_USER: postgres
             DATABASE_PASSWORD: local_dev_pwd
@@ -363,12 +363,12 @@ jobs:
         if: ${{ matrix.database != 'sqlite3' }}
         run: |
           if [ "${{ matrix.database }}" == "mysql" ]; then
-            until mysqladmin ping -h localhost --silent; do
+            until mysqladmin ping -h mysql --silent; do
               echo 'Waiting for MySQL...'
               sleep 1
             done
           elif [ "${{ matrix.database }}" == "postgresql" ]; then
-            until pg_isready -h localhost; do
+            until pg_isready -h postgres; do
               echo 'Waiting for PostgreSQL...'
               sleep 1
             done
