@@ -386,12 +386,7 @@ class TestSlackChannelMessageEventStep:
     def test_delete_thread_message_from_resolution_note_no_slack_user_identity(
         self, MockResolutionNoteSlackMessage, make_organization_and_user_with_slack_identities
     ) -> None:
-        (
-            organization,
-            user,
-            slack_team_identity,
-            slack_user_identity,
-        ) = make_organization_and_user_with_slack_identities()
+        organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step.delete_thread_message_from_resolution_note(None, {})

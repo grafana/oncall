@@ -236,9 +236,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         else:
             self.post_or_update_resolution_note_in_thread(resolution_note)
 
-        self.update_alert_group_resolution_note_button(
-            alert_group=alert_group,
-        )
+        self.update_alert_group_resolution_note_button(alert_group)
 
     def remove_resolution_note_slack_message(self, resolution_note: "ResolutionNote") -> None:
         if (resolution_note_slack_message := resolution_note.resolution_note_slack_message) is not None:
@@ -263,8 +261,12 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
-        slack_channel_id = alert_group_slack_message.channel.slack_id
         blocks = self.get_resolution_note_blocks(resolution_note)
+
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+        # slack_channel_id = alert_group_slack_message.channel.slack_id
+        slack_channel_id = alert_group_slack_message._channel_id
 
         slack_channel = SlackChannel.objects.get(
             slack_id=slack_channel_id, slack_team_identity=self.slack_team_identity
@@ -655,11 +657,6 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         ]
 
 
-class ReadEditPostmortemStep(ResolutionNoteModalStep):
-    # Left for backward compatibility with slack messages created before postmortems -> resolution note change
-    pass
-
-
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
     def process_scenario(
         self,
@@ -687,6 +684,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         if add_to_resolution_note and slack_thread_message is not None:
             slack_thread_message.added_to_resolution_note = True
             slack_thread_message.save(update_fields=["added_to_resolution_note"])
+
             if resolution_note is None:
                 ResolutionNote(
                     alert_group=alert_group,
@@ -696,6 +694,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
                 ).save()
             else:
                 resolution_note.recreate()
+
             self.add_resolution_note_reaction(slack_thread_message)
         elif not add_to_resolution_note:
             # Check if resolution_note can be removed
@@ -716,14 +715,16 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
             else:
                 if resolution_note_pk is not None and resolution_note is None:  # old version of step
                     resolution_note = ResolutionNote.objects.get(pk=resolution_note_pk)
+
                 resolution_note.delete()
+
                 if slack_thread_message:
                     slack_thread_message.added_to_resolution_note = False
                     slack_thread_message.save(update_fields=["added_to_resolution_note"])
                     self.remove_resolution_note_reaction(slack_thread_message)
-        self.update_alert_group_resolution_note_button(
-            alert_group,
-        )
+
+        self.update_alert_group_resolution_note_button(alert_group)
+
         resolution_note_data = json.loads(payload["actions"][0]["value"])
         resolution_note_data["resolution_note_window_action"] = "edit_update"
         ResolutionNoteModalStep(slack_team_identity, self.organization, self.user).process_scenario(
@@ -735,12 +736,6 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
-    {
-        "payload_type": PayloadType.BLOCK_ACTIONS,
-        "block_action_type": BlockActionType.BUTTON,
-        "block_action_id": ReadEditPostmortemStep.routing_uid(),
-        "step": ReadEditPostmortemStep,
-    },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,
