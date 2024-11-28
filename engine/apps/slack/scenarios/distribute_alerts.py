@@ -70,7 +70,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         ```
 
         This piece of code guarantees that when 2 alerts are created concurrently we don't end up posting a
-        message twice. we rely on the fact that the `UPDATE` SQL statements are atomic. this is not the same as:
+        message twice. We rely on the fact that the `UPDATE` SQL statements are atomic. This is NOT the same as:
 
         ```
         if not alert_group.slack_message_sent:
@@ -83,6 +83,14 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         This would end up posting multiple Slack messages for a single alert group (classic race condition). And then
         all kinds of unexpected behaviours would arise, because some parts of the codebase assume there can only be 1
         `SlackMessage` per `AlertGroup`.
+
+        ```
+        AlertGroup.objects.filter(pk=alert.group.pk, slack_message_sent=False).update(slack_message_sent=True)
+        ```
+
+        The power of this 👆, is that it doesn't actually do `SELECT ...;` and then `UPDATE ...;` it actually does a
+        single `UPDATE alerts.alert_group WHERE id=<ID> AND slack_message_sent IS FALSE`;
+        which makes it atomic and concurrency-safe.
 
         See this conversation for more context https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732800180834819?thread_ts=1732748893.183939&cid=C06K1MQ07GS
         """
