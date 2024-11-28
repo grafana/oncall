@@ -53,8 +53,9 @@ logger.setLevel(logging.DEBUG)
 class IncomingAlertStep(scenario_step.ScenarioStep):
     def process_signal(self, alert: Alert) -> None:
         """
-        Here lay dragons. Below is some added context as to why we have the explicit
-        `AlertGroup.objects.filter(...).update(...)` calls.
+        🐉 Here lay dragons 🐉
+
+        Below is some added context as to why we have the explicit `AlertGroup.objects.filter(...).update(...)` calls.
 
         For example:
         ```
@@ -82,6 +83,8 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         This would end up posting multiple Slack messages for a single alert group (classic race condition). And then
         all kinds of unexpected behaviours would arise, because some parts of the codebase assume there can only be 1
         `SlackMessage` per `AlertGroup`.
+
+        See this conversation for more context https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732800180834819?thread_ts=1732748893.183939&cid=C06K1MQ07GS
         """
 
         alert_group = alert.group
