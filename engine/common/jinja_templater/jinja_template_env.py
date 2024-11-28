@@ -15,6 +15,7 @@ from .filters import (
     regex_replace,
     regex_search,
     timedeltaparse,
+    timestamp_to_datetime,
     to_pretty_json,
 )
 
@@ -39,3 +40,4 @@ jinja_template_env.filters["regex_search"] = regex_search
 jinja_template_env.filters["json_dumps"] = json_dumps
 jinja_template_env.filters["b64decode"] = b64decode
 jinja_template_env.filters["parse_json"] = parse_json
+jinja_template_env.filters["timestamp_to_datetime"] = timestamp_to_datetime

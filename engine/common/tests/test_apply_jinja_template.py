@@ -66,6 +66,17 @@ def test_apply_jinja_template_iso8601_to_time():
     assert result == expected
 
 
+def test_apply_jinja_template_timestamp_to_datetime():
+    payload = {"sometime": 1730893740}
+
+    result = apply_jinja_template(
+        "{{ payload.sometime | timestamp_to_datetime }}",
+        payload,
+    )
+    expected = str(datetime.fromtimestamp(payload["sometime"]))
+    assert result == expected
+
+
 def test_apply_jinja_template_datetimeformat():
     payload = {"aware": "2023-05-28 23:11:12+0000", "naive": "2023-05-28 23:11:12"}
 
