@@ -118,9 +118,6 @@ class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
         "alerts.AlertReceiveChannel", on_delete=models.CASCADE, related_name="labels"
     )
 
-    # If inheritable is True, then the label will be passed down to alert groups
-    inheritable = models.BooleanField(default=True, null=True)
-
     class Meta:
         unique_together = ["key_id", "value_id", "alert_receive_channel_id"]
 

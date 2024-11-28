@@ -3,7 +3,6 @@ from collections import OrderedDict
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
@@ -14,7 +13,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
-from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.labels.models import AlertReceiveChannelAssociatedLabel, LabelKeyCache, LabelValueCache
 from apps.labels.types import LabelKey
 from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -55,7 +54,7 @@ AlertGroupCustomLabelsAPI = list[AlertGroupCustomLabelAPI]
 
 
 class IntegrationAlertGroupLabels(typing.TypedDict):
-    inheritable: dict[str, bool]
+    inheritable: dict[str, bool] | None  # Deprecated
     custom: AlertGroupCustomLabelsAPI
     template: str | None
 
@@ -99,7 +98,8 @@ class CustomLabelSerializer(serializers.Serializer):
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
-    inheritable = serializers.DictField(child=serializers.BooleanField())
+    # todo: inheritable field is deprecated. Remove in a future release
+    inheritable = serializers.DictField(child=serializers.BooleanField(), required=False)
     custom = CustomLabelSerializer(many=True)
     template = serializers.CharField(allow_null=True)
 
@@ -107,12 +107,13 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     def pop_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
         """Get alert group labels from validated data."""
 
-        # the "alert_group_labels" field is optional, so either all 3 fields are present or none
-        if "inheritable" not in validated_data:
+        # the "alert_group_labels" field is optional, so either all 2 fields are present or none
+        # "inheritable" field is deprecated
+        if "custom" not in validated_data:
             return None
 
         return {
-            "inheritable": validated_data.pop("inheritable"),
+            "inheritable": validated_data.pop("inheritable", None),  # deprecated
             "custom": validated_data.pop("custom"),
             "template": validated_data.pop("template"),
         }
@@ -124,15 +125,11 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         if alert_group_labels is None:
             return instance
 
-        # update inheritable labels
-        inheritable_key_ids = [
-            key_id for key_id, inheritable in alert_group_labels["inheritable"].items() if inheritable
-        ]
-        instance.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
-        instance.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
-
         # update DB cache for custom labels
         cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
+        # save static labels as integration labels
+        # todo: it's needed to cover delay between backend and frontend rollout, and can be removed later
+        cls._save_static_labels_as_integration_labels(instance, alert_group_labels["custom"])
         # update custom labels
         instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
 
@@ -170,18 +167,38 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
         LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
 
+    @staticmethod
+    def _save_static_labels_as_integration_labels(instance: AlertReceiveChannel, labels: AlertGroupCustomLabelsAPI):
+        labels_associations_to_create = []
+        labels_copy = labels[:]
+        for label in labels_copy:
+            if label["value"]["id"] is not None:
+                labels_associations_to_create.append(
+                    AlertReceiveChannelAssociatedLabel(
+                        key_id=label["key"]["id"],
+                        value_id=label["value"]["id"],
+                        organization=instance.organization,
+                        alert_receive_channel=instance,
+                    )
+                )
+                labels.remove(label)
+        AlertReceiveChannelAssociatedLabel.objects.bulk_create(
+            labels_associations_to_create, ignore_conflicts=True, batch_size=5000
+        )
+
     @classmethod
     def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
         """
         The API representation of alert group labels is very different from the underlying model.
 
-        "inheritable" is based on AlertReceiveChannelAssociatedLabel.inheritable, a property of another model.
+        "inheritable" field is deprecated. Kept for api-backward compatibility. Will be removed in a future release
         "custom" is based on AlertReceiveChannel.alert_group_labels_custom, a JSONField with a different schema.
         "template" is based on AlertReceiveChannel.alert_group_labels_template, this one is straightforward.
         """
 
         return {
-            "inheritable": {label.key_id: label.inheritable for label in instance.labels.all()},
+            # todo: "inheritable" field is deprecated, remove in a future release.
+            "inheritable": {label.key_id: True for label in instance.labels.all()},
             "custom": cls._custom_labels_to_representation(instance.alert_group_labels_custom),
             "template": instance.alert_group_labels_template,
         }
