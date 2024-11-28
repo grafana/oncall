@@ -308,6 +308,9 @@ jobs:
     name: "Test Django Migrations (database: ${{ matrix.database }})"
     runs-on: ubuntu-latest-16-cores
     strategy:
+      # if one of the matrix jobs fails (e.g., migrations fail on MySQL),
+      # the other jobs (e.g., PostgreSQL and SQLite) will continue running to completion
+      fail-fast: false
       matrix:
         include:
           - database: sqlite3
