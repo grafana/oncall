@@ -75,7 +75,7 @@ Dynamic labels allow you to assign arbitrary labels to alert groups.
 Dynamic labels have values extracted from the alert payload using Jinja, with keys remaining static.
 These labels will not be attached to the integration.
 
-1. In the **Alert Group Labeling** tab, navigate to **Dynamic Labels**.
+1. In the **Integration settings** tab, navigate to **Dynamic Labels**.
 2. Press the **Add Label** button.
 
 #### Add Dynamic Labels
