@@ -1,8 +1,15 @@
+import typing
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.slack.models import SlackMessage, SlackTeamIdentity
 
 
 def generate_public_primary_key_for_slack_channel():
@@ -20,6 +27,9 @@ def generate_public_primary_key_for_slack_channel():
 
 
 class SlackChannel(models.Model):
+    slack_team_identity: "SlackTeamIdentity"
+    slack_messages: "RelatedManager['SlackMessage']"
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],

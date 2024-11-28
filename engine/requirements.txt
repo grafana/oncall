@@ -34,7 +34,7 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery==5.3.1
+celery[redis]==5.3.1
     # via -r requirements.in
 certifi==2024.7.4
     # via
@@ -98,7 +98,7 @@ django==4.2.16
     #   social-auth-app-django
 django-add-default-value==0.10.0
     # via -r requirements.in
-django-anymail==12.0
+django-anymail[amazon-ses]==12.0
     # via -r requirements.in
 django-cors-headers==3.7.0
     # via -r requirements.in
@@ -155,7 +155,7 @@ firebase-admin==5.4.0
     # via fcm-django
 flask==3.0.2
     # via slack-export-viewer
-google-api-core==2.17.0
+google-api-core[grpc]==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -415,10 +415,6 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
-setuptools==75.3.0
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
@@ -442,7 +438,7 @@ sqlparse==0.5.0
     #   django-silk
 toml==0.10.2
     # via django-migration-linter
-tornado==6.4.1
+tornado==6.4.2
     # via python-telegram-bot
 tqdm==4.66.3
     # via django-mirage-field

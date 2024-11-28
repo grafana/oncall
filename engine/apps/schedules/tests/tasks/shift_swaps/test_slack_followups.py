@@ -29,7 +29,9 @@ def shift_swap_request_test_setup(
         user = make_user(organization=organization)
 
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(alert_group=None, organization=organization, slack_id="12345")
+        slack_message = make_slack_message(
+            alert_group=None, channel=slack_channel, organization=organization, slack_id="12345"
+        )
 
         schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, slack_channel=slack_channel)
 
@@ -161,7 +163,7 @@ def test_send_shift_swap_request_followup(mock_slack_chat_post_message, shift_sw
     send_shift_swap_request_slack_followup(shift_swap_request.pk)
 
     mock_slack_chat_post_message.assert_called_once_with(
-        channel=shift_swap_request.slack_message.channel_id,
+        channel=shift_swap_request.slack_message.channel.slack_id,
         thread_ts=shift_swap_request.slack_message.slack_id,
         reply_broadcast=True,
         blocks=ANY,

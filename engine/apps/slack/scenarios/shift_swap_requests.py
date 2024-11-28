@@ -156,17 +156,18 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         return blocks
 
     def create_message(self, shift_swap_request: "ShiftSwapRequest") -> SlackMessage:
-        channel_id = shift_swap_request.slack_channel_id
-        organization = self.organization
+        result = self._slack_client.chat_postMessage(
+            channel=shift_swap_request.slack_channel_id,
+            blocks=self._generate_blocks(shift_swap_request),
+        )
 
-        blocks = self._generate_blocks(shift_swap_request)
-        result = self._slack_client.chat_postMessage(channel=channel_id, blocks=blocks)
-
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         return SlackMessage.objects.create(
             slack_id=result["ts"],
-            organization=organization,
-            _slack_team_identity=self.slack_team_identity,
-            channel_id=channel_id,
+            organization=self.organization,
+            _channel_id=shift_swap_request.slack_channel_id,
+            channel=shift_swap_request.slack_channel,
         )
 
     def update_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
@@ -186,7 +187,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
             return
 
         self._slack_client.chat_postMessage(
-            channel=shift_swap_request.slack_message.channel_id,
+            channel=shift_swap_request.slack_message.channel.slack_id,
             thread_ts=shift_swap_request.slack_message.slack_id,
             reply_broadcast=reply_broadcast,
             blocks=blocks,
