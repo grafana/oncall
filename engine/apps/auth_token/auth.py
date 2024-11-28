@@ -9,6 +9,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
+from apps.auth_token.grafana.grafana_auth_token import setup_organization
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
@@ -133,6 +134,14 @@ class BasePluginAuthentication(BaseAuthentication):
         except KeyError:
             user_id = context["UserID"]
 
+        if context.get("IsServiceAccount", False):
+            # no user involved in service account requests
+            logger.info(f"serviceaccount request - id={user_id}")
+            service_account_role = context.get("Role", "None")
+            if service_account_role.lower() != "admin":
+                raise exceptions.AuthenticationFailed("Service account requests must have Admin or Editor role.")
+            return None
+
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
@@ -147,6 +156,9 @@ class PluginAuthentication(BasePluginAuthentication):
             context = dict(json.loads(request.headers.get("X-Grafana-Context")))
         except (ValueError, TypeError):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
+
+        if context.get("IsServiceAccount", False):
+            raise exceptions.AuthenticationFailed("Service accounts requests are not allowed.")
 
         try:
             user_id = context.get("UserId", context.get("UserID"))
@@ -347,7 +359,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         if not auth.startswith(ServiceAccountToken.GRAFANA_SA_PREFIX):
             return None
 
-        organization = self.get_organization(request)
+        organization = self.get_organization(request, auth)
         if not organization:
             raise exceptions.AuthenticationFailed("Invalid organization.")
         if organization.is_moved:
@@ -357,12 +369,15 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(organization, auth)
 
-    def get_organization(self, request):
+    def get_organization(self, request, auth):
         grafana_url = request.headers.get(X_GRAFANA_URL)
         if grafana_url:
             organization = Organization.objects.filter(grafana_url=grafana_url).first()
             if not organization:
-                raise exceptions.AuthenticationFailed("Invalid Grafana URL.")
+                success = setup_organization(grafana_url, auth)
+                if not success:
+                    raise exceptions.AuthenticationFailed("Invalid Grafana URL.")
+                organization = Organization.objects.filter(grafana_url=grafana_url).first()
             return organization
 
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
