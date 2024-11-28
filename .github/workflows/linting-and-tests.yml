@@ -269,6 +269,7 @@ jobs:
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Test Django migrations work from blank slate
+        working-directory: engine
         run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
