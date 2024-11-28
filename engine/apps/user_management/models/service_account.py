@@ -26,6 +26,10 @@ class ServiceAccountUser:
         return self.service_account.id
 
     @property
+    def current_team(self):
+        return None
+
+    @property
     def organization_id(self):
         return self.organization.id
 
