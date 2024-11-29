@@ -94,7 +94,6 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
         See this conversation for more context https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732800180834819?thread_ts=1732748893.183939&cid=C06K1MQ07GS
         """
-
         alert_group = alert.group
 
         if not alert_group:
@@ -108,6 +107,8 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
         alert_group_pk = alert_group.pk
         alert_receive_channel = alert_group.channel
+        organization = alert_receive_channel.organization
+        channel_filter = alert_group.channel_filter
         should_skip_escalation_in_slack = alert_group.skip_escalation_in_slack
         slack_team_identity = self.slack_team_identity
         slack_team_identity_pk = slack_team_identity.pk
@@ -128,17 +129,29 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         if num_updated_rows == 1:
             # this will be the case in the event that we haven't yet created a Slack message for this alert group
 
-            slack_channel = (
-                alert_group.channel_filter.slack_channel
-                if alert_group.channel_filter
-                # if channel filter is deleted mid escalation, use default Slack channel
-                else alert_receive_channel.organization.default_slack_channel
-            )
+            # if channel filter is deleted mid escalation, use the organization's default Slack channel
+            slack_channel = channel_filter.slack_channel if channel_filter else organization.default_slack_channel
+
+            # slack_channel can be None if
+            # - the channel filter is deleted mid escalation
+            # - AND the organization does not have a default slack channel set
+            # in this case, we have to skip posting to Slack because we don't know where to post to
+            if slack_channel is None:
+                logger.info(
+                    f"Skipping posting message to Slack for alert_group {alert_group_pk} because we don't know which "
+                    f"Slack channel to post to. channel_filter={channel_filter} "
+                    f"organization.default_slack_channel={organization.default_slack_channel}"
+                )
+
+                alert_group.slack_message_sent = False
+                alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_NOT_SPECIFIED
+                alert_group.save(update_fields=["slack_message_sent", "reason_to_skip_escalation"])
+                return
+
             slack_channel_id = slack_channel.slack_id
 
             try:
                 self._post_alert_group_to_slack(
-                    slack_team_identity=slack_team_identity,
                     alert_group=alert_group,
                     alert=alert,
                     attachments=alert_group.render_slack_attachments(),
@@ -193,24 +206,12 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
     def _post_alert_group_to_slack(
         self,
-        slack_team_identity: SlackTeamIdentity,
         alert_group: AlertGroup,
         alert: Alert,
         attachments,
-        slack_channel: typing.Optional[SlackChannel],
+        slack_channel: SlackChannel,
         blocks: Block.AnyBlocks,
     ) -> None:
-        # slack_channel can be None if org default slack channel for slack_team_identity is not set
-        if slack_channel is None:
-            logger.info(
-                f"Failed to post message to Slack for alert_group {alert_group.pk} because slack_channel is None"
-            )
-
-            alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_NOT_SPECIFIED
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-
-            return
-
         try:
             result = self._slack_client.chat_postMessage(
                 channel=slack_channel.slack_id,

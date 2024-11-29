@@ -1978,14 +1978,52 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def is_presented_in_slack(self):
         return self.slack_message and self.channel.organization.slack_team_identity
 
+    # TODO: once we've finished migrating slack_message._channel_id to slack_message.channel, we can enable this
+    # and refactor the related code
+    #
+    # @property
+    # def organization(self) -> Organization:
+    #     return self.channel.organization
+
+    # @property
+    # def slack_channel(self) -> typing.Optional["SlackChannel"]:
+    #     """
+    #     If the `AlertGroup` already has a `SlackMessage` associated with it, that means that we already
+    #     know the channel.
+
+    #     Otherwise, infer the Slack channel from the `ChannelFilter` associated with the `AlertGroup`.
+    #     """
+    #     if self.slack_message:
+    #         # NOTE: this isn't available yet because we haven't finished migrating slack_message._channel_id to
+    #         # slack_message.channel
+    #         return self.slack_message.channel
+    #     elif self.channel_filter and self.channel_filter.slack_channel:
+    #         return self.channel_filter.slack_channel
+    #     return self.organization.default_slack_channel
+
+    # @property
+    # def slack_channel_id(self) -> str | None:
+    #     """
+    #     If the `AlertGroup` already has a `SlackMessage` associated with it, that means that we already
+    #     know the channel.
+
+    #     Otherwise, infer the Slack channel ID from the `ChannelFilter` associated with the `AlertGroup`.
+    #     """
+    #     return self.slack_channel.slack_id if self.slack_channel else None
+    # END TODO:
+
     @property
     def slack_channel_id(self) -> str | None:
         if not self.channel.organization.slack_team_identity:
             return None
         elif self.slack_message:
-            return self.slack_message.channel.slack_id
-        elif self.channel_filter:
-            return self.channel_filter.slack_channel_id_or_org_default_id
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+            #
+            # return self.slack_message.channel.slack_id
+            return self.slack_message._channel_id
+        elif self.channel_filter and self.channel_filter.slack_channel_or_org_default:
+            return self.channel_filter.slack_channel_or_org_default.slack_id
         return None
 
     @property
