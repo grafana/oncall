@@ -2014,6 +2014,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_channel_id(self) -> str | None:
+        channel_filter = self.channel_filter
+
         if not self.channel.organization.slack_team_identity:
             return None
         elif self.slack_message:
@@ -2022,8 +2024,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             #
             # return self.slack_message.channel.slack_id
             return self.slack_message._channel_id
-        elif self.channel_filter and self.channel_filter.slack_channel_or_org_default:
-            return self.channel_filter.slack_channel_or_org_default.slack_id
+        elif channel_filter and channel_filter.slack_channel_or_org_default:
+            return channel_filter.slack_channel_or_org_default.slack_id
         return None
 
     @property
