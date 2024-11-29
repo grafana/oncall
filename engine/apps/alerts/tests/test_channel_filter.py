@@ -152,3 +152,67 @@ def test_channel_filter_using_filter_labels(
     assert ChannelFilter.select_filter(alert_receive_channel, {"title": "Test Title", "value": 5}, labels) == (
         custom_channel_filter if should_match else default_channel_filter
     )
+
+
+class TestChannelFilterSlackChannelOrOrgDefault:
+    @pytest.mark.django_db
+    def test_slack_channel_or_org_default_with_slack_channel(
+        self,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_channel_filter,
+        make_slack_channel,
+    ):
+        """
+        Test that slack_channel_or_org_default returns self.slack_channel when it is set.
+        """
+        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        alert_receive_channel = make_alert_receive_channel(organization)
+        slack_channel = make_slack_channel(slack_team_identity)
+        channel_filter = make_channel_filter(alert_receive_channel=alert_receive_channel, slack_channel=slack_channel)
+
+        # Assert that slack_channel_or_org_default returns slack_channel
+        assert channel_filter.slack_channel_or_org_default == slack_channel
+
+    @pytest.mark.django_db
+    def test_slack_channel_or_org_default_with_org_default(
+        self,
+        make_slack_team_identity,
+        make_organization,
+        make_alert_receive_channel,
+        make_channel_filter,
+        make_slack_channel,
+    ):
+        """
+        Test that slack_channel_or_org_default returns organization's default_slack_channel when slack_channel is None.
+        """
+        slack_team_identity = make_slack_team_identity()
+        default_slack_channel = make_slack_channel(slack_team_identity)
+        organization = make_organization(
+            slack_team_identity=slack_team_identity,
+            default_slack_channel=default_slack_channel,
+        )
+        alert_receive_channel = make_alert_receive_channel(organization)
+        channel_filter = make_channel_filter(alert_receive_channel, slack_channel=None)
+
+        # Assert that slack_channel_or_org_default returns organization's default_slack_channel
+        assert channel_filter.slack_channel_or_org_default == default_slack_channel
+
+    @pytest.mark.django_db
+    def test_slack_channel_or_org_default_none(
+        self,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_channel_filter,
+    ):
+        """
+        Test that slack_channel_or_org_default returns None when both slack_channel and organization's default_slack_channel are None.
+        """
+        organization, _ = make_organization_with_slack_team_identity()
+        assert organization.default_slack_channel is None
+
+        alert_receive_channel = make_alert_receive_channel(organization)
+        channel_filter = make_channel_filter(alert_receive_channel=alert_receive_channel, slack_channel=None)
+
+        # Assert that slack_channel_or_org_default returns None
+        assert channel_filter.slack_channel_or_org_default is None
