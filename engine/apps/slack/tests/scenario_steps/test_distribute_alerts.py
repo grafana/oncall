@@ -1,12 +1,12 @@
-import pytest
+from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 from django.core.cache import cache
 from django.utils import timezone
-from datetime import timedelta
 
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
-from apps.slack.errors import get_error_class, SlackAPIError
+from apps.slack.errors import SlackAPIError, get_error_class
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios.distribute_alerts import IncomingAlertStep
 from apps.slack.tests.conftest import build_slack_response
@@ -14,7 +14,6 @@ from apps.slack.utils import get_cache_key_update_incident_slack_message
 
 
 class TestIncomingAlertStep:
-
     @pytest.mark.django_db
     def test_process_signal_success_first_message(
         self,
@@ -92,10 +91,7 @@ class TestIncomingAlertStep:
 
         slack_team_identity = make_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
-        organization = make_organization(
-            slack_team_identity=slack_team_identity,
-            default_slack_channel=slack_channel
-        )
+        organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
         alert_receive_channel = make_alert_receive_channel(organization)
         alert_group = make_alert_group(alert_receive_channel)
         alert = make_alert(alert_group, raw_request_data="{}")
@@ -224,9 +220,7 @@ class TestIncomingAlertStep:
         """
         slack_team_identity = make_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
-        organization = make_organization(
-            slack_team_identity=slack_team_identity, default_slack_channel=slack_channel
-        )
+        organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
 
         alert_receive_channel = make_alert_receive_channel(
             organization,
@@ -309,9 +303,7 @@ class TestIncomingAlertStep:
     ):
         slack_team_identity = make_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
-        organization = make_organization(
-            slack_team_identity=slack_team_identity, default_slack_channel=slack_channel
-        )
+        organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
         alert_receive_channel = make_alert_receive_channel(organization)
         alert_group = make_alert_group(alert_receive_channel)
         alert = make_alert(alert_group, raw_request_data={})
@@ -343,9 +335,7 @@ class TestIncomingAlertStep:
 
         slack_team_identity = make_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
-        organization = make_organization(
-            slack_team_identity=slack_team_identity, default_slack_channel=slack_channel
-        )
+        organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
         alert_receive_channel = make_alert_receive_channel(organization)
 
         # Simulate that slack_message_sent is already True and skip_escalation_in_slack is False
