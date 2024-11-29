@@ -190,9 +190,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
+      - name: Wait for MySQL to be ready
+        working-directory: engine
+        run: ./wait_for_test_mysql_start.sh
+      - name: Test Django migrations work from blank slate
+        working-directory: engine
+        run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
-        run: ./wait_for_test_mysql_start.sh && pytest -x
+        run: pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -229,6 +235,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
+      - name: Test Django migrations work from blank slate
+        working-directory: engine
+        run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
         run: pytest -x
@@ -259,6 +268,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
+      - name: Test Django migrations work from blank slate
+        working-directory: engine
+        run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
         run: pytest -x

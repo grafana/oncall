@@ -466,7 +466,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return self.config.is_able_to_autoresolve
 
     @property
-    def is_demo_alert_enabled(self):
+    def is_demo_alert_enabled(self) -> bool:
         return self.config.is_demo_alert_enabled
 
     @property
@@ -515,7 +515,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return alert_receive_channel
 
     @property
-    def short_name(self):
+    def short_name(self) -> str:
         if self.verbal_name is None:
             return self.created_name + "" if self.deleted_at is None else "(Deleted)"
         elif self.verbal_name == self.created_name:

@@ -48,6 +48,48 @@ logger.setLevel(logging.DEBUG)
 
 class IncomingAlertStep(scenario_step.ScenarioStep):
     def process_signal(self, alert: Alert) -> None:
+        """
+        🐉 Here lay dragons 🐉
+
+        Below is some added context as to why we have the explicit `AlertGroup.objects.filter(...).update(...)` calls.
+
+        For example:
+        ```
+        num_updated_rows = AlertGroup.objects.filter(
+            pk=alert.group.pk, slack_message_sent=False,
+        ).update(slack_message_sent=True)
+
+        if num_updated_rows == 1:
+            # post new message
+        else:
+            # update existing message
+        ```
+
+        This piece of code guarantees that when 2 alerts are created concurrently we don't end up posting a
+        message twice. We rely on the fact that the `UPDATE` SQL statements are atomic. This is NOT the same as:
+
+        ```
+        if not alert_group.slack_message_sent:
+            # post new message
+            alert_group.slack_message_sent = True
+        else:
+            # update existing message
+        ```
+
+        This would end up posting multiple Slack messages for a single alert group (classic race condition). And then
+        all kinds of unexpected behaviours would arise, because some parts of the codebase assume there can only be 1
+        `SlackMessage` per `AlertGroup`.
+
+        ```
+        AlertGroup.objects.filter(pk=alert.group.pk, slack_message_sent=False).update(slack_message_sent=True)
+        ```
+
+        The power of this 👆, is that it doesn't actually do `SELECT ...;` and then `UPDATE ...;` it actually does a
+        single `UPDATE alerts.alert_group WHERE id=<ID> AND slack_message_sent IS FALSE`;
+        which makes it atomic and concurrency-safe.
+
+        See this conversation for more context https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732800180834819?thread_ts=1732748893.183939&cid=C06K1MQ07GS
+        """
         alert_group = alert.group
 
         if not alert_group:
@@ -61,25 +103,25 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
         alert_group_pk = alert_group.pk
         alert_receive_channel = alert_group.channel
-        slack_message_already_sent = alert_group.slack_message_sent
         should_skip_escalation_in_slack = alert_group.skip_escalation_in_slack
-
-        def _mark_alert_group_slack_message_as_sent(reason_to_skip_escalation=None):
-            if not slack_message_already_sent:
-                alert_group.slack_message_sent = True
-
-                if reason_to_skip_escalation:
-                    alert_group.reason_to_skip_escalation = reason_to_skip_escalation
-
-                alert_group.save(update_fields=["slack_message_sent", "reason_to_skip_escalation"])
+        slack_team_identity = self.slack_team_identity
+        slack_team_identity_pk = slack_team_identity.pk
 
         # do not try to post alert group message to slack if its channel is rate limited
         if alert_receive_channel.is_rate_limited_in_slack:
             logger.info("Skip posting or updating alert_group in Slack due to rate limit")
-            _mark_alert_group_slack_message_as_sent(reason_to_skip_escalation=AlertGroup.RATE_LIMITED)
+
+            AlertGroup.objects.filter(
+                pk=alert_group_pk,
+                slack_message_sent=False,
+            ).update(slack_message_sent=True, reason_to_skip_escalation=AlertGroup.RATE_LIMITED)
             return
 
-        if not slack_message_already_sent:
+        num_updated_rows = AlertGroup.objects.filter(pk=alert_group_pk, slack_message_sent=False).update(
+            slack_message_sent=True
+        )
+
+        if num_updated_rows == 1:
             # this will be the case in the event that we haven't yet created a Slack message for this alert group
 
             slack_channel = (
@@ -88,33 +130,51 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                 # if channel filter is deleted mid escalation, use default Slack channel
                 else alert_receive_channel.organization.default_slack_channel
             )
+            slack_channel_id = slack_channel.slack_id
 
             try:
                 self._post_alert_group_to_slack(
-                    slack_team_identity=self.slack_team_identity,
+                    slack_team_identity=slack_team_identity,
                     alert_group=alert_group,
                     alert=alert,
                     attachments=alert_group.render_slack_attachments(),
                     slack_channel=slack_channel,
                     blocks=alert_group.render_slack_blocks(),
                 )
-
-                _mark_alert_group_slack_message_as_sent()
             except (SlackAPIError, TimeoutError):
+                AlertGroup.objects.filter(pk=alert_group_pk).update(slack_message_sent=False)
                 raise
 
             if alert_receive_channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE:
-                self._send_debug_mode_notice(alert_group, slack_channel)
+                # send debug mode notice
+                text = "Escalations are silenced due to Debug mode"
+                self._slack_client.chat_postMessage(
+                    channel=slack_channel_id,
+                    text=text,
+                    attachments=[],
+                    thread_ts=alert_group.slack_message.slack_id,
+                    mrkdwn=True,
+                    blocks=[
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": text,
+                            },
+                        },
+                    ],
+                )
 
             if not alert_group.is_maintenance_incident and not should_skip_escalation_in_slack:
                 send_message_to_thread_if_bot_not_in_channel.apply_async(
-                    (alert_group_pk, self.slack_team_identity.pk, slack_channel.slack_id),
+                    (alert_group_pk, slack_team_identity_pk, slack_channel_id),
                     countdown=1,  # delay for message so that the log report is published first
                 )
-        else:
-            # if a new alert comes in, and is grouped to an existing alert group that has already been posted to Slack,
-            # then we will update that existing Slack message
 
+        else:
+            # if a new alert comes in, and is grouped to an alert group that has already been posted to Slack,
+            # then we will update that existing Slack message
+            
             alert_group_slack_message = alert_group.slack_message
             if not alert_group_slack_message:
                 logger.info(
@@ -122,12 +182,12 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                     "have a slack message associated with it"
                 )
                 return
-            elif should_skip_escalation_in_slack:
+             elif should_skip_escalation_in_slack:
                 logger.info(
                     f"Skip updating alert group in Slack because alert_group {alert_group_pk} is set to skip escalation"
                 )
                 return
-
+            
             # NOTE: very important. We need to debounce the update_alert_groups_message call here. This is because
             # we may possibly receive a flood of incoming alerts. We do not want to trigger a Slack message update
             # for each of these, and hence we should instead debounce them
@@ -201,31 +261,6 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
             logger.info("Not delivering alert due to workspace restricted action.")
         finally:
             alert.save()
-
-    def _send_debug_mode_notice(self, alert_group: AlertGroup, slack_channel: SlackChannel) -> None:
-        blocks: Block.AnyBlocks = []
-
-        text = "Escalations are silenced due to Debug mode"
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
-
-        self._slack_client.chat_postMessage(
-            channel=slack_channel.slack_id,
-            text=text,
-            attachments=[],
-            thread_ts=alert_group.slack_message.slack_id,
-            mrkdwn=True,
-            blocks=blocks,
-        )
-
-    def _send_message_to_thread_if_bot_not_in_channel(
-        self,
-        alert_group: AlertGroup,
-        slack_channel: SlackChannel,
-    ) -> None:
-        send_message_to_thread_if_bot_not_in_channel.apply_async(
-            (alert_group.pk, self.slack_team_identity.pk, slack_channel.slack_id),
-            countdown=1,  # delay for message so that the log report is published first
-        )
 
     def process_scenario(
         self,
@@ -497,11 +532,11 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
             if slack_user_identity:
                 self._slack_client.chat_postEphemeral(
-                    user=slack_user_identity.slack_id,
                     # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
                     # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
                     # channel=alert_group.slack_message.channel.slack_id,
                     channel=alert_group.slack_message._channel_id,
+                    user=slack_user_identity.slack_id,
                     text="{}{}".format(ephemeral_text[:1].upper(), ephemeral_text[1:]),
                     unfurl_links=True,
                 )

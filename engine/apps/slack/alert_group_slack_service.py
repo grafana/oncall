@@ -48,7 +48,10 @@ class AlertGroupSlackService:
 
         try:
             result = self._slack_client.chat_postMessage(
-                channel=slack_message.channel.slack_id,
+                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+                # channel=slack_message.channel.slack_id,
+                channel=slack_message._channel_id,
                 text=text,
                 attachments=attachments,
                 thread_ts=slack_message.slack_id,

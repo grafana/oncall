@@ -29,8 +29,7 @@ def gather_labels_from_alert_receive_channel_and_raw_request_data(
 
     # inherit labels from the integration
     labels = {
-        label.key.name: label.value.name
-        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
+        label.key.name: label.value.name for label in alert_receive_channel.labels.all().select_related("key", "value")
     }
 
     # apply custom labels

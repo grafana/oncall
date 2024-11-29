@@ -16,6 +16,7 @@ def unsilence_task(alert_group_pk):
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 
     task_logger.info(f"Start unsilence_task for alert_group {alert_group_pk}")
+
     with transaction.atomic():
         try:
             alert_group = AlertGroup.objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:

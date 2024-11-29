@@ -74,6 +74,7 @@ class SlackMessage(models.Model):
     """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
+
     cached_permalink = models.URLField(max_length=250, null=True, default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)

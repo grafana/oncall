@@ -1994,7 +1994,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         `slack_message` property returns the first `SlackMessage` for the `AlertGroup`. This corresponds to the
         Slack message representing the main message in Slack (ie. not a message in a thread).
 
-        This should not be confused with `slack_messages`, which is a related manager that returns all `SlackMessage`
+        This should not be confused with `slack_messages`, which is a `RelatedManager` that returns all `SlackMessage`
         instances for the `AlertGroup`.
         """
         try:
