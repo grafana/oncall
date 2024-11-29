@@ -2,7 +2,6 @@ import pytest
 from django.utils import timezone
 
 from apps.slack.client import SlackClient
-from apps.slack.scenarios.distribute_alerts import AlertShootingStep
 
 
 @pytest.fixture()
@@ -22,7 +21,7 @@ def mock_slack_api_call(monkeypatch):
 
 
 @pytest.fixture()
-def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert_receive_channel, make_alert):
+def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert):
     def _make_alert_groups_all_statuses(alert_receive_channel, channel_filter, alert_raw_request_data, **kwargs):
         resolved_alert_group = make_alert_group(
             alert_receive_channel,
@@ -56,11 +55,3 @@ def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert_rec
         return resolved_alert_group, ack_alert_group, new_alert_group, silenced_alert_group
 
     return _make_alert_groups_all_statuses
-
-
-@pytest.fixture()
-def mock_alert_shooting_step_post_alert_group_to_slack(monkeypatch):
-    def mock_post_alert_group_to_slack(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr(AlertShootingStep, "_post_alert_group_to_slack", mock_post_alert_group_to_slack)

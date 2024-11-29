@@ -414,12 +414,7 @@ def test_update_alert_receive_channel(alert_receive_channel_internal_api_setup, 
 
 
 @pytest.mark.django_db
-def test_integration_filter_by_maintenance(
-    alert_receive_channel_internal_api_setup,
-    make_user_auth_headers,
-    mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_post_alert_group_to_slack,
-):
+def test_integration_filter_by_maintenance(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.MAINTENANCE
@@ -437,12 +432,7 @@ def test_integration_filter_by_maintenance(
 
 
 @pytest.mark.django_db
-def test_integration_filter_by_debug(
-    alert_receive_channel_internal_api_setup,
-    make_user_auth_headers,
-    mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_post_alert_group_to_slack,
-):
+def test_integration_filter_by_debug(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.DEBUG_MAINTENANCE
@@ -1141,7 +1131,6 @@ def test_start_maintenance_integration(
 
 @pytest.mark.django_db
 def test_stop_maintenance_integration(
-    mock_start_disable_maintenance_task,
     make_user_auth_headers,
     make_organization_and_user_with_plugin_token,
     make_escalation_chain,

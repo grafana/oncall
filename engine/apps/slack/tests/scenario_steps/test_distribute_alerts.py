@@ -5,7 +5,7 @@ import pytest
 from apps.alerts.models import AlertGroup
 from apps.slack.errors import get_error_class
 from apps.slack.models import SlackMessage
-from apps.slack.scenarios.distribute_alerts import AlertShootingStep
+from apps.slack.scenarios.distribute_alerts import IncomingAlertStep
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.tests.conftest import build_slack_response
 
@@ -28,7 +28,7 @@ def test_skip_escalations_error(
     reason,
     slack_error,
 ):
-    SlackAlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
+    SlackIncomingAlertStep = ScenarioStep.get_step("distribute_alerts", "IncomingAlertStep")
     organization, _, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
@@ -36,7 +36,7 @@ def test_skip_escalations_error(
 
     slack_channel = make_slack_channel(slack_team_identity)
 
-    step = SlackAlertShootingStep(slack_team_identity)
+    step = SlackIncomingAlertStep(slack_team_identity)
 
     with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
         error_response = build_slack_response({"error": slack_error})
@@ -66,7 +66,7 @@ def test_timeout_error(
     make_alert_group,
     make_alert,
 ):
-    SlackAlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
+    SlackIncomingAlertStep = ScenarioStep.get_step("distribute_alerts", "IncomingAlertStep")
     slack_team_identity = make_slack_team_identity()
     slack_channel = make_slack_channel(slack_team_identity)
     organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
@@ -74,7 +74,7 @@ def test_timeout_error(
     alert_group = make_alert_group(alert_receive_channel)
     alert = make_alert(alert_group, raw_request_data="{}")
 
-    step = SlackAlertShootingStep(slack_team_identity)
+    step = SlackIncomingAlertStep(slack_team_identity)
 
     with pytest.raises(TimeoutError):
         with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
@@ -89,9 +89,9 @@ def test_timeout_error(
     assert not alert.delivered
 
 
-@patch.object(AlertShootingStep, "_post_alert_group_to_slack")
+@patch.object(IncomingAlertStep, "_post_alert_group_to_slack")
 @pytest.mark.django_db
-def test_alert_shooting_no_channel_filter(
+def test_incoming_alert_no_channel_filter(
     mock_post_alert_group_to_slack,
     make_slack_team_identity,
     make_slack_channel,
@@ -109,7 +109,7 @@ def test_alert_shooting_no_channel_filter(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=None)
     alert = make_alert(alert_group, raw_request_data={})
 
-    step = AlertShootingStep(slack_team_identity, organization)
+    step = IncomingAlertStep(slack_team_identity, organization)
     step.process_signal(alert)
 
     assert mock_post_alert_group_to_slack.call_args[1]["slack_channel"] == slack_channel

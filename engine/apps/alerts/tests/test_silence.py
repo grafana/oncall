@@ -5,14 +5,8 @@ from apps.alerts.models import AlertReceiveChannel
 
 
 @pytest.mark.django_db
-def test_silence_alert_group(
-    make_organization_and_user,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-    mock_start_disable_maintenance_task,
-):
-    organization, user = make_organization_and_user()
+def test_silence_alert_group(make_organization_and_user, make_alert_receive_channel, make_alert_group):
+    organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
     )
@@ -24,14 +18,8 @@ def test_silence_alert_group(
 
 
 @pytest.mark.django_db
-def test_silence_by_user_alert_group(
-    make_organization_and_user,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-    mock_start_disable_maintenance_task,
-):
-    organization, user = make_organization_and_user()
+def test_silence_by_user_alert_group(make_organization_and_user, make_alert_receive_channel, make_alert_group):
+    organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
     )
@@ -43,13 +31,7 @@ def test_silence_by_user_alert_group(
 
 
 @pytest.mark.django_db
-def test_unsilence_alert_group(
-    make_organization_and_user,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-    mock_start_disable_maintenance_task,
-):
+def test_unsilence_alert_group(make_organization_and_user, make_alert_receive_channel, make_alert_group):
     organization, user = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA

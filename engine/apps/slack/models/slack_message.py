@@ -70,10 +70,9 @@ class SlackMessage(models.Model):
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-
     cached_permalink = models.URLField(max_length=250, null=True, default=None)
 
+    created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(null=True, default=None)
 
     alert_group = models.ForeignKey(
@@ -84,8 +83,10 @@ class SlackMessage(models.Model):
         related_name="slack_messages",
     )
 
-    # ID of a latest celery task to update the message
     active_update_task_id = models.CharField(max_length=100, null=True, default=None)
+    """
+    ID of the latest celery task to update the message
+    """
 
     class Meta:
         # slack_id is unique within the context of a channel or conversation
@@ -105,7 +106,11 @@ class SlackMessage(models.Model):
 
         try:
             result = SlackClient(self.slack_team_identity).chat_getPermalink(
-                channel=self.channel.slack_id, message_ts=self.slack_id
+                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+                # channel=self.channel.slack_id,
+                channel=self._channel_id,
+                message_ts=self.slack_id,
             )
         except SlackAPIError:
             return None
@@ -117,7 +122,9 @@ class SlackMessage(models.Model):
 
     @property
     def deep_link(self) -> str:
-        return f"https://slack.com/app_redirect?channel={self.channel.slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
+        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+        return f"https://slack.com/app_redirect?channel={self._channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
     @classmethod
     def send_slack_notification(
@@ -131,7 +138,6 @@ class SlackMessage(models.Model):
 
         Still some more investigation needed to confirm this, but for now, we'll pass in the `alert_group` as an argument
         """
-
         from apps.base.models import UserNotificationPolicyLogRecord
 
         slack_message = alert_group.slack_message

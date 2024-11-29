@@ -19,7 +19,6 @@ from apps.alerts.models import (
     Alert,
     AlertGroupLogRecord,
     AlertReceiveChannel,
-    MaintainableObject,
     ResolutionNote,
     listen_for_alertgrouplogrecord,
     listen_for_alertreceivechannel_model_save,
@@ -823,14 +822,6 @@ def make_slack_channel():
         return schedule
 
     return _make_slack_channel
-
-
-@pytest.fixture()
-def mock_start_disable_maintenance_task(monkeypatch):
-    def mocked_start_disable_maintenance_task(*args, **kwargs):
-        return uuid.uuid4()
-
-    monkeypatch.setattr(MaintainableObject, "start_disable_maintenance_task", mocked_start_disable_maintenance_task)
 
 
 @pytest.fixture()

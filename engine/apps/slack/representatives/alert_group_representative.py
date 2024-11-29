@@ -43,8 +43,8 @@ def on_create_alert_slack_representative_async(alert_pk):
         logger.debug(
             f"Process on_create_alert_slack_representative for alert {alert_pk} from alert_group {alert.group_id}"
         )
-        AlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
-        step = AlertShootingStep(organization.slack_team_identity, organization)
+        IncomingAlertStep = ScenarioStep.get_step("distribute_alerts", "IncomingAlertStep")
+        step = IncomingAlertStep(organization.slack_team_identity, organization)
         step.process_signal(alert)
     else:
         logger.debug(
@@ -91,7 +91,7 @@ def on_alert_group_action_triggered_async(log_record_id):
 
 
 class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
-    def __init__(self, log_record):
+    def __init__(self, log_record: "AlertGroupLogRecord"):
         self.log_record = log_record
 
     def is_applicable(self):

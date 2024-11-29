@@ -530,47 +530,73 @@ def test_send_bundle_notification(
     alert_group_1 = make_alert_group(alert_receive_channel=alert_receive_channel)
     alert_group_2 = make_alert_group(alert_receive_channel=alert_receive_channel)
     alert_group_3 = make_alert_group(alert_receive_channel=alert_receive_channel)
+
+    task_id = "test_task_id"
     notification_bundle = make_user_notification_bundle(
-        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id="test_task_id", eta=timezone.now()
+        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id=task_id, eta=timezone.now()
     )
+
     notification_bundle.append_notification(alert_group_1, notification_policy)
     notification_bundle.append_notification(alert_group_2, notification_policy)
     notification_bundle.append_notification(alert_group_3, notification_policy)
+
     assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 3
+
     alert_group_3.resolve()
-    with patch("apps.alerts.tasks.notify_user.compare_escalations", return_value=True):
-        # send notification for 2 active alert groups
-        send_bundled_notification(notification_bundle.id)
-        assert f"alert_group {alert_group_3.id} is not active, skip notification" in caplog.text
-        assert "perform bundled notification for alert groups with ids:" in caplog.text
-        # check bundle_uuid was set, notification for resolved alert group was deleted
-        assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
-        assert notification_bundle.notifications.all().count() == 2
-        assert not notification_bundle.notifications.filter(alert_group=alert_group_3).exists()
 
-        # send notification for 1 active alert group
-        notification_bundle.notifications.update(bundle_uuid=None)
-        alert_group_2.resolve()
-        send_bundled_notification(notification_bundle.id)
-        assert f"alert_group {alert_group_2.id} is not active, skip notification" in caplog.text
-        assert (
-            f"there is only one alert group in bundled notification, perform regular notification. "
-            f"alert_group {alert_group_1.id}"
-        ) in caplog.text
-        # check bundle_uuid was set
-        assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
-        assert notification_bundle.notifications.all().count() == 1
-        # cleanup notifications
-        notification_bundle.notifications.all().delete()
+    # send notification for 2 active alert groups
+    send_bundled_notification.apply((notification_bundle.id,), task_id=task_id)
 
-        # send notification for 0 active alert group
-        notification_bundle.append_notification(alert_group_1, notification_policy)
-        alert_group_1.resolve()
-        send_bundled_notification(notification_bundle.id)
-        assert f"alert_group {alert_group_1.id} is not active, skip notification" in caplog.text
-        assert f"no alert groups to notify about or notification is not allowed for user {user.id}" in caplog.text
-        # check all notifications were deleted
-        assert notification_bundle.notifications.all().count() == 0
+    assert f"alert_group {alert_group_3.id} is not active, skip notification" in caplog.text
+    assert "perform bundled notification for alert groups with ids:" in caplog.text
+
+    # check bundle_uuid was set, notification for resolved alert group was deleted
+    assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
+    assert notification_bundle.notifications.all().count() == 2
+    assert not notification_bundle.notifications.filter(alert_group=alert_group_3).exists()
+
+    # send notification for 1 active alert group
+    notification_bundle.notifications.update(bundle_uuid=None)
+
+    # since we're calling send_bundled_notification several times within this test, we need to reset task_id
+    # because it gets set to None after the first call
+    notification_bundle.notification_task_id = task_id
+    notification_bundle.save()
+
+    alert_group_2.resolve()
+
+    send_bundled_notification.apply((notification_bundle.id,), task_id=task_id)
+
+    assert f"alert_group {alert_group_2.id} is not active, skip notification" in caplog.text
+    assert (
+        f"there is only one alert group in bundled notification, perform regular notification. "
+        f"alert_group {alert_group_1.id}"
+    ) in caplog.text
+
+    # check bundle_uuid was set
+    assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
+    assert notification_bundle.notifications.all().count() == 1
+
+    # cleanup notifications
+    notification_bundle.notifications.all().delete()
+
+    # send notification for 0 active alert group
+    notification_bundle.append_notification(alert_group_1, notification_policy)
+
+    # since we're calling send_bundled_notification several times within this test, we need to reset task_id
+    # because it gets set to None after the first call
+    notification_bundle.notification_task_id = task_id
+    notification_bundle.save()
+
+    alert_group_1.resolve()
+
+    send_bundled_notification.apply((notification_bundle.id,), task_id=task_id)
+
+    assert f"alert_group {alert_group_1.id} is not active, skip notification" in caplog.text
+    assert f"no alert groups to notify about or notification is not allowed for user {user.id}" in caplog.text
+
+    # check all notifications were deleted
+    assert notification_bundle.notifications.all().count() == 0
 
 
 @pytest.mark.django_db
