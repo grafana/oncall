@@ -174,7 +174,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         else:
             # if a new alert comes in, and is grouped to an alert group that has already been posted to Slack,
             # then we will update that existing Slack message
-            
+
             alert_group_slack_message = alert_group.slack_message
             if not alert_group_slack_message:
                 logger.info(
@@ -182,12 +182,12 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                     "have a slack message associated with it"
                 )
                 return
-             elif should_skip_escalation_in_slack:
+            elif should_skip_escalation_in_slack:
                 logger.info(
                     f"Skip updating alert group in Slack because alert_group {alert_group_pk} is set to skip escalation"
                 )
                 return
-            
+
             # NOTE: very important. We need to debounce the update_alert_groups_message call here. This is because
             # we may possibly receive a flood of incoming alerts. We do not want to trigger a Slack message update
             # for each of these, and hence we should instead debounce them
