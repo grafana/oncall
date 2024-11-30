@@ -172,34 +172,31 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                 reason_to_skip_escalation: typing.Optional[int] = None
                 extra_log_msg: typing.Optional[str] = None
                 reraise_exception = False
-                is_slack_api_ratelimit_error = isinstance(e, SlackAPIRatelimitError)
 
                 if isinstance(e, TimeoutError):
                     reraise_exception = True
-                elif is_slack_api_ratelimit_error and alert_receive_channel.is_maintenace_integration:
-                    # we do not want to rate limit maintenace alerts..
-                    extra_log_msg = (
-                        f"integration is a maintenance integration alert_receive_channel={alert_receive_channel}"
-                    )
-                    reraise_exception = True
-                elif is_slack_api_ratelimit_error:
-                    # don't rate limit maintenance alerts.. we've just checked above if the integration is
-                    # a maintenance integration, we know here that it is not
-                    reason_to_skip_escalation = AlertGroup.RATE_LIMITED
-                    extra_log_msg = "not delivering alert due to slack rate limit."
-                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
+                elif isinstance(e, SlackAPIRatelimitError):
+                    extra_log_msg = "not delivering alert due to slack rate limit"
+                    if not alert_receive_channel.is_maintenace_integration:
+                        # we do not want to rate limit maintenace alerts..
+                        reason_to_skip_escalation = AlertGroup.RATE_LIMITED
+                        extra_log_msg += (
+                            f" integration is a maintenance integration alert_receive_channel={alert_receive_channel}"
+                        )
+                    else:
+                        reraise_exception = True
                 elif isinstance(e, SlackAPITokenError):
                     reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
-                    extra_log_msg = "not delivering alert due to account_inactive."
+                    extra_log_msg = "not delivering alert due to account_inactive"
                 elif isinstance(e, SlackAPIInvalidAuthError):
                     reason_to_skip_escalation = AlertGroup.INVALID_AUTH
-                    extra_log_msg = "not delivering alert due to invalid_auth."
+                    extra_log_msg = "not delivering alert due to invalid_auth"
                 elif isinstance(e, (SlackAPIChannelArchivedError, SlackAPIChannelNotFoundError)):
                     reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
-                    extra_log_msg = "not delivering alert due to channel is archived."
+                    extra_log_msg = "not delivering alert due to channel is archived"
                 elif isinstance(e, SlackAPIRestrictedActionError):
                     reason_to_skip_escalation = AlertGroup.RESTRICTED_ACTION
-                    extra_log_msg = "not delivering alert due to workspace restricted action."
+                    extra_log_msg = "not delivering alert due to workspace restricted action"
                 else:
                     # this is some other SlackAPIError..
                     reraise_exception = True
@@ -220,6 +217,14 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
                 if reraise_exception:
                     raise e
+
+                # don't reraise an Exception, but we must return early here because the AlertGroup does not have a
+                # SlackMessage associated with it (eg. the failed called to chat_postMessage above, means
+                # that we never called alert_group.slack_messages.create),
+                #
+                # Given that, it would be impossible to try posting a debug mode notice or
+                # send_message_to_thread_if_bot_not_in_channel without the SlackMessage's thread_ts
+                return
 
             if alert_receive_channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE:
                 # send debug mode notice
