@@ -101,6 +101,18 @@ def on_alert_group_action_triggered_async(log_record_id):
 def notify_user_about_alert_async(user_pk, alert_group_pk, notification_policy_pk):
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
+    def _create_error_log_record(notification_error_code=None):
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            reason="Error during mattermost notification",
+            notification_step=notification_policy.step,
+            notification_channel=notification_policy.notify_by,
+            notification_error_code=notification_error_code,
+        )
+
     try:
         user = User.objects.get(pk=user_pk)
         alert_group = AlertGroup.objects.get(pk=alert_group_pk)
@@ -120,6 +132,9 @@ def notify_user_about_alert_async(user_pk, alert_group_pk, notification_policy_p
             logger.error(
                 f"Alert group mattermost message is not created {alert_group_pk}. Hence stopped retrying for user notification"
             )
+            _create_error_log_record(
+                UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_ALERT_GROUP_MESSAGE_NOT_FOUND
+            )
             return
         else:
             raise e
@@ -131,21 +146,14 @@ def notify_user_about_alert_async(user_pk, alert_group_pk, notification_policy_p
 
     templated_alert = AlertGroupMattermostRenderer(alert_group).alert_renderer.templated_alert
 
+    print("Check identity")
     if not hasattr(user, "mattermost_user_identity"):
         message = "{}\nTried to invite {} to look at the alert group. Unfortunately {} is not in mattermost.".format(
             templated_alert.title, user.username, user.username
         )
-
-        UserNotificationPolicyLogRecord(
-            author=user,
-            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            notification_policy=notification_policy,
-            alert_group=alert_group,
-            reason="User is not in Mattermost",
-            notification_step=notification_policy.step,
-            notification_channel=notification_policy.notify_by,
-            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST,
-        ).save()
+        _create_error_log_record(
+            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST
+        )
     else:
         message = "{}\nInviting {} to look at the alert group.".format(
             templated_alert.title, user.mattermost_user_identity.mention_username
@@ -155,14 +163,21 @@ def notify_user_about_alert_async(user_pk, alert_group_pk, notification_policy_p
 
     try:
         client = MattermostClient()
-        mattermost_post = client.create_post(channel_id=mattermost_channel.channel_id, data=payload)
+        client.create_post(channel_id=mattermost_channel.channel_id, data=payload)
     except MattermostAPITokenInvalid:
         logger.error(f"Mattermost API token is invalid could not create post for alert {alert_group_pk}")
+        _create_error_log_record(UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_API_TOKEN_INVALID)
     except MattermostAPIException as ex:
         logger.error(f"Mattermost API error {ex}")
-        if ex.status not in [status.HTTP_401_UNAUTHORIZED]:
+        if ex.status != status.HTTP_401_UNAUTHORIZED:
             raise ex
+        _create_error_log_record(UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_API_UNAUTHORIZED)
     else:
-        MattermostMessage.create_message(
-            alert_group=alert_group, post=mattermost_post, message_type=MattermostMessage.USER_NOTIFACTION_MESSAGE
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            notification_step=notification_policy.step,
+            notification_channel=notification_policy.notify_by,
         )
