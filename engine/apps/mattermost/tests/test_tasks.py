@@ -254,10 +254,9 @@ def test_notify_user_about_alert_async_success(
         user_pk=user.pk, alert_group_pk=alert_group.pk, notification_policy_pk=user_notification_policy.pk
     )
 
-    mattermost_message = alert_group.mattermost_messages.order_by("created_at").last()
-    assert mattermost_message.post_id == data["id"]
-    assert mattermost_message.channel_id == data["channel_id"]
-    assert mattermost_message.message_type == MattermostMessage.USER_NOTIFACTION_MESSAGE
+    log_record = alert_group.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+    assert log_record.alert_group.pk == alert_group.pk
 
 
 @pytest.mark.django_db
@@ -296,21 +295,12 @@ def test_notify_user_about_alert_async_user_does_not_exist(
 @pytest.mark.django_db
 def test_notify_user_about_alert_async_alert_does_not_exist(
     make_organization_and_user,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
     make_mattermost_channel,
-    make_mattermost_message,
     make_mattermost_user,
     make_user_notification_policy,
 ):
     organization, user = make_organization_and_user()
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
     make_mattermost_channel(organization=organization, is_default_channel=True)
-    make_mattermost_message(alert_group, MattermostMessage.ALERT_GROUP_MESSAGE)
     make_mattermost_user(user=user)
     user_notification_policy = make_user_notification_policy(
         user=user,
@@ -414,15 +404,12 @@ def test_notify_user_about_alert_async_mattermost_user_does_not_exist(
         user_pk=user.pk, alert_group_pk=alert_group.pk, notification_policy_pk=user_notification_policy.pk
     )
 
-    log_record = user_notification_policy.personal_log_records.last()
-    mattermost_message = alert_group.mattermost_messages.order_by("created_at").last()
-    assert mattermost_message.post_id == data["id"]
-    assert mattermost_message.channel_id == data["channel_id"]
-    assert mattermost_message.message_type == MattermostMessage.USER_NOTIFACTION_MESSAGE
-    assert (
-        log_record.notification_error_code
-        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST
-    )
+    assert alert_group.personal_log_records.filter(
+        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST
+    ).exists()
+    log_record = alert_group.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+    assert log_record.alert_group.pk == alert_group.pk
 
 
 @pytest.mark.django_db
@@ -466,6 +453,11 @@ def test_notify_user_about_alert_async_api_failure(
     else:
         notify_user_about_alert_async(
             user_pk=user.pk, alert_group_pk=alert_group.pk, notification_policy_pk=user_notification_policy.pk
+        )
+        log_record = alert_group.personal_log_records.last()
+        assert (
+            log_record.notification_error_code
+            == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_API_UNAUTHORIZED
         )
 
     last_request = httpretty.last_request()

@@ -8,13 +8,11 @@ class MattermostMessage(models.Model):
     (
         ALERT_GROUP_MESSAGE,
         LOG_MESSAGE,
-        USER_NOTIFACTION_MESSAGE,
-    ) = range(3)
+    ) = range(2)
 
     MATTERMOST_MESSAGE_CHOICES = (
         (ALERT_GROUP_MESSAGE, "Alert group message"),
         (LOG_MESSAGE, "Log message"),
-        (USER_NOTIFACTION_MESSAGE, "User notifcation message"),
     )
 
     post_id = models.CharField(max_length=100)
@@ -34,9 +32,8 @@ class MattermostMessage(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["alert_group", "channel_id", "message_type"],
-                condition=models.Q(message_type__in=[0, 1]),
-                name="unique_alert_group_channel_id_message_type",
+                fields=["alert_group", "message_type", "channel_id"],
+                name="unique_alert_group_message_type_channel_id",
             )
         ]
 
