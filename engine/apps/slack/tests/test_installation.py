@@ -128,6 +128,9 @@ def test_uninstall_slack_integration(
 
     uninstall_slack_integration(organization, user)
 
+    organization.refresh_from_db()
+    user.refresh_from_db()
+
     assert organization.slack_team_identity is None
     assert user.slack_user_identity is None
 
