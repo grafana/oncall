@@ -198,7 +198,7 @@ jobs:
         run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
-        run: pytest
+        run: pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -240,7 +240,7 @@ jobs:
         run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
-        run: pytest
+        run: pytest -x
 
   unit-test-backend-sqlite-redis:
     name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -273,7 +273,7 @@ jobs:
         run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
-        run: pytest
+        run: pytest -x
 
   unit-test-migrators:
     name: "Unit tests - Migrators"
