@@ -130,12 +130,14 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
             # this will be the case in the event that we haven't yet created a Slack message for this alert group
 
             # if channel filter is deleted mid escalation, use the organization's default Slack channel
-            slack_channel = channel_filter.slack_channel if channel_filter else organization.default_slack_channel
+            slack_channel = channel_filter.slack_channel_or_org_default if channel_filter else organization.default_slack_channel
 
-            # slack_channel can be None if
-            # - the channel filter is deleted mid escalation
-            # - AND the organization does not have a default slack channel set
-            # in this case, we have to skip posting to Slack because we don't know where to post to
+            # slack_channel can be None if the channel filter is deleted mid escalation, OR the channel filter does
+            # not have a slack channel
+            #
+            # In these cases, we try falling back to the organization's default slack channel. If that is also None,
+            # slack_channel will be None, and we will skip posting to Slack
+            # (because we don't know where to post the message to).
             if slack_channel is None:
                 logger.info(
                     f"Skipping posting message to Slack for alert_group {alert_group_pk} because we don't know which "
@@ -207,12 +209,21 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
                 logger.warning(log_msg)
 
-                update_fields = ["slack_message_sent"]
+                update_fields = []
                 if reason_to_skip_escalation is not None:
                     alert_group.reason_to_skip_escalation = reason_to_skip_escalation
                     update_fields.append("reason_to_skip_escalation")
 
-                alert_group.slack_message_sent = False
+                # Only set slack_message_sent to False under certain circumstances - the idea here is to prevent
+                # attempts to post a message to Slack, ONLY in cases when we are sure it's not possible
+                # (e.g. slack token error; because we call this step with every new alert in the alert group)
+                #
+                # In these cases, with every next alert in the alert group, num_updated_rows (above) should return 0,
+                # and we should skip "post the first message" part for the new alerts
+                if reraise_exception is True:
+                    alert_group.slack_message_sent = False
+                    update_fields.append("slack_message_sent")
+
                 alert_group.save(update_fields=update_fields)
 
                 if reraise_exception:

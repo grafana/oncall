@@ -1982,9 +1982,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def slack_channel_id(self) -> str | None:
         channel_filter = self.channel_filter
 
-        if not self.channel.organization.slack_team_identity:
-            return None
-        elif self.slack_message:
+        if self.slack_message:
             # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
             # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
             #

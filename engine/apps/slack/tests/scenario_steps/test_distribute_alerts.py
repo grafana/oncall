@@ -391,8 +391,11 @@ class TestIncomingAlertStep:
         alert_group.refresh_from_db()
         alert.refresh_from_db()
 
-        assert alert_group.slack_message is None
+        # Ensure that slack_message_sent is set back to False, this will allow us to retry.. a TimeoutError may have
+        # been a transient error that is "recoverable"
         assert alert_group.slack_message_sent is False
+
+        assert alert_group.slack_message is None
         assert SlackMessage.objects.count() == 0
         assert not alert.delivered
 
@@ -443,6 +446,9 @@ class TestIncomingAlertStep:
             blocks=alert_group.render_slack_blocks(),
         )
 
+        # For these Slack errors, retrying won't really help, so we should not set slack_message_sent back to False
+        assert alert_group.slack_message_sent is True
+
         assert alert_group.reason_to_skip_escalation == reason
         assert alert_group.slack_message is None
         assert SlackMessage.objects.count() == 0
@@ -488,11 +494,16 @@ class TestIncomingAlertStep:
             blocks=alert_group.render_slack_blocks(),
         )
 
-        # Ensure that slack_message_sent is set back to False
         alert_group.refresh_from_db()
-        assert alert_group.slack_message_sent is False
-        assert alert_group.reason_to_skip_escalation == AlertGroup.NO_REASON  # Should remain unchanged
 
+        # Ensure that slack_message_sent is set back to False, this will allow us to retry.. a SlackAPIRatelimitError,
+        # may have been a transient error that is "recoverable"
+        #
+        # NOTE: we only want to retry for maintenance integrations, for other integrations we should not retry (this
+        # case is tested above under test_process_signal_slack_errors)
+        assert alert_group.slack_message_sent is False
+
+        assert alert_group.reason_to_skip_escalation == AlertGroup.NO_REASON  # Should remain unchanged
         assert SlackMessage.objects.count() == 0
         assert not alert.delivered
 
@@ -535,8 +546,11 @@ class TestIncomingAlertStep:
         )
 
         alert_group.refresh_from_db()
-        assert alert_group.slack_message_sent is False
-        assert alert_group.reason_to_skip_escalation == AlertGroup.NO_REASON  # Should remain unchanged
 
+        # For these Slack errors that we don't explictly want to handle, retrying won't really help, so we should not
+        # set slack_message_sent back to False
+        assert alert_group.slack_message_sent is False
+
+        assert alert_group.reason_to_skip_escalation == AlertGroup.NO_REASON  # Should remain unchanged
         assert SlackMessage.objects.count() == 0
         assert not alert.delivered

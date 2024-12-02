@@ -810,24 +810,6 @@ def test_alert_group_created_if_resolve_condition_but_auto_resolving_disabled(
 
 class TestAlertGroupSlackChannelID:
     @pytest.mark.django_db
-    def test_slack_channel_id_no_slack_team_identity(
-        self,
-        make_organization,
-        make_alert_receive_channel,
-        make_alert_group,
-    ):
-        """
-        Test that slack_channel_id returns None when the organization has no slack_team_identity.
-        """
-        # Create an organization without a Slack team identity
-        organization = make_organization(slack_team_identity=None)
-        alert_receive_channel = make_alert_receive_channel(organization)
-        alert_group = make_alert_group(alert_receive_channel)
-
-        # Assert that slack_channel_id is None
-        assert alert_group.slack_channel_id is None
-
-    @pytest.mark.django_db
     def test_slack_channel_id_with_slack_message(
         self,
         make_organization_with_slack_team_identity,
