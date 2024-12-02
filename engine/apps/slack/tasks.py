@@ -37,7 +37,7 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
     Background task to update the Slack message for an alert group.
 
     This function is intended to be executed as a Celery task. It performs the following:
-    - Compares the current task ID with the task ID stored in thecache.
+    - Compares the current task ID with the task ID stored in the cache.
       - If they do not match, it means a newer task has been scheduled, so the current task exits to prevent duplicated updates.
     - Does the actual update of the Slack message.
     - Upon successful completion, clears the task ID from the cache to allow future updates (also note that
