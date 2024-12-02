@@ -341,5 +341,12 @@ class SlackMessage(models.Model):
         )
 
         task_id = celery_uuid()
-        update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown, task_id=task_id)
+
+        # NOTE: we need to persist the task ID in the cache before scheduling the task to prevent
+        # a race condition where the task starts before the task ID is stored in the cache as the task
+        # does a check to verify that the celery task id matches the one stored in the cache
+        #
+        # (see update_alert_group_slack_message task for more details)
         self.set_active_update_task_id(task_id)
+        update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown, task_id=task_id)
+
