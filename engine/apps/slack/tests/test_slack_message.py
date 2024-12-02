@@ -158,13 +158,10 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(channel=slack_channel, alert_group=None, organization=organization)
 
-        assert slack_message.active_update_task_id is None
-
-        slack_message.update_alert_groups_message(bypass_debounce=False)
+        slack_message.update_alert_groups_message(debounce=True)
 
         # Ensure no task is scheduled
         mock_update_alert_group_slack_message.apply_async.assert_not_called()
-        assert slack_message.active_update_task_id is None
 
     @patch("apps.slack.models.slack_message.update_alert_group_slack_message")
     @pytest.mark.django_db
@@ -178,25 +175,25 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         make_slack_message,
     ):
         """
-        Test that the method exits early if active_update_task_id is set and bypass_debounce is False.
+        Test that the method exits early if a task ID is set in the cache and debounce is True.
         """
         task_id = "some-task-id"
 
         organization, slack_team_identity = make_organization_with_slack_team_identity()
         alert_receive_channel = make_alert_receive_channel(organization)
         alert_group = make_alert_group(alert_receive_channel)
-
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(
-            channel=slack_channel, alert_group=alert_group, active_update_task_id=task_id
-        )
 
-        slack_message.update_alert_groups_message(bypass_debounce=False)
+        slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group)
+        slack_message.set_active_update_task_id(task_id)
+
+        slack_message.update_alert_groups_message(debounce=True)
 
         # Ensure no task is scheduled
         mock_update_alert_group_slack_message.apply_async.assert_not_called()
-        # Ensure active_update_task_id remains unchanged
-        assert slack_message.active_update_task_id == task_id
+
+        # Ensure task ID in the cache remains unchanged
+        assert slack_message.get_active_update_task_id() == task_id
 
     @patch("apps.slack.models.slack_message.celery_uuid")
     @patch("apps.slack.models.slack_message.update_alert_group_slack_message")
@@ -224,7 +221,9 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group, last_updated=None)
 
-        slack_message.update_alert_groups_message(bypass_debounce=False)
+        assert slack_message.get_active_update_task_id() is None
+
+        slack_message.update_alert_groups_message(debounce=True)
 
         # Verify that apply_async was called with correct countdown
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(
@@ -233,8 +232,8 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             task_id=task_id,
         )
 
-        # Verify active_update_task_id is set
-        assert slack_message.active_update_task_id == task_id
+        # Verify task ID is set in the cache
+        assert slack_message.get_active_update_task_id() == task_id
 
     @patch("apps.slack.models.slack_message.celery_uuid")
     @patch("apps.slack.models.slack_message.update_alert_group_slack_message")
@@ -250,7 +249,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         make_alert_group,
     ):
         """
-        Test that the method schedules the task with correct countdown and updates active_update_task_id.
+        Test that the method schedules the task with correct countdown and updates the task ID in the cache
         """
         task_id = "some-task-id"
         mock_celery_uuid.return_value = task_id
@@ -266,7 +265,9 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             last_updated=timezone.now() - timedelta(seconds=10),
         )
 
-        slack_message.update_alert_groups_message(bypass_debounce=False)
+        assert slack_message.get_active_update_task_id() is None
+
+        slack_message.update_alert_groups_message(debounce=True)
 
         # Verify that apply_async was called with correct countdown
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(
@@ -275,9 +276,9 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             task_id=task_id,
         )
 
-        # Verify active_update_task_id is set correctly
+        # Verify the task ID in the cache is updated to new task_id
         slack_message.refresh_from_db()
-        assert slack_message.active_update_task_id == task_id
+        assert slack_message.get_active_update_task_id() == task_id
 
     @patch("apps.slack.models.slack_message.celery_uuid")
     @patch("apps.slack.models.slack_message.update_alert_group_slack_message")
@@ -310,7 +311,9 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             - timedelta(seconds=SlackMessage.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS + 1),
         )
 
-        slack_message.update_alert_groups_message(bypass_debounce=False)
+        assert slack_message.get_active_update_task_id() is None
+
+        slack_message.update_alert_groups_message(debounce=True)
 
         # Verify that apply_async was called with correct countdown
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(
@@ -320,14 +323,14 @@ class TestSlackMessageUpdateAlertGroupsMessage:
             task_id=task_id,
         )
 
-        # Verify active_update_task_id is set correctly
+        # Verify the task ID in the cache is updated to new task_id
         slack_message.refresh_from_db()
-        assert slack_message.active_update_task_id == task_id
+        assert slack_message.get_active_update_task_id() == task_id
 
     @patch("apps.slack.models.slack_message.celery_uuid")
     @patch("apps.slack.models.slack_message.update_alert_group_slack_message")
     @pytest.mark.django_db
-    def test_update_alert_groups_message_bypass_debounce_schedules_immediately(
+    def test_update_alert_groups_message_debounce_false_schedules_immediately(
         self,
         mock_update_alert_group_slack_message,
         mock_celery_uuid,
@@ -338,31 +341,30 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         make_alert_group,
     ):
         """
-        Test that when bypass_debounce is True, the task is scheduled immediately with countdown=0,
-        even if active_update_task_id is set.
+        Test that when debounce is False, the task is scheduled immediately with countdown=0,
+        even if a task ID is set in the cache.
         """
-        task_id = "new-task-id"
-        mock_celery_uuid.return_value = task_id
+        new_task_id = "new-task-id"
+        mock_celery_uuid.return_value = new_task_id
 
         organization, slack_team_identity = make_organization_with_slack_team_identity()
         alert_receive_channel = make_alert_receive_channel(organization)
         alert_group = make_alert_group(alert_receive_channel)
-
-        # Set up SlackMessage with existing active_update_task_id
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(
-            channel=slack_channel, alert_group=alert_group, active_update_task_id="existing-task-id"
-        )
 
-        slack_message.update_alert_groups_message(bypass_debounce=True)
+        # Set up SlackMessage with existing task ID in the cache
+        slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group)
+        slack_message.set_active_update_task_id("existing-task-id")
+
+        slack_message.update_alert_groups_message(debounce=False)
 
         # Verify that apply_async was called with countdown=0
         mock_update_alert_group_slack_message.apply_async.assert_called_once_with(
             (slack_message.pk,),
             countdown=0,
-            task_id=task_id,
+            task_id=new_task_id,
         )
 
-        # Verify active_update_task_id is updated to new task_id
+        # Verify the task ID in the cache is updated to new task_id
         slack_message.refresh_from_db()
-        assert slack_message.active_update_task_id == task_id
+        assert slack_message.get_active_update_task_id() == new_task_id

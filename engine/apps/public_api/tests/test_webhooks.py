@@ -1,10 +1,13 @@
 import json
 
+import httpretty
 import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.api import permissions
+from apps.auth_token.tests.helpers import setup_service_account_api_mocks
 from apps.public_api.serializers.webhooks import PRESET_VALIDATION_MESSAGE
 from apps.webhooks.models import Webhook
 from apps.webhooks.tests.test_webhook_presets import ADVANCED_WEBHOOK_PRESET_ID, TEST_WEBHOOK_PRESET_ID
@@ -233,6 +236,47 @@ def test_create_webhook_nested_data(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_result
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_create_webhook_via_service_account(
+    make_organization,
+    make_service_account_for_organization,
+    make_token_for_service_account,
+):
+    organization = make_organization(grafana_url="http://grafana.test")
+    service_account = make_service_account_for_organization(organization)
+    token_string = "glsa_token"
+    make_token_for_service_account(service_account, token_string)
+
+    perms = {
+        permissions.RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE.value: ["*"],
+    }
+    setup_service_account_api_mocks(organization.grafana_url, perms)
+
+    client = APIClient()
+    url = reverse("api-public:webhooks-list")
+    data = {
+        "name": "Test outgoing webhook",
+        "url": "https://example.com",
+        "http_method": "POST",
+        "trigger_type": "acknowledge",
+    }
+    response = client.post(
+        url,
+        data=data,
+        format="json",
+        HTTP_AUTHORIZATION=f"{token_string}",
+        HTTP_X_GRAFANA_URL=organization.grafana_url,
+    )
+    if not organization.is_rbac_permissions_enabled:
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+    else:
+        assert response.status_code == status.HTTP_201_CREATED
+        webhook = Webhook.objects.get(public_primary_key=response.data["id"])
+        expected_result = _get_expected_result(webhook)
+        assert response.data == expected_result
 
 
 @pytest.mark.django_db

@@ -147,8 +147,8 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         else:
             slack_thread_message.delete()
 
-            # bypass debounce to update the message immediately, this isn't a high traffic activity
-            slack_thread_message.alert_group.slack_message.update_alert_groups_message(bypass_debounce=True)
+            # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+            slack_thread_message.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

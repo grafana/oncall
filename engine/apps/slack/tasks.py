@@ -37,10 +37,12 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
     Background task to update the Slack message for an alert group.
 
     This function is intended to be executed as a Celery task. It performs the following:
-    - Compares the current task ID with the `active_update_task_id` stored in the `SlackMessage`.
-      - If they do not match, it means a newer task has been scheduled, so the current task exits to prevent outdated updates.
+    - Compares the current task ID with the task ID stored in thecache.
+      - If they do not match, it means a newer task has been scheduled, so the current task exits to prevent duplicated updates.
     - Does the actual update of the Slack message.
-    - Upon successful completion, clears the `active_update_task_id` to allow future updates.
+    - Upon successful completion, clears the task ID from the cache to allow future updates (also note that
+    the task ID is set in the cache with a timeout, so it will be automatically cleared after a certain period, even
+    if this task fails to clear it. See `SlackMessage.update_alert_groups_message` for more details).
 
     Args:
         slack_message_pk (int): The primary key of the `SlackMessage` instance to update.
@@ -59,10 +61,11 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         logger.warning(f"SlackMessage {slack_message_pk} doesn't exist")
         return
 
-    if current_task_id != slack_message.active_update_task_id:
+    active_update_task_id = slack_message.get_active_update_task_id()
+    if current_task_id != active_update_task_id:
         logger.warning(
             f"update_alert_group_slack_message skipped, because current_task_id ({current_task_id}) "
-            f"does not equal to active_update_task_id ({slack_message.active_update_task_id}) "
+            f"does not equal to active_update_task_id ({active_update_task_id}) "
         )
         return
 
@@ -107,9 +110,7 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
     ):
         pass
 
-    slack_message.active_update_task_id = None
-    slack_message.last_updated = timezone.now()
-    slack_message.save(update_fields=["active_update_task_id", "last_updated"])
+    slack_message.mark_active_update_task_as_complete()
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
@@ -121,13 +122,16 @@ def update_incident_slack_message(slack_team_identity_pk: int, alert_group_pk: i
     from apps.alerts.models import AlertGroup
 
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-    if not alert_group or not alert_group.slack_message:
+
+    # NOTE: alert_group can't be None here, AlertGroup.objects.get(pk=alert_group_pk) would
+    # raise AlertGroup.DoesNotExist in this case
+    if not alert_group.slack_message:
         logger.info(
             f"skipping update_incident_slack_message as AlertGroup {alert_group_pk} doesn't have a slack message"
         )
         return
 
-    alert_group.slack_message.update_alert_groups_message(bypass_debounce=True)
+    alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
@@ -348,7 +352,13 @@ def populate_slack_user_identities(organization_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def post_slack_rate_limit_message(integration_id: int, error_message_verb: str) -> None:
+def post_slack_rate_limit_message(integration_id: int, error_message_verb: typing.Optional[str] = None) -> None:
+    """
+    NOTE: error_message_verb was added to the function signature to allow for more descriptive error messages.
+
+    We set it to None by default to maintain backwards compatibility with existing tasks. The default of None
+    can likely be removed in the near future (once existing tasks on the queue have been processed).
+    """
     from apps.alerts.models import AlertReceiveChannel
 
     try:
@@ -365,13 +375,17 @@ def post_slack_rate_limit_message(integration_id: int, error_message_verb: str) 
         return
 
     default_route = integration.channel_filters.get(is_default=True)
-    if (slack_channel_id := default_route.slack_channel_id_or_org_default_id) is not None:
+    if (slack_channel := default_route.slack_channel_or_org_default) is not None:
+        # NOTE: see function docstring above 👆
+        if error_message_verb is None:
+            error_message_verb = "Sending messages for"
+
         text = (
             f"{error_message_verb} Alert Groups in Slack, for integration {integration.verbal_name}, is "
             f"temporarily rate-limited (due to a Slack rate-limit). Meanwhile, you can still find new Alert Groups "
             f'in the <{integration.new_incidents_web_link}|"Alert Groups" web page>'
         )
-        post_message_to_channel(integration.organization, slack_channel_id, text)
+        post_message_to_channel(integration.organization, slack_channel.slack_id, text)
 
 
 @shared_dedicated_queue_retry_task(

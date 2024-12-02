@@ -222,8 +222,8 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 except SlackAPIError:
                     pass
 
-                # bypass debounce to update the button immediately, this isn't a high traffic activity
-                slack_message.update_alert_groups_message(bypass_debounce=True)
+                # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+                slack_message.update_alert_groups_message(debounce=False)
         else:
             warning_text = "Unable to add this message to resolution note."
             self.open_warning_window(payload, warning_text)
@@ -323,8 +323,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def update_alert_group_resolution_note_button(self, alert_group: "AlertGroup") -> None:
         if alert_group.slack_message is not None:
-            # bypass debounce to update the button immediately, this isn't a high traffic activity
-            alert_group.slack_message.update_alert_groups_message(bypass_debounce=True)
+            # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+            alert_group.slack_message.update_alert_groups_message(debounce=False)
 
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:

@@ -475,7 +475,7 @@ class TestSlackChannelMessageEventStep:
             == 0
         )
 
-        mock_update_alert_groups_message.assert_called_once_with(bypass_debounce=True)
+        mock_update_alert_groups_message.assert_called_once_with(debounce=False)
 
     def test_slack_message_has_no_alert_group(
         self,

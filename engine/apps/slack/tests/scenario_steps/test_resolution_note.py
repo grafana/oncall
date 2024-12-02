@@ -388,7 +388,7 @@ def test_add_to_resolution_note(
     step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     mock_reactions_add.assert_called_once()
-    mock_update_alert_groups_message.assert_called_once_with(bypass_debounce=True)
+    mock_update_alert_groups_message.assert_called_once_with(debounce=False)
 
     assert alert_group.resolution_notes.get().text == "Test resolution note"
 

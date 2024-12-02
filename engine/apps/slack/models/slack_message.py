@@ -4,6 +4,7 @@ import typing
 import uuid
 
 from celery import uuid as celery_uuid
+from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
 
@@ -90,7 +91,7 @@ class SlackMessage(models.Model):
 
     active_update_task_id = models.CharField(max_length=100, null=True, default=None)
     """
-    ID of the latest celery task to update the message
+    DEPRECATED/TODO: drop this field in a separate PR/release
     """
 
     class Meta:
@@ -265,7 +266,32 @@ class SlackMessage(models.Model):
         except (SlackAPITokenError, SlackAPIMethodNotSupportedForChannelTypeError):
             pass
 
-    def update_alert_groups_message(self, bypass_debounce: bool) -> None:
+    def _get_update_message_cache_key(self) -> str:
+        return f"update_alert_group_slack_message_{self.alert_group.pk}"
+
+    def get_active_update_task_id(self) -> typing.Optional[str]:
+        return cache.get(self._get_update_message_cache_key(), default=None)
+
+    def set_active_update_task_id(self, task_id: str) -> None:
+        """
+        NOTE: we store the task ID in the cache for twice the debounce interval to ensure that the task ID is
+        EVENTUALLY removed. The background task which updates the message will remove the task ID from the cache, but
+        this is a safety measure in case the task fails to run or complete. The task ID would be removed from the cache
+        which would then allow the message to be updated again in a subsequent call to this method.
+        """
+        cache.set(
+            self._get_update_message_cache_key(),
+            task_id,
+            timeout=self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS * 2,
+        )
+
+    def mark_active_update_task_as_complete(self) -> None:
+        self.last_updated = timezone.now()
+        self.save(update_fields=["last_updated"])
+
+        cache.delete(self._get_update_message_cache_key())
+
+    def update_alert_groups_message(self, debounce: bool) -> None:
         """
         Schedule an update task for the associated alert group's Slack message, respecting the debounce interval.
 
@@ -274,25 +300,28 @@ class SlackMessage(models.Model):
         It schedules a background task to update the message after the appropriate countdown.
 
         The method performs the following steps:
-        - Checks if there's already an active update task (`active_update_task_id` is set). If so, exits to prevent
+        - Checks if there's already an active update task ID set in the cache. If so, exits to prevent
         duplicate scheduling.
         - Calculates the time since the last update (`last_updated` field) and determines the remaining time needed
         to respect the debounce interval.
         - Schedules the `update_alert_group_slack_message` task with the calculated countdown.
-        - Stores the task ID in `active_update_task_id` to prevent multiple tasks from being scheduled.
+        - Stores the task ID in the cache to prevent multiple tasks from being scheduled.
 
-        bypass_debounce: bool - this is intended to be used when we want to force an update to the message, bypassing
-        the debounce mechanism. This is useful when we want to ensure that the message is updated immediately, such as
-        when a button is pressed, on the alert group Slack message.
+        debounce: bool - this is intended to be used when we want to debounce updates to the message. Examples:
+          - when set to True, we will skip scheduling an update task if there's an active update task (eg. debounce it)
+          - when set to False, we will immediately schedule an update task
         """
         if not self.alert_group:
             logger.warning(
                 f"skipping update_alert_groups_message as SlackMessage {self.pk} has no alert_group associated with it"
             )
             return
-        elif not bypass_debounce and self.active_update_task_id:
+
+        active_update_task_id = self.get_active_update_task_id()
+        if debounce and active_update_task_id is not None:
             logger.info(
-                f"skipping update_alert_groups_message as SlackMessage {self.pk} has an active update task {self.active_update_task_id}"
+                f"skipping update_alert_groups_message as SlackMessage {self.pk} has an active update task "
+                f"{active_update_task_id} and debounce is set to True"
             )
             return
 
@@ -304,7 +333,7 @@ class SlackMessage(models.Model):
 
         time_since_last_update = (now - last_updated).total_seconds()
         remaining_time = self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS - int(time_since_last_update)
-        countdown = 0 if bypass_debounce else max(remaining_time, 10)
+        countdown = max(remaining_time, 10) if debounce else 0
 
         logger.info(
             f"updating message for alert_group {self.alert_group.pk} in {countdown} seconds "
@@ -313,5 +342,4 @@ class SlackMessage(models.Model):
 
         task_id = celery_uuid()
         update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown, task_id=task_id)
-        self.active_update_task_id = task_id
-        self.save(update_fields=["active_update_task_id"])
+        self.set_active_update_task_id(task_id)

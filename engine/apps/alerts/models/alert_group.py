@@ -1980,12 +1980,16 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_channel_id(self) -> str | None:
-        if not self.channel.organization.slack_team_identity:
-            return None
-        elif self.slack_message:
-            return self.slack_message.channel.slack_id
-        elif self.channel_filter:
-            return self.channel_filter.slack_channel_id_or_org_default_id
+        channel_filter = self.channel_filter
+
+        if self.slack_message:
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+            #
+            # return self.slack_message.channel.slack_id
+            return self.slack_message._channel_id
+        elif channel_filter and channel_filter.slack_channel_or_org_default:
+            return channel_filter.slack_channel_or_org_default.slack_id
         return None
 
     @property
