@@ -778,9 +778,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const styles = getUtilStyles(theme);
 
     return (
-      <TextEllipsisTooltip placement="top-start" content={teams[record.team]?.name}>
-        <TeamName className={styles.overflowChild} team={teams[record.team]} />
-      </TextEllipsisTooltip>
+      record.teams.map((team) => (
+        <TextEllipsisTooltip placement="top-start" content={teams[team.id]?.name}>
+          <TeamName className={styles.overflowChild} team={teams[team.id]} />
+        </TextEllipsisTooltip>
+      ))
     );
   };
 
