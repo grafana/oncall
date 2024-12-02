@@ -7,8 +7,6 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallScheduleICal
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"  # noqa
-
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -32,7 +30,7 @@ def test_get_schedule_export_token(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        ical_url_primary=ICAL_URL,
+        ical_url_primary="https://example.com",
     )
 
     ScheduleExportAuthToken.create_auth_token(user=user, organization=organization, schedule=schedule)
@@ -68,7 +66,7 @@ def test_schedule_export_token_not_found(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        ical_url_primary=ICAL_URL,
+        ical_url_primary="https://example.com",
     )
 
     url = reverse("api-internal:schedule-export-token", kwargs={"pk": schedule.public_primary_key})
@@ -102,7 +100,7 @@ def test_schedule_create_export_token(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        ical_url_primary=ICAL_URL,
+        ical_url_primary="https://example.com",
     )
 
     url = reverse("api-internal:schedule-export-token", kwargs={"pk": schedule.public_primary_key})
@@ -136,7 +134,7 @@ def test_schedule_delete_export_token(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        ical_url_primary=ICAL_URL,
+        ical_url_primary="https://example.com",
     )
 
     instance, _ = ScheduleExportAuthToken.create_auth_token(user=user, organization=organization, schedule=schedule)

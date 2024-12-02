@@ -8,6 +8,7 @@ mypy==1.4.1
 pre-commit==2.15.0
 pytest==8.2.2
 pytest-django==4.8.0
+pytest-socket==0.7.0
 pytest-xdist[psutil]==3.6.1
 pytest_factoryboy==2.7.0
 types-beautifulsoup4==4.12.0.5
