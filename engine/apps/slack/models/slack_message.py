@@ -349,4 +349,3 @@ class SlackMessage(models.Model):
         # (see update_alert_group_slack_message task for more details)
         self.set_active_update_task_id(task_id)
         update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown, task_id=task_id)
-
