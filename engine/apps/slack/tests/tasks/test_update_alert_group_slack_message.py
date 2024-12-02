@@ -1,7 +1,9 @@
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone
 
+from apps.alerts.models import AlertGroup
 from apps.slack.errors import (
     SlackAPICantUpdateMessageError,
     SlackAPIChannelInactiveError,
@@ -79,6 +81,86 @@ class TestUpdateAlertGroupSlackMessageTask:
 
         # Ensure that SlackClient.chat_update is not called
         mock_chat_update.assert_not_called()
+
+    @patch("apps.slack.tasks.SlackClient.chat_update")
+    @pytest.mark.django_db
+    def test_update_alert_group_slack_message_skip_escalation_in_slack(
+        self,
+        mock_chat_update,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_slack_channel,
+        make_slack_message,
+        make_alert_group,
+        make_alert,
+    ):
+        """
+        Test that the task exits early if alert_group.skip_escalation_in_slack is True.
+        """
+        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        alert_receive_channel = make_alert_receive_channel(organization)
+        alert_group = make_alert_group(
+            alert_receive_channel,
+            reason_to_skip_escalation=AlertGroup.CHANNEL_ARCHIVED,
+        )
+        make_alert(alert_group=alert_group, raw_request_data={})
+        slack_channel = make_slack_channel(slack_team_identity)
+
+        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message.set_active_update_task_id("task-id")
+
+        # Ensure skip_escalation_in_slack is True
+        assert alert_group.skip_escalation_in_slack is True
+
+        update_alert_group_slack_message.apply((slack_message.pk,), task_id="task-id")
+
+        # Ensure that SlackClient.chat_update is not called
+        mock_chat_update.assert_not_called()
+
+        # Verify that the active update task ID is not cleared and last_updated is not set
+        slack_message.refresh_from_db()
+        assert slack_message.get_active_update_task_id() == "task-id"
+        assert slack_message.last_updated is None
+
+    @patch("apps.slack.tasks.SlackClient.chat_update")
+    @pytest.mark.django_db
+    def test_update_alert_group_slack_message_alert_receive_channel_rate_limited(
+        self,
+        mock_chat_update,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_slack_channel,
+        make_slack_message,
+        make_alert_group,
+        make_alert,
+    ):
+        """
+        Test that the task exits early if alert_receive_channel.is_rate_limited_in_slack is True.
+        """
+        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        alert_receive_channel = make_alert_receive_channel(
+            organization,
+            rate_limited_in_slack_at=timezone.now(),
+        )
+        alert_group = make_alert_group(alert_receive_channel)
+        make_alert(alert_group=alert_group, raw_request_data={})
+        slack_channel = make_slack_channel(slack_team_identity)
+
+        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message.set_active_update_task_id("task-id")
+
+        # Ensure is_rate_limited_in_slack is True
+        assert alert_receive_channel.is_rate_limited_in_slack is True
+
+        update_alert_group_slack_message.apply((slack_message.pk,), task_id="task-id")
+
+        # Ensure that SlackClient.chat_update is not called
+        mock_chat_update.assert_not_called()
+
+        # Verify that the active update task ID is not cleared and last_updated is not set
+        slack_message.refresh_from_db()
+        assert slack_message.get_active_update_task_id() == "task-id"
+        assert slack_message.last_updated is None
 
     @patch("apps.slack.tasks.SlackClient.chat_update")
     @pytest.mark.django_db

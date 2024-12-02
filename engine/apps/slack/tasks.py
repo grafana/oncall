@@ -77,10 +77,24 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         )
         return
 
-    slack_client = SlackClient(slack_message.slack_team_identity)
-
     alert_group_pk = alert_group.pk
     alert_receive_channel = alert_group.channel
+    alert_receive_channel_is_rate_limited = alert_receive_channel.is_rate_limited_in_slack
+
+    if alert_group.skip_escalation_in_slack:
+        logger.warning(
+            f"skipping update_alert_group_slack_message as AlertGroup {alert_group_pk} "
+            "has skip_escalation_in_slack set to True"
+        )
+        return
+    elif alert_receive_channel_is_rate_limited:
+        logger.warning(
+            f"skipping update_alert_group_slack_message as AlertGroup {alert_group.pk}'s "
+            f"integration ({alert_receive_channel.pk}) is rate-limited"
+        )
+        return
+
+    slack_client = SlackClient(slack_message.slack_team_identity)
 
     try:
         slack_client.chat_update(
@@ -96,7 +110,7 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         logger.info(f"Message has been updated for alert_group {alert_group_pk}")
     except SlackAPIRatelimitError as e:
         if not alert_receive_channel.is_maintenace_integration:
-            if not alert_receive_channel.is_rate_limited_in_slack:
+            if not alert_receive_channel_is_rate_limited:
                 alert_receive_channel.start_send_rate_limit_message_task("Updating", e.retry_after)
                 logger.info(f"Message has not been updated for alert_group {alert_group_pk} due to slack rate limit.")
         else:
