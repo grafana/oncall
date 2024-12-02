@@ -11,19 +11,19 @@ from django.utils import timezone
 
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.client import SlackClient
-from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
+from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
+    SlackAPIChannelInactiveError,
+    SlackAPIChannelNotFoundError,
     SlackAPIInvalidAuthError,
+    SlackAPIMessageNotFoundError,
     SlackAPIPlanUpgradeRequiredError,
     SlackAPIRatelimitError,
     SlackAPITokenError,
     SlackAPIUsergroupNotFoundError,
 )
-from apps.slack.utils import (
-    get_cache_key_update_incident_slack_message,
-    get_populate_slack_channel_task_id_key,
-    post_message_to_channel,
-)
+from apps.slack.utils import get_populate_slack_channel_task_id_key, post_message_to_channel
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.utils import batch_queryset
 
@@ -32,39 +32,120 @@ logger.setLevel(logging.DEBUG)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
-def update_incident_slack_message(slack_team_identity_pk, alert_group_pk):
-    cache_key = get_cache_key_update_incident_slack_message(alert_group_pk)
-    cached_task_id = cache.get(cache_key)
-    current_task_id = update_incident_slack_message.request.id
+def update_alert_group_slack_message(slack_message_pk: int) -> None:
+    """
+    Background task to update the Slack message for an alert group.
 
-    if cached_task_id is None:
-        update_task_id = update_incident_slack_message.apply_async(
-            (slack_team_identity_pk, alert_group_pk),
-            countdown=10,
-        )
-        cache.set(cache_key, update_task_id, timeout=CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME)
+    This function is intended to be executed as a Celery task. It performs the following:
+    - Compares the current task ID with the task ID stored in the cache.
+      - If they do not match, it means a newer task has been scheduled, so the current task exits to prevent duplicated updates.
+    - Does the actual update of the Slack message.
+    - Upon successful completion, clears the task ID from the cache to allow future updates (also note that
+    the task ID is set in the cache with a timeout, so it will be automatically cleared after a certain period, even
+    if this task fails to clear it. See `SlackMessage.update_alert_groups_message` for more details).
 
-        return (
-            f"update_incident_slack_message rescheduled because of current task_id ({current_task_id})"
-            f" for alert_group {alert_group_pk} doesn't exist in cache"
+    Args:
+        slack_message_pk (int): The primary key of the `SlackMessage` instance to update.
+    """
+    from apps.slack.models import SlackMessage
+
+    current_task_id = update_alert_group_slack_message.request.id
+
+    logger.info(
+        f"update_alert_group_slack_message for slack message {slack_message_pk} started with task_id {current_task_id}"
+    )
+
+    try:
+        slack_message = SlackMessage.objects.get(pk=slack_message_pk)
+    except SlackMessage.DoesNotExist:
+        logger.warning(f"SlackMessage {slack_message_pk} doesn't exist")
+        return
+
+    active_update_task_id = slack_message.get_active_update_task_id()
+    if current_task_id != active_update_task_id:
+        logger.warning(
+            f"update_alert_group_slack_message skipped, because current_task_id ({current_task_id}) "
+            f"does not equal to active_update_task_id ({active_update_task_id}) "
         )
-    if not current_task_id == cached_task_id:
-        return (
-            f"update_incident_slack_message skipped, because of current task_id ({current_task_id})"
-            f" doesn't equal to cached task_id ({cached_task_id}) for alert_group {alert_group_pk}"
+        return
+
+    alert_group = slack_message.alert_group
+    if not alert_group:
+        logger.warning(
+            f"skipping update_alert_group_slack_message as SlackMessage {slack_message_pk} "
+            "doesn't have an alert group associated with it"
+        )
+        return
+
+    alert_group_pk = alert_group.pk
+    alert_receive_channel = alert_group.channel
+    alert_receive_channel_is_rate_limited = alert_receive_channel.is_rate_limited_in_slack
+
+    if alert_group.skip_escalation_in_slack:
+        logger.warning(
+            f"skipping update_alert_group_slack_message as AlertGroup {alert_group_pk} "
+            "has skip_escalation_in_slack set to True"
+        )
+        return
+    elif alert_receive_channel_is_rate_limited:
+        logger.warning(
+            f"skipping update_alert_group_slack_message as AlertGroup {alert_group.pk}'s "
+            f"integration ({alert_receive_channel.pk}) is rate-limited"
+        )
+        return
+
+    slack_client = SlackClient(slack_message.slack_team_identity)
+
+    try:
+        slack_client.chat_update(
+            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
+            # channel=slack_message.channel.slack_id,
+            channel=slack_message._channel_id,
+            ts=slack_message.slack_id,
+            attachments=alert_group.render_slack_attachments(),
+            blocks=alert_group.render_slack_blocks(),
         )
 
+        logger.info(f"Message has been updated for alert_group {alert_group_pk}")
+    except SlackAPIRatelimitError as e:
+        if not alert_receive_channel.is_maintenace_integration:
+            if not alert_receive_channel_is_rate_limited:
+                alert_receive_channel.start_send_rate_limit_message_task("Updating", e.retry_after)
+                logger.info(f"Message has not been updated for alert_group {alert_group_pk} due to slack rate limit.")
+        else:
+            raise
+    except (
+        SlackAPIMessageNotFoundError,
+        SlackAPICantUpdateMessageError,
+        SlackAPIChannelInactiveError,
+        SlackAPITokenError,
+        SlackAPIChannelNotFoundError,
+    ):
+        pass
+
+    slack_message.mark_active_update_task_as_complete()
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
+def update_incident_slack_message(slack_team_identity_pk: int, alert_group_pk: int) -> None:
+    """
+    TODO: this method has been deprecated, and all references to it removed, remove it once task queues no
+    longer reference it.
+    """
     from apps.alerts.models import AlertGroup
-    from apps.slack.models import SlackTeamIdentity
 
-    slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
-    if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
-        return "Skip message update in Slack due to rate limit"
-    if alert_group.slack_message is None:
-        return "Skip message update in Slack due to absence of slack message"
-    AlertGroupSlackService(slack_team_identity).update_alert_group_slack_message(alert_group)
+    # NOTE: alert_group can't be None here, AlertGroup.objects.get(pk=alert_group_pk) would
+    # raise AlertGroup.DoesNotExist in this case
+    if not alert_group.slack_message:
+        logger.info(
+            f"skipping update_incident_slack_message as AlertGroup {alert_group_pk} doesn't have a slack message"
+        )
+        return
+
+    alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
@@ -153,7 +234,6 @@ def send_message_to_thread_if_bot_not_in_channel(
     """
     Send message to alert group's thread if bot is not in current channel
     """
-
     from apps.alerts.models import AlertGroup
     from apps.slack.models import SlackTeamIdentity
 
@@ -286,7 +366,13 @@ def populate_slack_user_identities(organization_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def post_slack_rate_limit_message(integration_id):
+def post_slack_rate_limit_message(integration_id: int, error_message_verb: typing.Optional[str] = None) -> None:
+    """
+    NOTE: error_message_verb was added to the function signature to allow for more descriptive error messages.
+
+    We set it to None by default to maintain backwards compatibility with existing tasks. The default of None
+    can likely be removed in the near future (once existing tasks on the queue have been processed).
+    """
     from apps.alerts.models import AlertReceiveChannel
 
     try:
@@ -304,11 +390,14 @@ def post_slack_rate_limit_message(integration_id):
 
     default_route = integration.channel_filters.get(is_default=True)
     if (slack_channel := default_route.slack_channel_or_org_default) is not None:
+        # NOTE: see function docstring above 👆
+        if error_message_verb is None:
+            error_message_verb = "Sending messages for"
+
         text = (
-            f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
-            f"temporarily stopped due to rate limit. You could find new alert groups at "
-            f"<{integration.new_incidents_web_link}|web page "
-            '"Alert Groups">'
+            f"{error_message_verb} Alert Groups in Slack, for integration {integration.verbal_name}, is "
+            f"temporarily rate-limited (due to a Slack rate-limit). Meanwhile, you can still find new Alert Groups "
+            f'in the <{integration.new_incidents_web_link}|"Alert Groups" web page>'
         )
         post_message_to_channel(integration.organization, slack_channel.slack_id, text)
 

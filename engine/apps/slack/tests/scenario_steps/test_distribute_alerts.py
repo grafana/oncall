@@ -2,7 +2,6 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
-from django.core.cache import cache
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
@@ -10,7 +9,6 @@ from apps.slack.errors import SlackAPIFetchMembersFailedError, SlackAPIRatelimit
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios.distribute_alerts import IncomingAlertStep
 from apps.slack.tests.conftest import build_slack_response
-from apps.slack.utils import get_cache_key_update_incident_slack_message
 
 SLACK_MESSAGE_TS = "1234567890.123456"
 SLACK_POST_MESSAGE_SUCCESS_RESPONSE = {"ts": SLACK_MESSAGE_TS}
@@ -283,22 +281,20 @@ class TestIncomingAlertStep:
         )
 
     @patch("apps.slack.client.SlackClient.chat_postMessage")
-    @patch("apps.slack.scenarios.distribute_alerts.update_incident_slack_message")
+    @patch("apps.slack.models.SlackMessage.update_alert_groups_message")
     @pytest.mark.django_db
     def test_process_signal_update_existing_message(
         self,
-        mock_update_incident_slack_message,
+        mock_update_alert_groups_message,
         mock_chat_postMessage,
         make_slack_team_identity,
         make_slack_channel,
+        make_slack_message,
         make_organization,
         make_alert_receive_channel,
         make_alert_group,
         make_alert,
     ):
-        mocked_update_incident_task_id = "1234"
-        mock_update_incident_slack_message.apply_async.return_value = mocked_update_incident_task_id
-
         slack_team_identity = make_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
         organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
@@ -310,6 +306,8 @@ class TestIncomingAlertStep:
             slack_message_sent=True,
             reason_to_skip_escalation=AlertGroup.NO_REASON,
         )
+        make_slack_message(slack_channel, alert_group=alert_group)
+
         assert alert_group.skip_escalation_in_slack is False
 
         alert = make_alert(alert_group, raw_request_data={})
@@ -317,23 +315,20 @@ class TestIncomingAlertStep:
         step = IncomingAlertStep(slack_team_identity)
         step.process_signal(alert)
 
-        # assert that the background task is scheduled
-        mock_update_incident_slack_message.apply_async.assert_called_once_with(
-            (slack_team_identity.pk, alert_group.pk), countdown=10
-        )
+        # assert that the SlackMessage is updated, and that it is debounced
+        mock_update_alert_groups_message.assert_called_once_with(debounce=True)
         mock_chat_postMessage.assert_not_called()
 
-        # Verify that the cache is set correctly
-        assert cache.get(get_cache_key_update_incident_slack_message(alert_group.pk)) == mocked_update_incident_task_id
-
     @patch("apps.slack.client.SlackClient.chat_postMessage")
-    @patch("apps.slack.scenarios.distribute_alerts.update_incident_slack_message")
+    @patch("apps.slack.models.SlackMessage.update_alert_groups_message")
     @pytest.mark.django_db
     def test_process_signal_do_not_update_due_to_skip_escalation(
         self,
-        mock_update_incident_slack_message,
+        mock_update_alert_groups_message,
         mock_chat_postMessage,
         make_organization_with_slack_team_identity,
+        make_slack_channel,
+        make_slack_message,
         make_alert_receive_channel,
         make_alert_group,
         make_alert,
@@ -343,6 +338,7 @@ class TestIncomingAlertStep:
         """
         organization, slack_team_identity = make_organization_with_slack_team_identity()
         alert_receive_channel = make_alert_receive_channel(organization)
+        slack_channel = make_slack_channel(slack_team_identity)
 
         # Simulate that slack_message_sent is already True and skip escalation due to RATE_LIMITED
         alert_group = make_alert_group(
@@ -351,12 +347,13 @@ class TestIncomingAlertStep:
             reason_to_skip_escalation=AlertGroup.RATE_LIMITED,  # Ensures skip_escalation_in_slack is True
         )
         alert = make_alert(alert_group, raw_request_data={})
+        make_slack_message(slack_channel, alert_group=alert_group)
 
         step = IncomingAlertStep(slack_team_identity)
         step.process_signal(alert)
 
-        # assert that the background task is not scheduled
-        mock_update_incident_slack_message.apply_async.assert_not_called()
+        # assert that we don't update the SlackMessage
+        mock_update_alert_groups_message.assert_not_called()
         mock_chat_postMessage.assert_not_called()
 
     @patch("apps.slack.client.SlackClient.chat_postMessage", side_effect=TimeoutError)
@@ -399,6 +396,7 @@ class TestIncomingAlertStep:
         assert SlackMessage.objects.count() == 0
         assert not alert.delivered
 
+    @patch("apps.alerts.models.AlertReceiveChannel.start_send_rate_limit_message_task")
     @pytest.mark.parametrize(
         "reason,slack_error",
         [
@@ -412,6 +410,7 @@ class TestIncomingAlertStep:
     @pytest.mark.django_db
     def test_process_signal_slack_errors(
         self,
+        mock_start_send_rate_limit_message_task,
         make_slack_team_identity,
         make_organization,
         make_alert_receive_channel,
@@ -433,7 +432,8 @@ class TestIncomingAlertStep:
         with patch.object(step._slack_client, "chat_postMessage") as mock_chat_postMessage:
             error_response = build_slack_response({"error": slack_error})
             error_class = get_error_class(error_response)
-            mock_chat_postMessage.side_effect = error_class(error_response)
+            slack_error_raised = error_class(error_response)
+            mock_chat_postMessage.side_effect = slack_error_raised
 
             step.process_signal(alert)
 
@@ -446,6 +446,13 @@ class TestIncomingAlertStep:
             blocks=alert_group.render_slack_blocks(),
         )
 
+        if error_class == SlackAPIRatelimitError:
+            mock_start_send_rate_limit_message_task.assert_called_once_with(
+                "Delivering", slack_error_raised.retry_after
+            )
+        else:
+            mock_start_send_rate_limit_message_task.assert_not_called()
+
         # For these Slack errors, retrying won't really help, so we should not set slack_message_sent back to False
         assert alert_group.slack_message_sent is True
 
@@ -454,6 +461,7 @@ class TestIncomingAlertStep:
         assert SlackMessage.objects.count() == 0
         assert not alert.delivered
 
+    @patch("apps.alerts.models.AlertReceiveChannel.start_send_rate_limit_message_task")
     @patch(
         "apps.slack.client.SlackClient.chat_postMessage",
         side_effect=SlackAPIRatelimitError(build_slack_response({"error": "ratelimited"})),
@@ -462,6 +470,7 @@ class TestIncomingAlertStep:
     def test_process_signal_slack_api_ratelimit_for_maintenance_integration(
         self,
         mock_chat_postMessage,
+        mock_start_send_rate_limit_message_task,
         make_slack_team_identity,
         make_slack_channel,
         make_organization,
@@ -495,6 +504,8 @@ class TestIncomingAlertStep:
         )
 
         alert_group.refresh_from_db()
+
+        mock_start_send_rate_limit_message_task.assert_not_called()
 
         # Ensure that slack_message_sent is set back to False, this will allow us to retry.. a SlackAPIRatelimitError,
         # may have been a transient error that is "recoverable"

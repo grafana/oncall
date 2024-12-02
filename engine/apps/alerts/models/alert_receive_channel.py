@@ -29,7 +29,7 @@ from apps.metrics_exporter.helpers import (
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
+from apps.slack.constants import SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
@@ -442,12 +442,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             and self.rate_limited_in_slack_at + SLACK_RATE_LIMIT_TIMEOUT > timezone.now()
         )
 
-    def start_send_rate_limit_message_task(self, delay=SLACK_RATE_LIMIT_DELAY):
+    def start_send_rate_limit_message_task(self, error_message_verb: str, delay: int) -> None:
         task_id = celery_uuid()
+
         self.rate_limit_message_task_id = task_id
         self.rate_limited_in_slack_at = timezone.now()
         self.save(update_fields=["rate_limit_message_task_id", "rate_limited_in_slack_at"])
-        post_slack_rate_limit_message.apply_async((self.pk,), countdown=delay, task_id=task_id)
+
+        post_slack_rate_limit_message.apply_async((self.pk, error_message_verb), countdown=delay, task_id=task_id)
 
     @property
     def alert_groups_count(self) -> int:

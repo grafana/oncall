@@ -347,12 +347,14 @@ def test_resolution_notes_modal_closed_before_update(
     assert call_args[0] == "views.update"
 
 
+@patch("apps.slack.models.SlackMessage.update_alert_groups_message")
 @patch.object(SlackClient, "reactions_add")
 @patch.object(SlackClient, "chat_getPermalink", return_value={"permalink": "https://example.com"})
 @pytest.mark.django_db
 def test_add_to_resolution_note(
     _mock_chat_getPermalink,
     mock_reactions_add,
+    mock_update_alert_groups_message,
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
@@ -386,6 +388,8 @@ def test_add_to_resolution_note(
     step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     mock_reactions_add.assert_called_once()
+    mock_update_alert_groups_message.assert_called_once_with(debounce=False)
+
     assert alert_group.resolution_notes.get().text == "Test resolution note"
 
 

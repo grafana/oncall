@@ -222,7 +222,8 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 except SlackAPIError:
                     pass
 
-                self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+                # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+                slack_message.update_alert_groups_message(debounce=False)
         else:
             warning_text = "Unable to add this message to resolution note."
             self.open_warning_window(payload, warning_text)
@@ -261,6 +262,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
+
         blocks = self.get_resolution_note_blocks(resolution_note)
 
         # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
@@ -321,7 +323,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def update_alert_group_resolution_note_button(self, alert_group: "AlertGroup") -> None:
         if alert_group.slack_message is not None:
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+            # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+            alert_group.slack_message.update_alert_groups_message(debounce=False)
 
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:

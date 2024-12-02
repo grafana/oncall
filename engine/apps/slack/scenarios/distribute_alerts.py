@@ -3,15 +3,12 @@ import logging
 import typing
 from datetime import datetime
 
-from django.core.cache import cache
-
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackRenderer
 from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
 from apps.api.permissions import RBACPermission
 from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
-from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
     SlackAPIChannelNotFoundError,
@@ -25,7 +22,7 @@ from apps.slack.errors import (
 from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_formatter import SlackFormatter
-from apps.slack.tasks import send_message_to_thread_if_bot_not_in_channel, update_incident_slack_message
+from apps.slack.tasks import send_message_to_thread_if_bot_not_in_channel
 from apps.slack.types import (
     Block,
     BlockActionType,
@@ -36,7 +33,6 @@ from apps.slack.types import (
     PayloadType,
     ScenarioRoute,
 )
-from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
 
 from .step_mixins import AlertGroupActionsMixin
@@ -116,6 +112,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         # do not try to post alert group message to slack if its channel is rate limited
         if alert_receive_channel.is_rate_limited_in_slack:
             logger.info("Skip posting or updating alert_group in Slack due to rate limit")
+
             AlertGroup.objects.filter(
                 pk=alert_group_pk,
                 slack_message_sent=False,
@@ -184,9 +181,9 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                     if not alert_receive_channel.is_maintenace_integration:
                         # we do not want to rate limit maintenace alerts..
                         reason_to_skip_escalation = AlertGroup.RATE_LIMITED
-                        extra_log_msg += (
-                            f" integration is a maintenance integration alert_receive_channel={alert_receive_channel}"
-                        )
+                        extra_log_msg += f" integration is a maintenance integration alert_receive_channel={alert_receive_channel.pk}"
+
+                        alert_receive_channel.start_send_rate_limit_message_task("Delivering", e.retry_after)
                     else:
                         reraise_exception = True
                 elif isinstance(e, SlackAPITokenError):
@@ -268,18 +265,24 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         else:
             # if a new alert comes in, and is grouped to an alert group that has already been posted to Slack,
             # then we will update that existing Slack message
-            if not should_skip_escalation_in_slack:
-                update_task_id = update_incident_slack_message.apply_async(
-                    (self.slack_team_identity.pk, alert_group_pk),
-                    countdown=10,
+
+            alert_group_slack_message = alert_group.slack_message
+            if not alert_group_slack_message:
+                logger.info(
+                    f"Skip updating alert group in Slack because alert_group {alert_group_pk} doesn't "
+                    "have a slack message associated with it"
                 )
-                cache.set(
-                    get_cache_key_update_incident_slack_message(alert_group_pk),
-                    update_task_id,
-                    timeout=CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME,
+                return
+            elif should_skip_escalation_in_slack:
+                logger.info(
+                    f"Skip updating alert group in Slack because alert_group {alert_group_pk} is set to skip escalation"
                 )
-            else:
-                logger.info("Skip updating alert_group in Slack due to rate limit")
+                return
+
+            # NOTE: very important. We need to debounce the update_alert_groups_message call here. This is because
+            # we may possibly receive a flood of incoming alerts. We do not want to trigger a Slack message update
+            # for each of these, and hence we should instead debounce them
+            alert_group_slack_message.update_alert_groups_message(debounce=True)
 
     def process_scenario(
         self,
@@ -324,13 +327,16 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
             # for old version with user slack_id selection
             warning_text = "Oops! Something goes wrong, please try again"
             self.open_warning_window(payload, warning_text)
+
         if selected_user is not None:
             Invitation.invite_user(selected_user, alert_group, self.user)
         else:
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+            # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+            alert_group.slack_message.update_alert_groups_message(debounce=False)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -360,7 +366,8 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -381,7 +388,8 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.un_silence_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -555,7 +563,8 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                     unfurl_links=True,
                 )
 
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        alert_group.slack_message.update_alert_groups_message(debounce=False)
 
     def process_scenario(
         self,
@@ -625,7 +634,8 @@ class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -658,7 +668,8 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         Invitation.stop_invitation(invitation_id, self.user)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -696,11 +707,11 @@ class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             alert_group.resolve_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
         # Do not rerender alert_groups which happened while maintenance.
         # They have no slack messages, since they just attached to the maintenance incident.
-        if not alert_group.happened_while_maintenance:
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        if not log_record.alert_group.happened_while_maintenance:
+            # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+            log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -721,7 +732,8 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.un_resolve_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -742,7 +754,8 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.acknowledge_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        log_record.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -811,7 +824,8 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
                     alert_group, attachments=message_attachments, text=text
                 )
 
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        slack_message.update_alert_groups_message(debounce=False)
         logger.debug(f"Finished process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
 
@@ -932,7 +946,8 @@ class WipeGroupStep(scenario_step.ScenarioStep):
             text=f"Wiped by {log_record.author.get_username_with_slack_verbal()}",
         )
 
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+        alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 class DeleteGroupStep(scenario_step.ScenarioStep):
