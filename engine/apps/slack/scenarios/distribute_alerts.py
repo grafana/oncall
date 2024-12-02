@@ -181,9 +181,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                     if not alert_receive_channel.is_maintenace_integration:
                         # we do not want to rate limit maintenace alerts..
                         reason_to_skip_escalation = AlertGroup.RATE_LIMITED
-                        extra_log_msg += (
-                            f" integration is a maintenance integration alert_receive_channel={alert_receive_channel.pk}"
-                        )
+                        extra_log_msg += f" integration is a maintenance integration alert_receive_channel={alert_receive_channel.pk}"
 
                         alert_receive_channel.start_send_rate_limit_message_task("Delivering", e.retry_after)
                     else:

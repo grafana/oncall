@@ -2,7 +2,6 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
-from django.core.cache import cache
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
@@ -448,7 +447,9 @@ class TestIncomingAlertStep:
         )
 
         if error_class == SlackAPIRatelimitError:
-            mock_start_send_rate_limit_message_task.assert_called_once_with("Delivering", slack_error_raised.retry_after)
+            mock_start_send_rate_limit_message_task.assert_called_once_with(
+                "Delivering", slack_error_raised.retry_after
+            )
         else:
             mock_start_send_rate_limit_message_task.assert_not_called()
 
