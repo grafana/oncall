@@ -29,4 +29,5 @@ export interface ChannelFilter {
     [key: string]: any;
   } | null;
   escalation_chain: EscalationChain['id'];
+  update_team: boolean;
 }

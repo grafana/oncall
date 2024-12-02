@@ -425,6 +425,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
 
+    teams = models.ManyToManyField(to="user_management.Team")
+
     # This field is used for constraints so we can use get_or_create() in concurrent calls
     # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#get-or-create
     # Combined with unique_together below, it allows only one alert group with

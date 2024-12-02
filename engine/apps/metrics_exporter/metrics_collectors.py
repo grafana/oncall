@@ -33,6 +33,9 @@ from settings.base import (
     METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME,
 )
 
+type IntegrationId = int
+type TeamId = int
+
 application_metrics_registry = CollectorRegistry()
 
 logger = logging.getLogger(__name__)
@@ -101,7 +104,7 @@ class ApplicationMetricsCollector:
         )
         processed_org_ids = set()
         alert_groups_total_keys = [get_metric_alert_groups_total_key(org_id) for org_id in org_ids]
-        org_ag_states: typing.Dict[str, typing.Dict[int, AlertGroupsTotalMetricsDict]] = cache.get_many(
+        org_ag_states: typing.Dict[str, typing.Dict[(IntegrationId, TeamId), AlertGroupsTotalMetricsDict]] = cache.get_many(
             alert_groups_total_keys
         )
         for org_key, ag_states in org_ag_states.items():
@@ -146,9 +149,10 @@ class ApplicationMetricsCollector:
             "Users response time to alert groups in 7 days (seconds)",
             labels=self._integration_labels,
         )
+
         processed_org_ids = set()
         alert_groups_response_time_keys = [get_metric_alert_groups_response_time_key(org_id) for org_id in org_ids]
-        org_ag_response_times: typing.Dict[str, typing.Dict[int, AlertGroupsResponseTimeMetricsDict]] = cache.get_many(
+        org_ag_response_times: typing.Dict[str, typing.Dict[(IntegrationId,TeamId), AlertGroupsResponseTimeMetricsDict]] = cache.get_many(
             alert_groups_response_time_keys
         )
         for org_key, ag_response_time in org_ag_response_times.items():

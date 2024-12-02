@@ -67,6 +67,9 @@ class ChannelFilter(OrderedModel):
         "alerts.EscalationChain", null=True, default=None, on_delete=models.SET_NULL, related_name="channel_filters"
     )
 
+    # Should we update the alertgroup team when this route is used
+    update_team = models.BooleanField(null=True, default=False)
+
     notify_in_slack = models.BooleanField(null=True, default=True)
     notify_in_telegram = models.BooleanField(null=True, default=False)
     slack_channel = models.ForeignKey(

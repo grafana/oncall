@@ -797,6 +797,6 @@ def listen_for_alertreceivechannel_model_save(
         # delete connected auth tokens
         instance.auth_tokens.all().delete()
 
-        metrics_remove_deleted_integration_from_cache(instance)
+        metrics_remove_deleted_integration_from_cache(instance, instance.organization)
     else:
-        metrics_update_integration_cache(instance)
+        metrics_update_integration_cache(instance, instance.organization)

@@ -20,6 +20,7 @@ from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
 from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
 from .user import FastUserSerializer, UserShortSerializer
+from .team import FastTeamSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -125,8 +126,7 @@ class AlertGroupListSerializer(
     related_users = serializers.SerializerMethodField()
     dependent_alert_groups = ShortAlertGroupSerializer(many=True)
     root_alert_group = ShortAlertGroupSerializer()
-    team = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
-
+    teams = serializers.SerializerMethodField()
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
 
@@ -136,6 +136,7 @@ class AlertGroupListSerializer(
         "dependent_alert_groups",
         "log_records__author",
         "labels",
+        "teams",
         Prefetch(
             "slack_messages",
             queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
@@ -187,11 +188,23 @@ class AlertGroupListSerializer(
             "root_alert_group",
             "status",
             "declare_incident_link",
-            "team",
             "grafana_incident_id",
             "labels",
             "permalinks",
+            "teams"
         ]
+
+    @extend_schema_field(FastTeamSerializer(many=True))
+    def get_teams(self, obj: "AlertGroup"):
+        """
+        Handle AlertGroups that haven't been assigned a team yet
+        """
+
+        if obj.teams:
+            teams = obj.teams
+        elif obj.channel.team:
+            teams = [obj.channel.team]
+        return FastTeamSerializer(teams, context=self.context, many=True).data
 
     def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
         if not obj.last_alert:
@@ -229,6 +242,7 @@ class AlertGroupListSerializer(
                 users.append(log_record.author)
                 users_ids.add(log_record.author.public_primary_key)
         return UserShortSerializer(users, context=self.context, many=True).data
+
 
 
 class AlertGroupSerializer(AlertGroupListSerializer):

@@ -158,6 +158,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, BaseChannelFilterSerializer):
             "is_the_last_route",
             "slack",
             "telegram",
+            "update_team"
         ]
         read_only_fields = ["is_the_last_route"]
 
@@ -228,6 +229,7 @@ class DefaultChannelFilterSerializer(BaseChannelFilterSerializer):
             "slack",
             "telegram",
             "escalation_chain_id",
+            "update_team"
         ]
 
     def update(self, instance, validated_data):

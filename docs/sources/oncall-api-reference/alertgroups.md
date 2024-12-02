@@ -73,6 +73,9 @@ The above command returns JSON structured in the following way:
           ]
         }
       },
+      "teams": [
+        "TE5EF3RQHJQPI"
+      ]
     }
   ],
   "current_page_number": 1,
@@ -80,6 +83,7 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+> **Note**: `team_id` is provided for each alert_group however this is based off the old method where team was assigned based on integration team. It's recommended to use the new `teams` field.
 
 > **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.
 

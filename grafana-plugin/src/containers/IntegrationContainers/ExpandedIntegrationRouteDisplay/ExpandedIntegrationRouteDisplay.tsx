@@ -13,6 +13,7 @@ import {
   RadioButtonGroup,
   Alert,
   useStyles2,
+  InlineSwitch
 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
@@ -345,6 +346,14 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         </Stack>
                       </Button>
                     )}
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                      <InlineSwitch
+                        showLabel
+                        label="Update Alert Group team"
+                        value={channelFilter.update_team}
+                        onChange={onRouteUpdateTeam}
+                      />
+                    </WithPermissionControlTooltip>
                   </Stack>
                 </div>
                 {!isEscalationCollapsed && (
@@ -464,6 +473,13 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       });
       escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
       escalationPolicyStore.updateEscalationPolicies(newEscalationChainId);
+    }
+
+    async function onRouteUpdateTeam(event: React.ChangeEvent<HTMLInputElement>) {
+      const value = event.target.checked;
+      await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
+        update_team: value,
+      });
     }
 
     async function onEscalationChainsRefresh() {

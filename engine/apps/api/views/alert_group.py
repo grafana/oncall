@@ -302,24 +302,21 @@ class AlertGroupView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
 
-        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
-            organization_id=self.request.auth.organization.id
-        )
-        if not ignore_filtering_by_available_teams:
-            alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
-
-        # Filter by team(s). Since we really filter teams from integrations, this is not an AlertGroup model filter.
-        # This is based on the common.api_helpers.ByTeamModelFieldFilterMixin implementation
         team_values = self.request.query_params.getlist("team", [])
         if team_values:
-            null_team_lookup = Q(team__isnull=True) if NO_TEAM_VALUE in team_values else None
-            teams_lookup = Q(team__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
+            null_team_lookup = Q(teams__isnull=True) if NO_TEAM_VALUE in team_values else None
+            teams_lookup = Q(teams__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
             if null_team_lookup:
                 teams_lookup = teams_lookup | null_team_lookup
-            alert_receive_channels_qs = alert_receive_channels_qs.filter(teams_lookup)
 
-        alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
-        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
+        if not ignore_filtering_by_available_teams:
+            queryset = AlertGroup.objects.filter(*self.available_teams_lookup_args)
+        else:
+            queryset = AlertGroup.objects
+        
+        if team_values:
+            queryset = queryset.filter(teams_lookup)
+        
 
         if self.action in ("list", "stats") and not self.request.query_params.get("started_at"):
             queryset = queryset.filter(started_at__gte=timezone.now() - timezone.timedelta(days=30))

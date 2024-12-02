@@ -65,6 +65,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "notification_backends",
             "filtering_term_as_jinja2",
             "telegram_channel_details",
+            "update_team"
         ]
         read_only_fields = [
             "created_at",
@@ -165,6 +166,7 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "notify_in_slack",
             "notify_in_telegram",
             "notification_backends",
+            "update_team"
         ]
         read_only_fields = ["created_at", "is_default"]
 
