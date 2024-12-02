@@ -22,7 +22,7 @@ from apps.slack.errors import (
     SlackAPIRestrictedActionError,
     SlackAPITokenError,
 )
-from apps.slack.models import SlackChannel, SlackTeamIdentity, SlackUserIdentity
+from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_formatter import SlackFormatter
 from apps.slack.tasks import send_message_to_thread_if_bot_not_in_channel, update_incident_slack_message
@@ -94,7 +94,6 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
         See this conversation for more context https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732800180834819?thread_ts=1732748893.183939&cid=C06K1MQ07GS
         """
-
         alert_group = alert.group
 
         if not alert_group:
@@ -108,6 +107,8 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
         alert_group_pk = alert_group.pk
         alert_receive_channel = alert_group.channel
+        organization = alert_receive_channel.organization
+        channel_filter = alert_group.channel_filter
         should_skip_escalation_in_slack = alert_group.skip_escalation_in_slack
         slack_team_identity = self.slack_team_identity
         slack_team_identity_pk = slack_team_identity.pk
@@ -128,26 +129,115 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
         if num_updated_rows == 1:
             # this will be the case in the event that we haven't yet created a Slack message for this alert group
 
+            # if channel filter is deleted mid escalation, use the organization's default Slack channel
             slack_channel = (
-                alert_group.channel_filter.slack_channel
-                if alert_group.channel_filter
-                # if channel filter is deleted mid escalation, use default Slack channel
-                else alert_receive_channel.organization.default_slack_channel
+                channel_filter.slack_channel_or_org_default if channel_filter else organization.default_slack_channel
             )
+
+            # slack_channel can be None if the channel filter is deleted mid escalation, OR the channel filter does
+            # not have a slack channel
+            #
+            # In these cases, we try falling back to the organization's default slack channel. If that is also None,
+            # slack_channel will be None, and we will skip posting to Slack
+            # (because we don't know where to post the message to).
+            if slack_channel is None:
+                logger.info(
+                    f"Skipping posting message to Slack for alert_group {alert_group_pk} because we don't know which "
+                    f"Slack channel to post to. channel_filter={channel_filter} "
+                    f"organization.default_slack_channel={organization.default_slack_channel}"
+                )
+
+                alert_group.slack_message_sent = False
+                alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_NOT_SPECIFIED
+                alert_group.save(update_fields=["slack_message_sent", "reason_to_skip_escalation"])
+                return
+
             slack_channel_id = slack_channel.slack_id
 
             try:
-                self._post_alert_group_to_slack(
-                    slack_team_identity=slack_team_identity,
-                    alert_group=alert_group,
-                    alert=alert,
+                result = self._slack_client.chat_postMessage(
+                    channel=slack_channel.slack_id,
                     attachments=alert_group.render_slack_attachments(),
-                    slack_channel=slack_channel,
                     blocks=alert_group.render_slack_blocks(),
                 )
-            except (SlackAPIError, TimeoutError):
-                AlertGroup.objects.filter(pk=alert_group_pk).update(slack_message_sent=False)
-                raise
+
+                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
+                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
+                alert_group.slack_messages.create(
+                    slack_id=result["ts"],
+                    organization=alert_group.channel.organization,
+                    _channel_id=slack_channel.slack_id,
+                    channel=slack_channel,
+                )
+
+                alert.delivered = True
+                alert.save()
+            except (SlackAPIError, TimeoutError) as e:
+                reason_to_skip_escalation: typing.Optional[int] = None
+                extra_log_msg: typing.Optional[str] = None
+                reraise_exception = False
+
+                if isinstance(e, TimeoutError):
+                    reraise_exception = True
+                elif isinstance(e, SlackAPIRatelimitError):
+                    extra_log_msg = "not delivering alert due to slack rate limit"
+                    if not alert_receive_channel.is_maintenace_integration:
+                        # we do not want to rate limit maintenace alerts..
+                        reason_to_skip_escalation = AlertGroup.RATE_LIMITED
+                        extra_log_msg += (
+                            f" integration is a maintenance integration alert_receive_channel={alert_receive_channel}"
+                        )
+                    else:
+                        reraise_exception = True
+                elif isinstance(e, SlackAPITokenError):
+                    reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
+                    extra_log_msg = "not delivering alert due to account_inactive"
+                elif isinstance(e, SlackAPIInvalidAuthError):
+                    reason_to_skip_escalation = AlertGroup.INVALID_AUTH
+                    extra_log_msg = "not delivering alert due to invalid_auth"
+                elif isinstance(e, (SlackAPIChannelArchivedError, SlackAPIChannelNotFoundError)):
+                    reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
+                    extra_log_msg = "not delivering alert due to channel is archived"
+                elif isinstance(e, SlackAPIRestrictedActionError):
+                    reason_to_skip_escalation = AlertGroup.RESTRICTED_ACTION
+                    extra_log_msg = "not delivering alert due to workspace restricted action"
+                else:
+                    # this is some other SlackAPIError..
+                    reraise_exception = True
+
+                log_msg = f"{e.__class__.__name__} while posting alert {alert.pk} for {alert_group_pk} to Slack"
+                if extra_log_msg:
+                    log_msg += f" ({extra_log_msg})"
+
+                logger.warning(log_msg)
+
+                update_fields = []
+                if reason_to_skip_escalation is not None:
+                    alert_group.reason_to_skip_escalation = reason_to_skip_escalation
+                    update_fields.append("reason_to_skip_escalation")
+
+                # Only set slack_message_sent to False under certain circumstances - the idea here is to prevent
+                # attempts to post a message to Slack, ONLY in cases when we are sure it's not possible
+                # (e.g. slack token error; because we call this step with every new alert in the alert group)
+                #
+                # In these cases, with every next alert in the alert group, num_updated_rows (above) should return 0,
+                # and we should skip "post the first message" part for the new alerts
+                if reraise_exception is True:
+                    alert_group.slack_message_sent = False
+                    update_fields.append("slack_message_sent")
+
+                alert_group.save(update_fields=update_fields)
+
+                if reraise_exception:
+                    raise e
+
+                # don't reraise an Exception, but we must return early here because the AlertGroup does not have a
+                # SlackMessage associated with it (eg. the failed called to chat_postMessage above, means
+                # that we never called alert_group.slack_messages.create),
+                #
+                # Given that, it would be impossible to try posting a debug mode notice or
+                # send_message_to_thread_if_bot_not_in_channel without the SlackMessage's thread_ts
+                return
 
             if alert_receive_channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE:
                 # send debug mode notice
@@ -190,75 +280,6 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                 )
             else:
                 logger.info("Skip updating alert_group in Slack due to rate limit")
-
-    def _post_alert_group_to_slack(
-        self,
-        slack_team_identity: SlackTeamIdentity,
-        alert_group: AlertGroup,
-        alert: Alert,
-        attachments,
-        slack_channel: typing.Optional[SlackChannel],
-        blocks: Block.AnyBlocks,
-    ) -> None:
-        # slack_channel can be None if org default slack channel for slack_team_identity is not set
-        if slack_channel is None:
-            logger.info(
-                f"Failed to post message to Slack for alert_group {alert_group.pk} because slack_channel is None"
-            )
-
-            alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_NOT_SPECIFIED
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-
-            return
-
-        try:
-            result = self._slack_client.chat_postMessage(
-                channel=slack_channel.slack_id,
-                attachments=attachments,
-                blocks=blocks,
-            )
-
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
-            alert_group.slack_messages.create(
-                slack_id=result["ts"],
-                organization=alert_group.channel.organization,
-                _channel_id=slack_channel.slack_id,
-                channel=slack_channel,
-            )
-
-            alert.delivered = True
-        except SlackAPITokenError:
-            alert_group.reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-            logger.info("Not delivering alert due to account_inactive.")
-        except SlackAPIInvalidAuthError:
-            alert_group.reason_to_skip_escalation = AlertGroup.INVALID_AUTH
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-            logger.info("Not delivering alert due to invalid_auth.")
-        except SlackAPIChannelArchivedError:
-            alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-            logger.info("Not delivering alert due to channel is archived.")
-        except SlackAPIRatelimitError as e:
-            # don't rate limit maintenance alert
-            if not alert_group.channel.is_maintenace_integration:
-                alert_group.reason_to_skip_escalation = AlertGroup.RATE_LIMITED
-                alert_group.save(update_fields=["reason_to_skip_escalation"])
-                alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
-                logger.info("Not delivering alert due to slack rate limit.")
-            else:
-                raise e
-        except SlackAPIChannelNotFoundError:
-            alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-            logger.info("Not delivering alert due to channel is archived.")
-        except SlackAPIRestrictedActionError:
-            alert_group.reason_to_skip_escalation = AlertGroup.RESTRICTED_ACTION
-            alert_group.save(update_fields=["reason_to_skip_escalation"])
-            logger.info("Not delivering alert due to workspace restricted action.")
-        finally:
-            alert.save()
 
     def process_scenario(
         self,

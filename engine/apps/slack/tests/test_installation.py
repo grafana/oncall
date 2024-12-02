@@ -119,25 +119,18 @@ def test_install_slack_integration_legacy(settings, make_organization_and_user, 
 @pytest.mark.django_db
 def test_uninstall_slack_integration(
     mock_clean_slack_integration_leftovers,
-    make_organization_and_user,
-    make_slack_team_identity,
-    make_slack_user_identity,
+    make_organization_and_user_with_slack_identities,
 ):
-    slack_team_identity = make_slack_team_identity()
-    organization, user = make_organization_and_user()
-    organization.slack_team_identity = slack_team_identity
-    organization.save()
-    organization.refresh_from_db()
+    organization, user, _, _ = make_organization_and_user_with_slack_identities()
 
-    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
-    user.slack_user_identity = slack_user_identity
-    user.save()
-    user.refresh_from_db()
+    assert organization.slack_team_identity is not None
+    assert user.slack_user_identity is not None
 
     uninstall_slack_integration(organization, user)
 
     organization.refresh_from_db()
     user.refresh_from_db()
+
     assert organization.slack_team_identity is None
     assert user.slack_user_identity is None
 
