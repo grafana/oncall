@@ -172,14 +172,8 @@ class ChannelFilter(OrderedModel):
         return self.slack_channel.slack_id if self.slack_channel else None
 
     @property
-    def slack_channel_id_or_org_default_id(self):
-        organization = self.alert_receive_channel.organization
-
-        if organization.slack_team_identity is None:
-            return None
-        elif self.slack_channel_slack_id is None:
-            return organization.default_slack_channel_slack_id
-        return self.slack_channel_slack_id
+    def slack_channel_or_org_default(self) -> typing.Optional["SlackChannel"]:
+        return self.slack_channel or self.alert_receive_channel.organization.default_slack_channel
 
     @property
     def str_for_clients(self):

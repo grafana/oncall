@@ -152,11 +152,11 @@ def test_delete(
     # Check that appropriate Slack API calls are made
     assert mock_chat_delete.call_count == 2
     assert mock_chat_delete.call_args_list[0] == call(
-        channel=resolution_note_1.slack_channel_id, ts=resolution_note_1.ts
+        channel=resolution_note_1.slack_channel.slack_id, ts=resolution_note_1.ts
     )
     assert mock_chat_delete.call_args_list[1] == call(channel=slack_message.channel.slack_id, ts=slack_message.slack_id)
     mock_reactions_remove.assert_called_once_with(
-        channel=resolution_note_2.slack_channel_id, name="memo", timestamp=resolution_note_2.ts
+        channel=resolution_note_2.slack_channel.slack_id, name="memo", timestamp=resolution_note_2.ts
     )
 
 
@@ -707,7 +707,7 @@ def test_delete_by_user(
 
 
 @pytest.mark.django_db
-def test_integration_config_on_alert_group_created(make_organization, make_alert_receive_channel, make_channel_filter):
+def test_integration_config_on_alert_group_created(make_organization, make_alert_receive_channel):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization, grouping_id_template="group_to_one_group")
 
@@ -806,3 +806,64 @@ def test_alert_group_created_if_resolve_condition_but_auto_resolving_disabled(
 
     # the alert will create a new alert group
     assert alert.group != resolved_alert_group
+
+
+class TestAlertGroupSlackChannelID:
+    @pytest.mark.django_db
+    def test_slack_channel_id_with_slack_message(
+        self,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_slack_channel,
+        make_slack_message,
+        make_alert_group,
+    ):
+        """
+        Test that slack_channel_id returns the _channel_id from slack_message when slack_message exists.
+        """
+        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        alert_receive_channel = make_alert_receive_channel(organization)
+        alert_group = make_alert_group(alert_receive_channel)
+        slack_channel = make_slack_channel(slack_team_identity)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
+
+        # Assert that slack_channel_id returns the _channel_id from slack_message
+        assert alert_group.slack_channel_id == slack_message._channel_id
+
+    @pytest.mark.django_db
+    def test_slack_channel_id_with_channel_filter(
+        self,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_channel_filter,
+        make_slack_channel,
+        make_alert_group,
+    ):
+        """
+        Test that slack_channel_id returns the slack_id from channel_filter.slack_channel_or_org_default.
+        """
+        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        alert_receive_channel = make_alert_receive_channel(organization)
+        slack_channel = make_slack_channel(slack_team_identity)
+        channel_filter = make_channel_filter(alert_receive_channel, slack_channel=slack_channel)
+        alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+
+        # Assert that slack_channel_id returns the slack_id from the channel filter's Slack channel
+        assert alert_group.slack_channel_id == slack_channel.slack_id
+
+    @pytest.mark.django_db
+    def test_slack_channel_id_no_slack_message_no_channel_filter(
+        self,
+        make_organization_with_slack_team_identity,
+        make_alert_receive_channel,
+        make_alert_group,
+    ):
+        """
+        Test that slack_channel_id returns None when there is no slack_message and no channel_filter.
+        """
+        organization, _ = make_organization_with_slack_team_identity()
+        alert_receive_channel = make_alert_receive_channel(organization)
+        alert_group = make_alert_group(alert_receive_channel, channel_filter=None)
+
+        # Assert that slack_channel_id is None
+        assert alert_group.slack_channel_id is None

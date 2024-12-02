@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from apps.base.messaging import load_backend
 from apps.labels.models import LabelKeyCache, LabelValueCache
 from common.exceptions import BacksyncIntegrationRequestError
 
@@ -413,12 +414,7 @@ def test_update_alert_receive_channel(alert_receive_channel_internal_api_setup, 
 
 
 @pytest.mark.django_db
-def test_integration_filter_by_maintenance(
-    alert_receive_channel_internal_api_setup,
-    make_user_auth_headers,
-    mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_post_alert_group_to_slack,
-):
+def test_integration_filter_by_maintenance(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.MAINTENANCE
@@ -436,12 +432,7 @@ def test_integration_filter_by_maintenance(
 
 
 @pytest.mark.django_db
-def test_integration_filter_by_debug(
-    alert_receive_channel_internal_api_setup,
-    make_user_auth_headers,
-    mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_post_alert_group_to_slack,
-):
+def test_integration_filter_by_debug(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.DEBUG_MAINTENANCE
@@ -843,6 +834,55 @@ def test_alert_receive_channel_preview_template_dynamic_payload(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("template_name", ["title", "message"])
+@pytest.mark.parametrize("backend_path", ["apps.mobile_app.backend.MobileAppBackend"])
+def test_alert_receive_channel_preview_template_dynamic_payload_custom_backends(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    template_name,
+    backend_path,
+    make_alert_group,
+    make_alert,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-preview-template", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    # load backend
+    backend = load_backend(backend_path, notification_channel_id=111)
+    notification_channel = backend.backend_id.lower()
+
+    data = {
+        "template_body": "{{ payload.foo }}",
+        "template_name": f"{notification_channel}_{template_name}",
+        "payload": {"foo": "bar" if template_name != "image_url" else "http://example.com/image.jpg"},
+    }
+
+    with patch(
+        "apps.alerts.incident_appearance.templaters.alert_templater.get_messaging_backend_from_id"
+    ) as mock_get_backend:
+        mock_get_backend.return_value = backend
+        from common.api_helpers import mixins
+
+        with patch.object(mixins, "NOTIFICATION_CHANNEL_OPTIONS", new=(notification_channel,)):
+            with patch.dict(
+                mixins.NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP, {notification_channel: backend.get_templater_class()}
+            ):
+                response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["preview"] == data["payload"]["foo"]
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -1091,7 +1131,6 @@ def test_start_maintenance_integration(
 
 @pytest.mark.django_db
 def test_stop_maintenance_integration(
-    mock_start_disable_maintenance_task,
     make_user_auth_headers,
     make_organization_and_user_with_plugin_token,
     make_escalation_chain,

@@ -3,6 +3,7 @@ from collections import defaultdict
 from rest_framework import fields, serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from apps.user_management.models import ServiceAccountUser
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
@@ -160,6 +161,11 @@ class WebhookCreateSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def validate_preset(self, preset):
         raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
+
+    def validate_user(self, user):
+        if isinstance(user, ServiceAccountUser):
+            return None
+        return user
 
     def validate(self, data):
         if (

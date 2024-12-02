@@ -337,6 +337,9 @@ class GrafanaAPIClient(APIClient):
     def get_service_account_token_permissions(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
         return self.api_get("api/access-control/user/permissions")
 
+    def setup_organization(self) -> APIClientResponse:
+        return self.api_post(f"api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true")
+
     def sync(self, organization: "Organization") -> APIClientResponse:
         return self.api_post(f"api/plugins/{organization.active_ui_plugin_id}/resources/plugin/sync")
 

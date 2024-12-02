@@ -386,20 +386,16 @@ class TestSlackChannelMessageEventStep:
     def test_delete_thread_message_from_resolution_note_no_slack_user_identity(
         self, MockResolutionNoteSlackMessage, make_organization_and_user_with_slack_identities
     ) -> None:
-        (
-            organization,
-            user,
-            slack_team_identity,
-            slack_user_identity,
-        ) = make_organization_and_user_with_slack_identities()
+        organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step.delete_thread_message_from_resolution_note(None, {})
 
         MockResolutionNoteSlackMessage.objects.get.assert_not_called()
 
+    @patch("apps.slack.models.SlackMessage.update_alert_groups_message")
     def test_delete_thread_message_from_resolution_note_no_message_found(
-        self, make_organization_and_user_with_slack_identities
+        self, mock_update_alert_groups_message, make_organization_and_user_with_slack_identities
     ) -> None:
         (
             organization,
@@ -423,19 +419,20 @@ class TestSlackChannelMessageEventStep:
         }
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
-        step.alert_group_slack_service = Mock()
-
         step.delete_thread_message_from_resolution_note(slack_user_identity, payload)
 
-        step.alert_group_slack_service.assert_not_called()
+        mock_update_alert_groups_message.assert_not_called()
 
+    @patch("apps.slack.models.SlackMessage.update_alert_groups_message")
     def test_delete_thread_message_from_resolution_note(
         self,
+        mock_update_alert_groups_message,
         make_organization_and_user_with_slack_identities,
         make_alert_receive_channel,
         make_alert_group,
         make_resolution_note_slack_message,
         make_slack_channel,
+        make_slack_message,
     ) -> None:
         channel_id = "potato"
         ts = 88945.4849
@@ -450,6 +447,7 @@ class TestSlackChannelMessageEventStep:
         slack_channel = make_slack_channel(slack_team_identity, slack_id=channel_id)
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
+        make_slack_message(alert_group=alert_group, slack_id=thread_ts, channel=slack_channel)
 
         payload = {
             "event": {
@@ -466,11 +464,8 @@ class TestSlackChannelMessageEventStep:
         )
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
-        step.alert_group_slack_service = Mock()
-
         step.delete_thread_message_from_resolution_note(slack_user_identity, payload)
 
-        step.alert_group_slack_service.update_alert_group_slack_message.assert_called_once_with(alert_group)
         assert (
             ResolutionNoteSlackMessage.objects.filter(
                 ts=ts,
@@ -479,6 +474,8 @@ class TestSlackChannelMessageEventStep:
             ).count()
             == 0
         )
+
+        mock_update_alert_groups_message.assert_called_once_with(debounce=False)
 
     def test_slack_message_has_no_alert_group(
         self,

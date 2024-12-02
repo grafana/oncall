@@ -124,7 +124,7 @@ def test_create_integration_via_service_account(
     perms = {
         permissions.RBACPermission.Permissions.INTEGRATIONS_WRITE.value: ["*"],
     }
-    setup_service_account_api_mocks(organization, perms)
+    setup_service_account_api_mocks(organization.grafana_url, perms)
 
     client = APIClient()
     data_for_create = {
