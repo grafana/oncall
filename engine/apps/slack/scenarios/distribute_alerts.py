@@ -130,7 +130,9 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
             # this will be the case in the event that we haven't yet created a Slack message for this alert group
 
             # if channel filter is deleted mid escalation, use the organization's default Slack channel
-            slack_channel = channel_filter.slack_channel_or_org_default if channel_filter else organization.default_slack_channel
+            slack_channel = (
+                channel_filter.slack_channel_or_org_default if channel_filter else organization.default_slack_channel
+            )
 
             # slack_channel can be None if the channel filter is deleted mid escalation, OR the channel filter does
             # not have a slack channel
