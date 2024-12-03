@@ -146,7 +146,6 @@ def notify_user_about_alert_async(user_pk, alert_group_pk, notification_policy_p
 
     templated_alert = AlertGroupMattermostRenderer(alert_group).alert_renderer.templated_alert
 
-    print("Check identity")
     if not hasattr(user, "mattermost_user_identity"):
         message = "{}\nTried to invite {} to look at the alert group. Unfortunately {} is not in mattermost.".format(
             templated_alert.title, user.username, user.username
