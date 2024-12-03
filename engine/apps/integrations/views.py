@@ -2,6 +2,7 @@ import json
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
@@ -12,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
 from apps.auth_token.auth import IntegrationBacksyncAuthentication
 from apps.heartbeat.tasks import process_heartbeat_task
 from apps.integrations.legacy_prefix import has_legacy_prefix
@@ -26,7 +27,9 @@ from apps.integrations.mixins import (
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.integrations.throttlers.integration_backsync_throttler import BacksyncRateThrottle
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
+from apps.user_management.models import Organization
 from common.api_helpers.utils import create_engine_url
+from settings.base import SELF_HOSTED_SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +184,7 @@ class GrafanaAlertingAPIView(AlertManagerAPIView):
         return alert_receive_channel.integration in {
             AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
             AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_ADAPTIVE_GRAFANA_ALERTING,
         }
 
 
@@ -369,3 +373,55 @@ class IntegrationBacksyncAPIView(APIView):
         if integration_backsync_func:
             integration_backsync_func(alert_receive_channel, request.data)
         return Response(status=200)
+
+
+class AdaptiveGrafanaAlertingAPIView(GrafanaAlertingAPIView):
+    def dispatch(self, *args, **kwargs):
+        token = str(kwargs["alert_channel_key"])
+        alert_receive_channel, status = self.get_alert_receive_channel_from_short_term_cache(token)
+
+        if not alert_receive_channel:
+            """
+            TODO: Will likely need service account token + grafana url to figure out organization + author,
+            Hard-coded for now
+            """
+            organization = Organization.objects.get(
+                stack_id=SELF_HOSTED_SETTINGS["STACK_ID"], org_id=SELF_HOSTED_SETTINGS["ORG_ID"]
+            )
+            alert_receive_channel = AlertReceiveChannel(
+                verbal_name="Adaptive Grafana Alerting",
+                token=token,
+                organization=organization,
+                integration="adaptive_grafana_alerting",
+            )
+            alert_receive_channel.save()
+            cache_key = AlertChannelDefiningMixin.CACHE_KEY_SHORT_TERM + "_" + token
+            cache.delete(cache_key)
+
+        try:
+            data = json.loads(self.request.body)
+            routing_config = data.get("routingConfig", None)
+            if routing_config:
+                escalation_chain_id = routing_config.get("escalationChainId", None)
+                channel_filter = alert_receive_channel.channel_filters.filter(
+                    filtering_term__contains=escalation_chain_id
+                )
+                if not channel_filter:
+                    try:
+                        escalation_chain = EscalationChain.objects.get(public_primary_key=escalation_chain_id)
+                    except EscalationChain.DoesNotExist:
+                        return JsonResponse({"error": "Invalid escalation chain"}, status=400)
+                    channel_filter = ChannelFilter(
+                        alert_receive_channel=alert_receive_channel,
+                        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
+                        escalation_chain=escalation_chain,
+                        order=len(alert_receive_channel.channel_filters.all()),
+                        filtering_term=f"{{{{ payload.get('routingConfig', {{}}).get('escalationChainId', None) == '{escalation_chain_id}' }}}}",
+                    )
+                    channel_filter.save()
+            else:
+                return JsonResponse({"error": "Missing routingConfig"}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        return AlertManagerAPIView.dispatch(self, *args, **kwargs)
