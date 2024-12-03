@@ -12,7 +12,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('user_management', '0026_auto_20241017_1919'),
-        ('alerts', '0065_alter_alertgrouplogrecord_action_source'),
     ]
 
     operations = [
