@@ -45,11 +45,23 @@ class SlackMessage(models.Model):
     """
 
     channel = models.ForeignKey(
-        "slack.SlackChannel", on_delete=models.CASCADE, null=False, related_name="slack_messages"
+        "slack.SlackChannel", on_delete=models.CASCADE, null=False, default=None, related_name="slack_messages"
     )
+    """
+    TODO: remove default=None in a subsequent PR/release. Can't (easily) be done in the same PR as settings null=False
+    because manage.py makemigrations warns us with the following:
+
+    It is impossible to change a nullable field 'channel' on slackmessage to non-nullable without providing a default.
+    This is because the database needs something to populate existing rows.
+    Please select a fix:
+    1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+    2) Ignore for now. Existing rows that contain NULL values will have to be handled manually,
+    for example with a RunPython or RunSQL operation.
+    3) Quit and manually define a default value in models.py.
+    """
 
     organization = models.ForeignKey(
-        "user_management.Organization",
+        "" "user_management.Organization",
         on_delete=models.CASCADE,
         null=True,
         default=None,

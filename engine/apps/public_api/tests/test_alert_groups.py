@@ -169,7 +169,6 @@ def test_get_alert_group_slack_links(
         cached_permalink="the-link",
     )
 
-
     url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
     response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
