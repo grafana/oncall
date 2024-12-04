@@ -802,10 +802,8 @@ class CustomField(models.Model):
     integration = models.ForeignKey(AlertReceiveChannel, on_delete=models.CASCADE, related_name="custom_fields")
     # metadata.name of the custom field
     metaname = models.CharField(max_length=200)
-    # spec of the custom field
-    spec = models.JSONField()
     # template to parse dynamic value of a custom field
-    template = models.TextField(null=True, default=None)
+    dynamic_template = models.TextField(null=True, default=None)
     # static value is an identifier of selected option.
     # Probably display value & id of an option should be different, but I merged them for now.
     static_value = models.CharField(null=True, default=None, max_length=200)

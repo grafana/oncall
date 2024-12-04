@@ -266,7 +266,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 class CustomFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomField
-        fields = ["metaname", "spec", "template", "static_value"]
+        fields = ["metaname", "dynamic_template", "static_value"]
         extra_kwargs = {
             "metaname": {"required": True},
         }
