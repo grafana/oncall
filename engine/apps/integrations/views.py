@@ -402,6 +402,11 @@ class AdaptiveGrafanaAlertingAPIView(GrafanaAlertingAPIView):
             data = json.loads(self.request.body)
             routing_config = data.get("routingConfig", None)
             if routing_config:
+                integration_name = routing_config.get("integrationName", None)
+                if integration_name and integration_name != alert_receive_channel.verbal_name:
+                    alert_receive_channel.verbal_name = integration_name
+                    alert_receive_channel.save(update_fields=["verbal_name"])
+
                 escalation_chain_id = routing_config.get("escalationChainId", None)
                 channel_filter = alert_receive_channel.channel_filters.filter(
                     filtering_term__contains=escalation_chain_id
