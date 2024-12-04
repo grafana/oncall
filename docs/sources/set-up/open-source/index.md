@@ -213,7 +213,26 @@ Refer to the following steps to configure the Telegram integration:
 
 ## Mattermost Setup
 
-TODO: To Be Updated
+The Mattermost integration of the Grafana OnCall is designed for collobarative team work and improved incident response. Refer to the following steps to configure the Mattermost integration.
+
+1. Ensure your Grafana OnCall environment is up and running.
+2. Set `FEATURE_MATTERMOST_INTEGRATION_ENABLED` as "True".
+3. Create a Mattermost bot account [Ref](https://developers.mattermost.com/integrate/reference/bot-accounts/#bot-account-creation) and save the token generated.
+4. Add the bot to required team in mattermost so that the channels from those teams can be integrated
+5. Paste the token generated to the `MATTERMOST_BOT_TOKEN` variable on the **ENV Variables** page of your Grafana OnCall instance.
+6. [Create OAuth 2.0 Application In Mattermost](https://developers.mattermost.com/integrate/apps/authentication/oauth2/#register-an-oauth-20-application). The callback url for the OAuth application will be,
+   ```text
+    https://<ONCALL_ENGINE_PUBLIC_URL>/api/internal/v1/complete/mattermost-login/
+   ```
+7. Generate a JWT secret for authenticating the incoming messages from mattermost and add it to `MATTERMOST_SIGNING_SECRET` variable on the **ENV Variables** page of your Grafana OnCall instance.
+8. Set the environment variables by navigating to your Grafana OnCall, then click on **ENV Variables** and set the following,
+   ```text
+    MATTERMOST_CLIENT_OAUTH_ID = Integrations -> OAuth 2.0 Applications -> Client ID
+    MATTERMOST_CLIENT_OAUTH_SECRET = Integrations -> OAuth 2.0 Applications -> Client Secret
+    MATTERMOST_HOST = << Mattermost server URL >>
+    MATTERMOST_LOGIN_RETURN_REDIRECT_HOST = << OnCall external URL >>
+   ```
+9. Now users can integrate their mattermost account to Grafana Oncall in the **Users** page so that they can take action on the alert message sent on the mattermost channel
 
 ## Grafana OSS-Cloud Setup
 
