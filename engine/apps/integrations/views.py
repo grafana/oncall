@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -26,8 +27,9 @@ from apps.integrations.mixins import (
 )
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.integrations.throttlers.integration_backsync_throttler import BacksyncRateThrottle
+from apps.slack.models import SlackChannel
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
-from apps.user_management.models import Organization
+from apps.user_management.models import Organization, Team
 from common.api_helpers.utils import create_engine_url
 from settings.base import SELF_HOSTED_SETTINGS
 
@@ -378,55 +380,124 @@ class IntegrationBacksyncAPIView(APIView):
 class AdaptiveGrafanaAlertingAPIView(GrafanaAlertingAPIView):
     def dispatch(self, *args, **kwargs):
         token = str(kwargs["alert_channel_key"])
-        alert_receive_channel, status = self.get_alert_receive_channel_from_short_term_cache(token)
+        """
+        TODO: Will likely need service account token + grafana url to figure out organization + author,
+        Hard-coded for now
+        """
+        organization = Organization.objects.get(
+            stack_id=SELF_HOSTED_SETTINGS["STACK_ID"], org_id=SELF_HOSTED_SETTINGS["ORG_ID"]
+        )
 
-        if not alert_receive_channel:
-            """
-            TODO: Will likely need service account token + grafana url to figure out organization + author,
-            Hard-coded for now
-            """
-            organization = Organization.objects.get(
-                stack_id=SELF_HOSTED_SETTINGS["STACK_ID"], org_id=SELF_HOSTED_SETTINGS["ORG_ID"]
-            )
-            alert_receive_channel = AlertReceiveChannel(
-                verbal_name="Adaptive Grafana Alerting",
-                token=token,
-                organization=organization,
-                integration="adaptive_grafana_alerting",
-            )
-            alert_receive_channel.save()
-            cache_key = AlertChannelDefiningMixin.CACHE_KEY_SHORT_TERM + "_" + token
-            cache.delete(cache_key)
+        routing_config, error = self.get_routing_config()
+        if error:
+            return JsonResponse({"error": error}, status=400)
 
+        with transaction.atomic():
+            receiver_name = routing_config.get("receiverName", None)
+
+            team = None
+            team_name = routing_config.get("teamName", None)
+            if team_name:
+                try:
+                    team = Team.objects.get(name=team_name)
+                except Team.DoesNotExist:
+                    return JsonResponse({"error": "Invalid team name"}, status=400)
+
+            alert_receive_channel, status = self.get_alert_receive_channel_from_short_term_cache(token)
+            if not alert_receive_channel:
+                alert_receive_channel, created = AlertReceiveChannel.objects.get_or_create(
+                    verbal_name="Adaptive Grafana Alerting" if not receiver_name else receiver_name,
+                    token=token,
+                    organization=organization,
+                    integration="adaptive_grafana_alerting",
+                    team=team,
+                )
+                if created:
+                    cache_key = AlertChannelDefiningMixin.CACHE_KEY_SHORT_TERM + "_" + token
+                    cache.delete(cache_key)
+            if receiver_name and receiver_name != alert_receive_channel.verbal_name:
+                alert_receive_channel.verbal_name = receiver_name
+                alert_receive_channel.save(update_fields=["verbal_name"])
+            if team and team != alert_receive_channel.team:
+                alert_receive_channel.team = team
+                alert_receive_channel.save(update_fields=["team"])
+
+            escalation_chain = None
+            escalation_chain_id = routing_config.get("escalationChainId", None)
+            if escalation_chain_id:
+                try:
+                    escalation_chain = EscalationChain.objects.get(public_primary_key=escalation_chain_id)
+                except EscalationChain.DoesNotExist:
+                    return JsonResponse({"error": "Invalid escalation chain"}, status=400)
+
+            # TODO: PoC Deal with other chatops MS teams and telegram later
+            slack_channel = None
+            slack_channel_id = routing_config.get("chatOps", {}).get("slackChannelId", None)
+            if slack_channel_id:
+                try:
+                    slack_channel = SlackChannel.objects.get(slack_id=slack_channel_id)
+                except SlackChannel.DoesNotExist:
+                    return JsonResponse({"error": "Invalid slack channel"}, status=400)
+
+            if not escalation_chain and not slack_channel:
+                return JsonResponse(
+                    {"error": "At least of 1 of escalationChainId or slackChannelId must be defined"}, status=400
+                )
+
+            filtering_term = ""
+            if escalation_chain_id and slack_channel:
+                filtering_term = (
+                    f"{{{{ payload.get('routingConfig', {{}}).get('escalationChainId', None) == '{escalation_chain_id}' "
+                    "and payload.get('routingConfig', {{}}).get('chatOps', {{}}).get('slackChannelId', None) == '{slack_channel_id}' }}}}"
+                )
+            elif escalation_chain_id:
+                filtering_term = f"{{{{ payload.get('routingConfig', {{}}).get('escalationChainId', None) == '{escalation_chain_id}' }}}}"
+            elif slack_channel_id:
+                filtering_term = f"{{{{ payload.get('routingConfig', {{}}).get('chatOps', {{}}).get('slackChannelId', None) == '{slack_channel_id}' }}}}"
+
+            _, filter_created = alert_receive_channel.channel_filters.get_or_create(
+                alert_receive_channel=alert_receive_channel,
+                filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
+                escalation_chain=escalation_chain,
+                slack_channel=slack_channel,
+                filtering_term=filtering_term,
+                notify_in_slack=slack_channel is not None,
+            )
+
+            if filter_created:
+                self.update_channel_filter_order(alert_receive_channel)
+
+        return AlertManagerAPIView.dispatch(self, *args, **kwargs)
+
+    def get_routing_config(self):
         try:
             data = json.loads(self.request.body)
             routing_config = data.get("routingConfig", None)
-            if routing_config:
-                integration_name = routing_config.get("integrationName", None)
-                if integration_name and integration_name != alert_receive_channel.verbal_name:
-                    alert_receive_channel.verbal_name = integration_name
-                    alert_receive_channel.save(update_fields=["verbal_name"])
-
-                escalation_chain_id = routing_config.get("escalationChainId", None)
-                channel_filter = alert_receive_channel.channel_filters.filter(
-                    filtering_term__contains=escalation_chain_id
-                )
-                if not channel_filter:
-                    try:
-                        escalation_chain = EscalationChain.objects.get(public_primary_key=escalation_chain_id)
-                    except EscalationChain.DoesNotExist:
-                        return JsonResponse({"error": "Invalid escalation chain"}, status=400)
-                    channel_filter = ChannelFilter(
-                        alert_receive_channel=alert_receive_channel,
-                        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
-                        escalation_chain=escalation_chain,
-                        order=len(alert_receive_channel.channel_filters.all()),
-                        filtering_term=f"{{{{ payload.get('routingConfig', {{}}).get('escalationChainId', None) == '{escalation_chain_id}' }}}}",
-                    )
-                    channel_filter.save()
-            else:
-                return JsonResponse({"error": "Missing routingConfig"}, status=400)
+            if not routing_config:
+                return None, "Missing routingConfig"
+            return routing_config, None
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
+            return None, "Invalid JSON"
 
-        return AlertManagerAPIView.dispatch(self, *args, **kwargs)
+    def update_channel_filter_order(self, alert_receive_channel):
+        def categorize_filtering_term(term):
+            if not term:
+                return 3
+            return (
+                0
+                if "escalationChainId" in term and "slackChannelId" in term
+                else 1
+                if "escalationChainId" in term
+                else 2
+                if "slackChannelId" in term
+                else 3
+            )
+
+        filters = list(alert_receive_channel.channel_filters.all().select_for_update())
+        filters.sort(key=lambda obj: (categorize_filtering_term(obj.filtering_term), obj.id))
+        for index, obj in enumerate(filters):
+            obj.order = 1000000 + index
+        ChannelFilter.objects.bulk_update(filters, ["order"])
+        for index, obj in enumerate(filters):
+            obj.order = index
+        ChannelFilter.objects.bulk_update(filters, ["order"])
