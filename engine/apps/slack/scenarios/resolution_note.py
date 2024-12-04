@@ -92,13 +92,10 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             return
 
         try:
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
                 organization__slack_team_identity=slack_team_identity,
-                _channel_id=channel_id,
-                # channel__slack_id=channel_id,
+                channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             if settings.UNIFIED_SLACK_APP_ENABLED:
@@ -164,14 +161,10 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                     slack_channel = SlackChannel.objects.get(
                         slack_id=channel_id, slack_team_identity=slack_team_identity
                     )
-
-                    # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                    # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
                     slack_message = SlackMessage.objects.get(
                         slack_id=thread_ts,
                         organization__slack_team_identity=slack_team_identity,
-                        # channel__slack_id=channel_id,
-                        _channel_id=channel_id,
+                        channel__slack_id=channel_id,
                     )
                     alert_group = slack_message.alert_group
 
@@ -262,13 +255,9 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
+        slack_channel_id = alert_group_slack_message.channel.slack_id
 
         blocks = self.get_resolution_note_blocks(resolution_note)
-
-        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-        # slack_channel_id = alert_group_slack_message.channel.slack_id
-        slack_channel_id = alert_group_slack_message._channel_id
 
         slack_channel = SlackChannel.objects.get(
             slack_id=slack_channel_id, slack_team_identity=self.slack_team_identity

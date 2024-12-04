@@ -63,12 +63,9 @@ class AlertGroupActionsMixin:
             slack_team_identity=slack_team_identity,
         )
 
-        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         SlackMessage.objects.create(
             slack_id=message_id,
             organization=alert_group.channel.organization,
-            _channel_id=slack_channel.slack_id,
             channel=slack_channel,
             alert_group=alert_group,
         )
@@ -179,12 +176,9 @@ class AlertGroupActionsMixin:
         logger.warning(f"alert_group_pk not found in payload, fetching SlackMessage from DB. message_ts: {message_ts}")
 
         # Get SlackMessage from DB
-        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
         slack_message = SlackMessage.objects.get(
             slack_id=message_ts,
             organization__slack_team_identity=slack_team_identity,
-            _channel_id=channel_id,
-            # channel__slack_id=channel_id,
+            channel__slack_id=channel_id,
         )
         return slack_message.alert_group
