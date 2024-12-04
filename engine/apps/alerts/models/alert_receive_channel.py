@@ -314,6 +314,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     additional_settings: dict | None = models.JSONField(null=True, default=None)
 
+    custom_fields = models.ManyToManyField("labels.CustomField", through="labels.IntegrationHasCustomField")
+
     class Meta:
         constraints = [
             # This constraint ensures that there's at most one active direct paging integration per team
