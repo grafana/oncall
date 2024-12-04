@@ -20,6 +20,7 @@ from common.jinja_templater import apply_jinja_template_to_alert_payload_and_lab
 from common.jinja_templater.apply_jinja_template import (
     JinjaTemplateError,
     JinjaTemplateWarning,
+    apply_jinja_template,
     templated_value_is_truthy,
 )
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -142,6 +143,8 @@ class Alert(models.Model):
 
         if group_created:
             assign_labels(group, alert_receive_channel, parsed_labels)
+            group.custom_fields = parse_custom_fields(alert_receive_channel, raw_request_data)
+            group.save(update_fields=["custom_fields"])
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 
@@ -321,3 +324,24 @@ class Alert(models.Model):
             distinction = str(uuid4())
 
         return distinction
+
+
+# parse_custom_fields parses custom fields from the alert payload.
+# It returns a dictionary of custom fields_id:parsed_value
+# parsed value supposed to be id of an option, but for sake of simplicity it's a string
+def parse_custom_fields(
+    alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
+) -> typing.Dict[str, str]:
+    custom_fields = {}
+    # parse custom fields
+    for field in alert_receive_channel.custom_fields.all():
+        if field.static_value:
+            custom_fields[field.metaname] = field.static_value
+        elif field.template:
+            try:
+                custom_fields[field.metaname] = apply_jinja_template(field.template, raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning("parse_custom_fields: failed to apply template: %s", e.fallback_message)
+                continue
+
+    return custom_fields

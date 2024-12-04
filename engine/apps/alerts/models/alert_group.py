@@ -358,6 +358,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     received_at = models.DateTimeField(blank=True, null=True, default=None)
 
+    custom_fields = models.JSONField(null=True, default=None)
+
     @property
     def is_silenced_forever(self):
         return self.silenced and self.silenced_until is None

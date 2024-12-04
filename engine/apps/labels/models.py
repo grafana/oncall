@@ -170,24 +170,3 @@ class WebhookAssociatedLabel(AssociatedLabel):
     def get_associating_label_field_name() -> str:
         """Returns ForeignKey field name for the associated model"""
         return "webhook"
-
-
-class CustomField(models.Model):
-    organization = models.ForeignKey(
-        "user_management.Organization", on_delete=models.CASCADE, related_name="custom_fields"
-    )
-    metaname = models.CharField(max_length=200)
-    spec = models.JSONField()
-
-
-class IntegrationHasCustomField(models.Model):
-    integration = models.ForeignKey("alerts.AlertReceiveChannel", on_delete=models.CASCADE)
-    custom_field = models.ForeignKey(CustomField, on_delete=models.CASCADE)
-
-    # template to parse dynamic value of a custom field
-    template = models.TextField(null=True, default=None)
-    # static value is an identifier of selected option. Supposed to be its id, but it's hackathon, right?
-    static_value = models.CharField(null=True, default=None, max_length=200)
-
-    class Meta:
-        unique_together = ["integration", "custom_field"]
