@@ -306,7 +306,7 @@ class TestIncomingAlertStep:
             slack_message_sent=True,
             reason_to_skip_escalation=AlertGroup.NO_REASON,
         )
-        make_slack_message(slack_channel, alert_group=alert_group)
+        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
 
         assert alert_group.skip_escalation_in_slack is False
 
@@ -347,7 +347,7 @@ class TestIncomingAlertStep:
             reason_to_skip_escalation=AlertGroup.RATE_LIMITED,  # Ensures skip_escalation_in_slack is True
         )
         alert = make_alert(alert_group, raw_request_data={})
-        make_slack_message(slack_channel, alert_group=alert_group)
+        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
 
         step = IncomingAlertStep(slack_team_identity)
         step.process_signal(alert)

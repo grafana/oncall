@@ -65,6 +65,6 @@ class AlertGroupSlackService:
 
         alert_group.slack_messages.create(
             slack_id=result["ts"],
-            organization=alert_group.channel.organization,
+            slack_team_identity=self.slack_team_identity,
             channel=slack_message.channel,
         )

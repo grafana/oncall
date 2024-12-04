@@ -36,7 +36,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         "labels",
         Prefetch(
             "slack_messages",
-            queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
+            queryset=SlackMessage.objects.select_related("slack_team_identity").order_by("created_at")[:1],
             to_attr="prefetched_slack_messages",
         ),
         Prefetch(

@@ -265,7 +265,7 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
 
     if not error_code:
         slack_channel = make_slack_channel(slack_team_identity=slack_team_identity)
-        make_slack_message(alert_group=alert_group, channel=slack_channel)
+        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
 
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
         perform_notification(log_record.pk, False)
@@ -314,7 +314,7 @@ def test_perform_notification_slack_prevent_posting(
     )
 
     slack_channel = make_slack_channel(slack_team_identity=slack_team_identity)
-    make_slack_message(alert_group=alert_group, channel=slack_channel)
+    make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
 
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
         perform_notification(log_record.pk, False)

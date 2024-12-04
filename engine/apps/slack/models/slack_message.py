@@ -45,12 +45,8 @@ class SlackMessage(models.Model):
     """
 
     channel = models.ForeignKey(
-        "slack.SlackChannel", on_delete=models.CASCADE, null=True, default=None, related_name="slack_messages"
+        "slack.SlackChannel", on_delete=models.CASCADE, null=False, related_name="slack_messages"
     )
-    """
-    TODO: once we've migrated the data in `_channel_id` to this field, set `null=False`
-    as we should always have a `channel` associated with a message
-    """
 
     organization = models.ForeignKey(
         "user_management.Organization",
@@ -59,8 +55,14 @@ class SlackMessage(models.Model):
         default=None,
         related_name="slack_message",
     )
+    """
+    DEPRECATED/TODO: drop this field in a separate PR/release
 
-    _slack_team_identity = models.ForeignKey(
+    For alert group related slack messages, we can always get the organization from the alert_group.channel
+    For shift swap request related slack messages, the schedule has a reference to the organization
+    """
+
+    slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity",
         on_delete=models.PROTECT,
         null=True,
@@ -68,11 +70,6 @@ class SlackMessage(models.Model):
         related_name="slack_message",
         db_column="slack_team_identity",
     )
-    """
-    DEPRECATED/TODO: drop this field in a separate PR/release
-
-    Instead of using this column, we can simply do self.organization.slack_team_identity
-    """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
 
@@ -94,10 +91,6 @@ class SlackMessage(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["slack_id", "channel_id", "_slack_team_identity"], name="unique slack_id")
         ]
-
-    @property
-    def slack_team_identity(self):
-        return self.organization.slack_team_identity
 
     @property
     def permalink(self) -> typing.Optional[str]:
@@ -122,9 +115,8 @@ class SlackMessage(models.Model):
     def deep_link(self) -> str:
         return f"https://slack.com/app_redirect?channel={self.channel.slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
-    @classmethod
     def send_slack_notification(
-        cls, user: "User", alert_group: "AlertGroup", notification_policy: "UserNotificationPolicy"
+        self, user: "User", alert_group: "AlertGroup", notification_policy: "UserNotificationPolicy"
     ) -> None:
         """
         NOTE: the reason why we pass in `alert_group` as an argument here, as opposed to just doing
@@ -138,7 +130,7 @@ class SlackMessage(models.Model):
 
         slack_message = alert_group.slack_message
         slack_channel = slack_message.channel
-        organization = alert_group.channel.organization
+        slack_team_identity = self.slack_team_identity
         channel_id = slack_channel.slack_id
 
         user_verbal = user.get_username_with_slack_verbal(mention=True)
@@ -175,7 +167,7 @@ class SlackMessage(models.Model):
             }
         ]
 
-        sc = SlackClient(organization.slack_team_identity, enable_ratelimit_retry=True)
+        sc = SlackClient(slack_team_identity, enable_ratelimit_retry=True)
 
         try:
             result = sc.chat_postMessage(
@@ -224,7 +216,7 @@ class SlackMessage(models.Model):
         else:
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
-                organization=organization,
+                slack_team_identity=slack_team_identity,
                 channel=slack_channel,
             )
 

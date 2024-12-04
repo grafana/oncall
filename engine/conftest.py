@@ -527,11 +527,11 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(channel, alert_group=None, organization=None, **kwargs):
+    def _make_slack_message(slack_team_identity, channel, alert_group=None, **kwargs):
         return SlackMessageFactory(
-            alert_group=alert_group,
-            organization=organization or alert_group.channel.organization,
+            slack_team_identity=slack_team_identity,
             channel=channel,
+            alert_group=alert_group,
             **kwargs,
         )
 

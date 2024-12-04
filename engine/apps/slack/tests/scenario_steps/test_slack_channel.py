@@ -93,7 +93,7 @@ class TestSlackChannelDeletedEventStep:
             slack_user_identity,
         ) = make_organization_and_user_with_slack_identities()
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(slack_channel, organization=organization)
+        make_slack_message(slack_team_identity, slack_channel)
         slack_channel_id = slack_channel.slack_id
 
         # Ensure the SlackChannel exists

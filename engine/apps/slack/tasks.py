@@ -125,27 +125,6 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
-def update_incident_slack_message(slack_team_identity_pk: int, alert_group_pk: int) -> None:
-    """
-    TODO: this method has been deprecated, and all references to it removed, remove it once task queues no
-    longer reference it.
-    """
-    from apps.alerts.models import AlertGroup
-
-    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-
-    # NOTE: alert_group can't be None here, AlertGroup.objects.get(pk=alert_group_pk) would
-    # raise AlertGroup.DoesNotExist in this case
-    if not alert_group.slack_message:
-        logger.info(
-            f"skipping update_incident_slack_message as AlertGroup {alert_group_pk} doesn't have a slack message"
-        )
-        return
-
-    alert_group.slack_message.update_alert_groups_message(debounce=False)
-
-
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
 def check_slack_message_exists_before_post_message_to_thread(
     alert_group_pk,
     text,

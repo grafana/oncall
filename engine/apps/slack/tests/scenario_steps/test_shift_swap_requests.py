@@ -174,9 +174,7 @@ class TestBaseShiftSwapRequestStep:
         slack_team_identity = organization.slack_team_identity
 
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(
-            alert_group=None, organization=organization, channel=slack_channel, slack_id=ts
-        )
+        slack_message = make_slack_message(slack_team_identity, slack_channel, slack_id=ts)
         ssr.slack_message = slack_message
         ssr.save()
 
@@ -213,9 +211,7 @@ class TestBaseShiftSwapRequestStep:
         slack_team_identity = organization.slack_team_identity
 
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(
-            alert_group=None, organization=organization, slack_id=ts, channel=slack_channel
-        )
+        slack_message = make_slack_message(slack_team_identity, slack_channel, slack_id=ts)
 
         step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
 

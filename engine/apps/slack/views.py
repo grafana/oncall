@@ -518,7 +518,7 @@ class SlackEventApiEndpointView(APIView):
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=message_ts,
-                organization__slack_team_identity=slack_team_identity,
+                slack_team_identity=slack_team_identity,
                 channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
