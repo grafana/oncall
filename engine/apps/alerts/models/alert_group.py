@@ -416,6 +416,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="wiped_alert_groups",
     )
 
+    prevent_posting_alerts = models.BooleanField(default=False)
+    """
+    TODO: this column is no longer used, drop it in a subsequent PR/release
+    """
+
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
