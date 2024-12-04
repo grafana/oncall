@@ -61,7 +61,7 @@ class SlackMessage(models.Model):
     """
 
     organization = models.ForeignKey(
-        "" "user_management.Organization",
+        "user_management.Organization",
         on_delete=models.CASCADE,
         null=True,
         default=None,
