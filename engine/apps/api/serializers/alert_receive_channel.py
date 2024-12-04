@@ -11,6 +11,7 @@ from rest_framework.fields import SerializerMethodField
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models.alert_receive_channel import CustomField
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.labels.models import AlertReceiveChannelAssociatedLabel, LabelKeyCache, LabelValueCache
@@ -262,6 +263,15 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         ]
 
 
+class CustomFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomField
+        fields = ["metaname", "spec", "template", "static_value"]
+        extra_kwargs = {
+            "metaname": {"required": True},
+        }
+
+
 class AlertReceiveChannelSerializer(
     EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer[AlertReceiveChannel]
 ):
@@ -288,6 +298,7 @@ class AlertReceiveChannelSerializer(
     is_legacy = serializers.SerializerMethodField()
     alert_group_labels = IntegrationAlertGroupLabelsSerializer(source="*", required=False)
     additional_settings = AdditionalSettingsField(allow_null=True, allow_empty=False, required=False, default=None)
+    custom_fields = CustomFieldSerializer(many=True, required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -331,6 +342,7 @@ class AlertReceiveChannelSerializer(
             "alert_group_labels",
             "alertmanager_v2_migrated_at",
             "additional_settings",
+            "custom_fields",
         ]
         read_only_fields = [
             "created_at",
@@ -413,7 +425,8 @@ class AlertReceiveChannelSerializer(
         # pop associated labels and alert group labels, so they are not passed to AlertReceiveChannel.create
         labels = validated_data.pop("labels", None)
         alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
-
+        # Extract custom fields data
+        custom_fields_data = validated_data.pop("custom_fields", [])
         try:
             instance = AlertReceiveChannel.create(
                 **validated_data,
@@ -432,6 +445,10 @@ class AlertReceiveChannelSerializer(
         if create_default_webhooks and hasattr(instance.config, "create_default_webhooks"):
             instance.config.create_default_webhooks(instance)
 
+        # Create custom fields
+        for custom_field_data in custom_fields_data:
+            CustomField.objects.create(integration=instance, **custom_field_data)
+
         return instance
 
     def update(self, instance, validated_data):
@@ -443,6 +460,28 @@ class AlertReceiveChannelSerializer(
         instance = IntegrationAlertGroupLabelsSerializer.update(
             instance, IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
         )
+
+        # update custom fields
+        # Extract custom fields data
+        custom_fields_data = validated_data.pop("custom_fields", [])
+        # Update custom fields
+        existing_custom_fields = {cf.metaname: cf for cf in instance.custom_fields.all()}
+        for custom_field_data in custom_fields_data:
+            custom_field_name = custom_field_data.get("metaname")
+            if custom_field_name and custom_field_name in existing_custom_fields:
+                # Update existing custom field
+                custom_field_instance = existing_custom_fields[custom_field_name]
+                for attr, value in custom_field_data.items():
+                    setattr(custom_field_instance, attr, value)
+                custom_field_instance.save()
+            else:
+                # Create new custom field
+                CustomField.objects.create(integration=instance, **custom_field_data)
+        # Delete custom fields not included in the update
+        provided_custom_fields = {cf.get("metaname") for cf in custom_fields_data}
+        for custom_field_metaname in existing_custom_fields:
+            if custom_field_metaname not in provided_custom_fields:
+                existing_custom_fields[custom_field_metaname].delete()
 
         try:
             updated_instance = super().update(instance, validated_data)
