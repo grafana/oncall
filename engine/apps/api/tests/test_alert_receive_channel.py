@@ -2066,6 +2066,12 @@ def test_alert_receive_channel_test_connection(
     data = {
         "integration": integration_config.slug,
         "team": None,
+        "create_default_webhooks": True,
+        "alert_group_labels": {
+            "inheritable": {},
+            "custom": [],
+            "template": None,
+        },
     }
 
     # no test connection setup
