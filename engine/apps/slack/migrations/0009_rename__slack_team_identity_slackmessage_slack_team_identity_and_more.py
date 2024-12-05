@@ -4,6 +4,7 @@ import logging
 
 from django.db import migrations, models
 import django.db.models.deletion
+from django.db.models import F
 import django_migration_linter as linter
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ def drop_orphaned_slack_messages(apps, schema_editor):
     """
     SlackMessage = apps.get_model("slack", "SlackMessage")
 
-    logger.info("Starting migration to populate the 'channel' field.")
+    logger.info("Starting migration to drop orphaned SlackMessage records.")
 
     slack_messages = SlackMessage.objects.filter(channel_id__isnull=True)
 
@@ -39,6 +40,47 @@ def drop_orphaned_slack_messages(apps, schema_editor):
     slack_messages.delete()
 
     logger.info("Finished migration to drop orphaned SlackMessages.")
+
+
+def fill_in_missing_slack_team_identity_values(apps, schema_editor):
+    """
+    This migration is needed to fill in the missing `slack_team_identity` field for SlackMessage records that were
+    created before the field was added. This field is required for the SlackMessage model to be valid, and it is
+    required for the SlackMessage model to be able to be associated with a SlackChannel model.
+    """
+    SlackMessage = apps.get_model("slack", "SlackMessage")
+
+    logger.info("Starting migration to fill in missing SlackMessage.slack_team_identity values")
+
+    slack_messages = SlackMessage.objects.filter(slack_team_identity__isnull=True)
+
+    total_messages = slack_messages.count()
+    if total_messages == 0:
+        logger.info("No missing SlackMessage.slack_team_identity values")
+        return
+
+    logger.info(f"Found {total_messages} SlackMessages which have missing slack_team_identity values.")
+
+    # Update SlackMessages where slack_channel and slack_channel.slack_team_identity are available
+    updated_count = slack_messages.filter(
+        slack_channel__isnull=False,
+        slack_channel__slack_team_identity__isnull=False
+    ).update(
+        slack_team_identity=F('slack_channel__slack_team_identity')
+    )
+
+    logger.info(f"Updated {updated_count} SlackMessages with slack_team_identity from slack_channel.")
+
+    # Check if there are any SlackMessages that couldn't be updated
+    remaining_messages = slack_messages.filter(slack_team_identity__isnull=True)
+    remaining_count = remaining_messages.count()
+
+    if remaining_count > 0:
+        logger.warning(
+            f"{remaining_count} SlackMessages could not be updated because slack_channel or slack_channel.slack_team_identity is missing."
+        )
+
+    logger.info("Finished migration to fill in missing SlackMessage.slack_team_identity values")
 
 
 class Migration(migrations.Migration):
@@ -55,6 +97,7 @@ class Migration(migrations.Migration):
             new_name='slack_team_identity',
         ),
         migrations.RunPython(drop_orphaned_slack_messages, migrations.RunPython.noop),
+        migrations.RunPython(fill_in_missing_slack_team_identity_values, migrations.RunPython.noop),
         migrations.AlterField(
             model_name='slackmessage',
             name='channel',

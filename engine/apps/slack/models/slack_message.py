@@ -101,7 +101,7 @@ class SlackMessage(models.Model):
     class Meta:
         # slack_id is unique within the context of a channel or conversation
         constraints = [
-            models.UniqueConstraint(fields=["slack_id", "channel_id", "_slack_team_identity"], name="unique slack_id")
+            models.UniqueConstraint(fields=["slack_id", "channel_id", "slack_team_identity"], name="unique slack_id")
         ]
 
     @property
