@@ -23,7 +23,7 @@ from apps.slack.tasks import update_alert_group_slack_message
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
     from apps.base.models import UserNotificationPolicy
-    from apps.slack.models import SlackChannel
+    from apps.slack.models import SlackChannel, SlackTeamIdentity
     from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -45,19 +45,11 @@ class SlackMessage(models.Model):
     """
 
     channel = models.ForeignKey(
-        "slack.SlackChannel", on_delete=models.CASCADE, null=False, default=None, related_name="slack_messages"
+        "slack.SlackChannel", on_delete=models.CASCADE, null=True, default=None, related_name="slack_messages"
     )
     """
-    TODO: remove default=None in a subsequent PR/release. Can't (easily) be done in the same PR as settings null=False
-    because manage.py makemigrations warns us with the following:
-
-    It is impossible to change a nullable field 'channel' on slackmessage to non-nullable without providing a default.
-    This is because the database needs something to populate existing rows.
-    Please select a fix:
-    1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
-    2) Ignore for now. Existing rows that contain NULL values will have to be handled manually,
-    for example with a RunPython or RunSQL operation.
-    3) Quit and manually define a default value in models.py.
+    TODO: set null=False + remove default=None in a subsequent PR/release.
+    (a slack message always needs to have a slack channel associated with it)
     """
 
     organization = models.ForeignKey(
@@ -74,7 +66,7 @@ class SlackMessage(models.Model):
     For shift swap request related slack messages, the schedule has a reference to the organization
     """
 
-    slack_team_identity = models.ForeignKey(
+    _slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity",
         on_delete=models.PROTECT,
         null=True,
@@ -82,6 +74,15 @@ class SlackMessage(models.Model):
         related_name="slack_message",
         db_column="slack_team_identity",
     )
+    """
+    TODO: rename this from _slack_team_identity to slack_team_identity in a subsequent PR/release
+
+    This involves also updating the Meta.constraints to use the new field name, this may involve
+    migrations.RemoveConstraint and migrations.AddConstraint operations, which we need to investigate further...
+
+    Also, set null=False + remove default in a subsequent PR/release (a slack message always needs to have
+    a slack team identity associated with it)
+    """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
 
@@ -101,8 +102,15 @@ class SlackMessage(models.Model):
     class Meta:
         # slack_id is unique within the context of a channel or conversation
         constraints = [
-            models.UniqueConstraint(fields=["slack_id", "channel_id", "slack_team_identity"], name="unique slack_id")
+            models.UniqueConstraint(fields=["slack_id", "channel_id", "_slack_team_identity"], name="unique slack_id")
         ]
+
+    @property
+    def slack_team_identity(self) -> "SlackTeamIdentity":
+        """
+        See TODO note under _slack_team_identity field
+        """
+        return self._slack_team_identity
 
     @property
     def permalink(self) -> typing.Optional[str]:
@@ -228,7 +236,7 @@ class SlackMessage(models.Model):
         else:
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
-                slack_team_identity=slack_team_identity,
+                _slack_team_identity=slack_team_identity,
                 channel=slack_channel,
             )
 

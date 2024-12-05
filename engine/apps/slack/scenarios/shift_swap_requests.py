@@ -163,7 +163,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
 
         return SlackMessage.objects.create(
             slack_id=result["ts"],
-            slack_team_identity=self.slack_team_identity,
+            _slack_team_identity=self.slack_team_identity,
             channel=shift_swap_request.slack_channel,
         )
 

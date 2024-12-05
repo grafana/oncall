@@ -65,7 +65,7 @@ class AlertGroupActionsMixin:
 
         SlackMessage.objects.create(
             slack_id=message_id,
-            slack_team_identity=slack_team_identity,
+            _slack_team_identity=slack_team_identity,
             channel=slack_channel,
             alert_group=alert_group,
         )
@@ -178,7 +178,7 @@ class AlertGroupActionsMixin:
         # Get SlackMessage from DB
         slack_message = SlackMessage.objects.get(
             slack_id=message_ts,
-            slack_team_identity=slack_team_identity,
+            _slack_team_identity=slack_team_identity,
             channel__slack_id=channel_id,
         )
         return slack_message.alert_group
