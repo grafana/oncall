@@ -30,6 +30,10 @@ class ServiceAccountUser:
         return None
 
     @property
+    def available_teams(self):
+        return self.organization.teams
+
+    @property
     def organization_id(self):
         return self.organization.id
 
