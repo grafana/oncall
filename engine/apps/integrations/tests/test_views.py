@@ -56,7 +56,8 @@ def setup_failing_redis_cache(settings):
     [
         arc_type
         for arc_type in INTEGRATION_TYPES
-        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type
+        not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance", "grafana_adaptive_alerting"]
     ],
 )
 @pytest.mark.django_db
@@ -104,7 +105,8 @@ def test_integration_universal_endpoint(
     [
         arc_type
         for arc_type in INTEGRATION_TYPES
-        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type
+        not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance", "grafana_adaptive_alerting"]
     ],
 )
 @pytest.mark.django_db
@@ -246,7 +248,8 @@ def test_integration_old_grafana_endpoint(
     [
         arc_type
         for arc_type in INTEGRATION_TYPES
-        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type
+        not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance", "grafana_adaptive_alerting"]
     ],
 )
 @pytest.mark.django_db
@@ -280,7 +283,8 @@ def test_integration_universal_endpoint_not_allow_files(
     [
         arc_type
         for arc_type in INTEGRATION_TYPES
-        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type
+        not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance", "grafana_adaptive_alerting"]
     ],
 )
 @pytest.mark.django_db
@@ -383,7 +387,8 @@ def test_integration_grafana_endpoint_without_db_has_alerts(
     [
         arc_type
         for arc_type in INTEGRATION_TYPES
-        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type
+        not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance", "grafana_adaptive_alerting"]
     ],
 )
 @pytest.mark.django_db
@@ -483,7 +488,8 @@ def test_integration_grafana_endpoint_without_cache_has_alerts(
     [
         arc_type
         for arc_type in INTEGRATION_TYPES
-        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type
+        not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance", "grafana_adaptive_alerting"]
     ],
 )
 @pytest.mark.django_db
