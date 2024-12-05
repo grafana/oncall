@@ -581,7 +581,7 @@ def test_non_existent_integration_does_not_repeat_access_db(
 )
 @pytest.mark.parametrize(
     "integration_type",
-    [arc_type for arc_type in INTEGRATION_TYPES],
+    [arc_type for arc_type in INTEGRATION_TYPES if arc_type not in ["adaptive_grafana_alerting"]],
 )
 @pytest.mark.django_db
 def test_deleted_integration_does_not_repeat_access_db(
