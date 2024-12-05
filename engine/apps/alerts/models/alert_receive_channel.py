@@ -805,7 +805,7 @@ class CustomField(models.Model):
     # template to parse dynamic value of a custom field
     dynamic_template = models.TextField(null=True, default=None)
     # static value is an identifier of selected option.
-    # Probably display value & id of an option should be different, but I merged them for now.
+    # Probably static_value should be split into the ID & display_name, but it's merged for sake of hackathon
     static_value = models.CharField(null=True, default=None, max_length=200)
 
     class Meta:

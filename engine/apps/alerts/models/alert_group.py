@@ -358,6 +358,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     received_at = models.DateTimeField(blank=True, null=True, default=None)
 
+    # custom_fields is a dict of custom fields applied to the group.
+    # currently it does not support referral integrity, storing just string repr of a custom field key & value
     custom_fields = models.JSONField(null=True, default=None)
 
     @property

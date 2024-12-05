@@ -328,20 +328,23 @@ class Alert(models.Model):
 
 # parse_custom_fields parses custom fields from the alert payload.
 # It returns a dictionary of custom fields_id:parsed_value
-# parsed value supposed to be id of an option, but for sake of simplicity it's a string
 def parse_custom_fields(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> typing.Dict[str, str]:
-    custom_fields = {}
+) -> typing.List:
+    fields = []
     # parse custom fields
     for field in alert_receive_channel.custom_fields.all():
         if field.static_value:
-            custom_fields[field.metaname] = field.static_value
+            f = {"metaname": field.metaname, "static_value": field.static_value}
+            fields.append(field)
         elif field.template:
             try:
-                custom_fields[field.metaname] = apply_jinja_template(field.template, raw_request_data)
+                result = apply_jinja_template(field.template, raw_request_data)
+                f = {"metaname": field.metaname, "value": result}
+                if result:
+                    fields.append(f)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 logger.warning("parse_custom_fields: failed to apply template: %s", e.fallback_message)
                 continue
-
-    return custom_fields
+    fields.sort(key=lambda x: x["metaname"])
+    return fields
