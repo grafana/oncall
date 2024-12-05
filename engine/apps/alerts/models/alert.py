@@ -333,14 +333,14 @@ def parse_custom_fields(
 ) -> typing.List:
     fields = []
     # parse custom fields
-    for field in alert_receive_channel.custom_fields.all():
-        if field.static_value:
-            f = {"metaname": field.metaname, "static_value": field.static_value}
-            fields.append(field)
-        elif field.template:
+    for field_config in alert_receive_channel.custom_fields.all():
+        if field_config.static_value:
+            f = {"metaname": field_config.metaname, "static_value": field_config.static_value}
+            fields.append(f)
+        elif field_config.template:
             try:
-                result = apply_jinja_template(field.template, raw_request_data)
-                f = {"metaname": field.metaname, "value": result}
+                result = apply_jinja_template(field_config.template, raw_request_data)
+                f = {"metaname": field_config.metaname, "value": result}
                 if result:
                     fields.append(f)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
