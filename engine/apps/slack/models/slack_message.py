@@ -39,31 +39,12 @@ class SlackMessage(models.Model):
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
     slack_id = models.CharField(max_length=100)
 
-    _channel_id = models.CharField(max_length=100, null=True, default=None)
-    """
-    DEPRECATED/TODO: this is no longer being referenced/set, drop in a separate PR/release
-    """
-
     channel = models.ForeignKey(
         "slack.SlackChannel", on_delete=models.CASCADE, null=True, default=None, related_name="slack_messages"
     )
     """
     TODO: set null=False + remove default=None in a subsequent PR/release.
     (a slack message always needs to have a slack channel associated with it)
-    """
-
-    organization = models.ForeignKey(
-        "user_management.Organization",
-        on_delete=models.CASCADE,
-        null=True,
-        default=None,
-        related_name="slack_message",
-    )
-    """
-    DEPRECATED/TODO: drop this field in a separate PR/release
-
-    For alert group related slack messages, we can always get the organization from the alert_group.channel
-    For shift swap request related slack messages, the schedule has a reference to the organization
     """
 
     _slack_team_identity = models.ForeignKey(
