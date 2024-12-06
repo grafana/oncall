@@ -245,6 +245,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "last_alert_at",
             "paged_users",
             "external_urls",
+            "custom_fields",
         ]
 
     def get_last_alert_at(self, obj: "AlertGroup") -> datetime.datetime:
