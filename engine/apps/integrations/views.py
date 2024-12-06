@@ -384,9 +384,19 @@ class AdaptiveGrafanaAlertingAPIView(GrafanaAlertingAPIView):
         TODO: Will likely need service account token + grafana url to figure out organization + author,
         Hard-coded for now
         """
-        organization = Organization.objects.get(
-            stack_id=SELF_HOSTED_SETTINGS["STACK_ID"], org_id=SELF_HOSTED_SETTINGS["ORG_ID"]
-        )
+        organization = None
+        if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
+            instance_id = self.request.headers.get("X-Grafana-Org-Id")
+            if not instance_id:
+                return JsonResponse({"error": "Missing header X-Grafana-Org-Id"}, status=400)
+            organization = Organization.objects.filter(stack_id=instance_id).first()
+        else:
+            organization = Organization.objects.get(
+                stack_id=SELF_HOSTED_SETTINGS["STACK_ID"], org_id=SELF_HOSTED_SETTINGS["ORG_ID"]
+            )
+
+        if not organization:
+            return JsonResponse({"error": "Invalid oncall organization"}, status=400)
 
         routing_config, error = self.get_routing_config()
         if error:
