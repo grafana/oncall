@@ -21,6 +21,7 @@ from apps.chatops_proxy.utils import (
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.slack.installation import install_slack_integration
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
+from common.api_helpers.exceptions import InternalServerError
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
                 return Response("slack integration installed", 201)
         except Exception as e:
             logger.exception("overridden_login_social_auth: Failed to install slack via chatops-proxy: %s", e)
-            return Response({"error": "something went wrong, try again later"}, 500)
+            raise InternalServerError("Something went wrong, try again later")
     else:
         # Otherwise use social-auth.
         url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url

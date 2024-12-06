@@ -2,7 +2,7 @@ from django.db.models import Count, Q
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from emoji import emojize
-from rest_framework import serializers, status, viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
@@ -18,7 +18,7 @@ from apps.api.serializers.escalation_chain import (
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.exceptions import BadRequest, Forbidden
 from common.api_helpers.filters import (
     NO_TEAM_VALUE,
     ByTeamModelFieldFilterMixin,
@@ -164,7 +164,7 @@ class EscalationChainViewSet(
         try:
             team = request.user.available_teams.get(public_primary_key=team_id) if team_id else None
         except Team.DoesNotExist:
-            return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
+            raise Forbidden(detail={"error_code": "wrong_team"})
         copy = obj.make_copy(name, team)
         serializer = self.get_serializer(copy)
         write_resource_insight_log(
