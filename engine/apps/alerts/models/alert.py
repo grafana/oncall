@@ -145,6 +145,19 @@ class Alert(models.Model):
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 
+        if group_created and alert_receive_channel.team:
+            # add the team from the integration if its available
+            group.teams.set([alert_receive_channel.team])
+        elif (
+            group_created
+            and channel_filter
+            and channel_filter.escalation_chain
+            and channel_filter.escalation_chain.team
+            and channel_filter.update_team
+        ):
+            # set the team to the one defined in the escalation_chain if defined.
+            group.teams.set([channel_filter.escalation_chain.team])
+
         if group_created or alert.group.pause_escalation:
             # Build escalation snapshot if needed and start escalation
             alert.group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
