@@ -337,9 +337,9 @@ def parse_custom_fields(
         if field_config.static_value:
             f = {"metaname": field_config.metaname, "static_value": field_config.static_value}
             fields.append(f)
-        elif field_config.template:
+        elif field_config.dynamic_template:
             try:
-                result = apply_jinja_template(field_config.template, raw_request_data)
+                result = apply_jinja_template(field_config.dynamic_template, raw_request_data)
                 f = {"metaname": field_config.metaname, "value": result}
                 if result:
                     fields.append(f)

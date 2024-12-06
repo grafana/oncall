@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import typing
 import urllib
@@ -566,8 +567,18 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
-
-        return UIURLBuilder(self.channel.organization).declare_incident(f"?caption={caption}&url={link}&title={title}")
+        params = f"?caption={caption}&url={link}&title={title}"
+        if self.custom_fields is not None:
+            print("YOLO")
+            print(self.custom_fields)
+            print("BOLO")
+            print(type(self.custom_fields))
+            jsonCustomFields = json.dumps(self.custom_fields)
+            print("DOLO")
+            print(jsonCustomFields)
+            custom_fields = urllib.parse.quote_plus(jsonCustomFields)
+            params += f"&cf={custom_fields}"
+        return UIURLBuilder(self.channel.organization).declare_incident(params)
 
     @property
     def happened_while_maintenance(self):

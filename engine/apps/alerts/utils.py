@@ -23,4 +23,5 @@ def render_relative_timeline(log_created_at, alert_group_started_at):
 
 
 def is_declare_incident_step_enabled(organization: "Organization") -> bool:
+    return True
     return organization.is_grafana_incident_enabled and settings.FEATURE_DECLARE_INCIDENT_STEP_ENABLED
