@@ -68,7 +68,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=thread_ts,
-                organization__slack_team_identity=self.slack_team_identity,
+                _slack_team_identity=self.slack_team_identity,
                 channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:

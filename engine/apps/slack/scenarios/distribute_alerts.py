@@ -160,7 +160,7 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
 
                 alert_group.slack_messages.create(
                     slack_id=result["ts"],
-                    organization=alert_group.channel.organization,
+                    _slack_team_identity=slack_team_identity,
                     channel=slack_channel,
                 )
 
@@ -914,7 +914,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             else:
                 alert_group.slack_messages.create(
                     slack_id=response["ts"],
-                    organization=organization,
+                    _slack_team_identity=slack_message.slack_team_identity,
                     channel=slack_channel,
                 )
 
