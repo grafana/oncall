@@ -158,12 +158,9 @@ class IncomingAlertStep(scenario_step.ScenarioStep):
                     blocks=alert_group.render_slack_blocks(),
                 )
 
-                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
                 alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=alert_group.channel.organization,
-                    _channel_id=slack_channel.slack_id,
                     channel=slack_channel,
                 )
 
@@ -554,10 +551,7 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
             if slack_user_identity:
                 self._slack_client.chat_postEphemeral(
-                    # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                    # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-                    # channel=alert_group.slack_message.channel.slack_id,
-                    channel=alert_group.slack_message._channel_id,
+                    channel=alert_group.slack_message.channel.slack_id,
                     user=slack_user_identity.slack_id,
                     text="{}{}".format(ephemeral_text[:1].upper(), ephemeral_text[1:]),
                     unfurl_links=True,
@@ -804,10 +798,7 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
             if slack_message.ack_reminder_message_ts:
                 try:
                     self._slack_client.chat_update(
-                        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-                        # channel=slack_message.channel.slack_id,
-                        channel=slack_message._channel_id,
+                        channel=slack_message.channel.slack_id,
                         ts=slack_message.ack_reminder_message_ts,
                         text=text,
                         attachments=message_attachments,
@@ -921,12 +912,9 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             except (SlackAPITokenError, SlackAPIChannelArchivedError, SlackAPIChannelNotFoundError):
                 pass
             else:
-                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
                 alert_group.slack_messages.create(
                     slack_id=response["ts"],
                     organization=organization,
-                    _channel_id=slack_channel.slack_id,
                     channel=slack_channel,
                 )
 
@@ -981,13 +969,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
         # Remove alert group Slack messages
         for message in alert_group.slack_messages.all():
             try:
-                self._slack_client.chat_delete(
-                    # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                    # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-                    # channel=message.channel.slack_id,
-                    channel=message._channel_id,
-                    ts=message.slack_id,
-                )
+                self._slack_client.chat_delete(channel=message.channel.slack_id, ts=message.slack_id)
             except SlackAPIRatelimitError:
                 # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
                 raise

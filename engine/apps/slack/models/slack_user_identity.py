@@ -132,12 +132,9 @@ class SlackUserIdentity(models.Model):
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-                        # f"<#{slack_message.channel.slack_id}>.\n"
                         "text": (
                             f"You received this message because you're not a member of "
-                            f"<#{slack_message._channel_id}>.\n"
+                            f"<#{slack_message.channel.slack_id}>.\n"
                             "Please join the channel to get notified right in the alert group thread."
                         ),
                     }

@@ -18,11 +18,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
 
         user = log_record.author
         alert_group = log_record.alert_group
-
-        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-        # slack_channel_id = alert_group_slack_message.channel.slack_id
-        slack_channel_id = alert_group.slack_message._channel_id
+        slack_channel_id = alert_group.slack_message.channel.slack_id
 
         user_verbal_with_mention = user.get_username_with_slack_verbal(mention=True)
 

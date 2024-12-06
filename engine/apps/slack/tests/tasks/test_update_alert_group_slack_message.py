@@ -190,7 +190,7 @@ class TestUpdateAlertGroupSlackMessageTask:
 
         # Assert that SlackClient.chat_update was called with correct parameters
         mock_chat_update.assert_called_once_with(
-            channel=slack_message._channel_id,
+            channel=slack_message.channel.slack_id,
             ts=slack_message.slack_id,
             attachments=alert_group.render_slack_attachments(),
             blocks=alert_group.render_slack_blocks(),

@@ -417,6 +417,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     )
 
     prevent_posting_alerts = models.BooleanField(default=False)
+    """
+    TODO: this column is no longer used, drop it in a subsequent PR/release
+    """
+
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
@@ -1983,11 +1987,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         channel_filter = self.channel_filter
 
         if self.slack_message:
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-            #
-            # return self.slack_message.channel.slack_id
-            return self.slack_message._channel_id
+            return self.slack_message.channel.slack_id
         elif channel_filter and channel_filter.slack_channel_or_org_default:
             return channel_filter.slack_channel_or_org_default.slack_id
         return None

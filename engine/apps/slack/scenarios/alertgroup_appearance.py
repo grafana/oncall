@@ -87,10 +87,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         slack_message = alert_group.slack_message
 
         self._slack_client.chat_update(
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-            # channel=slack_message.channel.slack_id,
-            channel=slack_message._channel_id,
+            channel=slack_message.channel.slack_id,
             ts=slack_message.slack_id,
             attachments=alert_group.render_slack_attachments(),
             blocks=alert_group.render_slack_blocks(),

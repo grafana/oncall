@@ -827,8 +827,8 @@ class TestAlertGroupSlackChannelID:
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(slack_channel, alert_group=alert_group)
 
-        # Assert that slack_channel_id returns the _channel_id from slack_message
-        assert alert_group.slack_channel_id == slack_message._channel_id
+        # Assert that slack_channel_id returns the channel.slack_id from slack_message
+        assert alert_group.slack_channel_id == slack_message.channel.slack_id
 
     @pytest.mark.django_db
     def test_slack_channel_id_with_channel_filter(

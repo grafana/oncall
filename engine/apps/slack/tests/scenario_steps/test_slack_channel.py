@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.slack.models import SlackChannel
+from apps.slack.models import SlackChannel, SlackMessage
 from apps.slack.scenarios import slack_channel as slack_channel_scenarios
 
 
@@ -84,6 +84,7 @@ class TestSlackChannelDeletedEventStep:
         self,
         make_organization_and_user_with_slack_identities,
         make_slack_channel,
+        make_slack_message,
     ) -> None:
         (
             organization,
@@ -92,6 +93,7 @@ class TestSlackChannelDeletedEventStep:
             slack_user_identity,
         ) = make_organization_and_user_with_slack_identities()
         slack_channel = make_slack_channel(slack_team_identity)
+        make_slack_message(slack_channel, organization=organization)
         slack_channel_id = slack_channel.slack_id
 
         # Ensure the SlackChannel exists
@@ -99,6 +101,8 @@ class TestSlackChannelDeletedEventStep:
             slack_id=slack_channel_id,
             slack_team_identity=slack_team_identity,
         ).exists()
+
+        assert SlackMessage.objects.count() == 1
 
         step = slack_channel_scenarios.SlackChannelDeletedEventStep(slack_team_identity, organization, user)
         step.process_scenario(slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}})
@@ -108,6 +112,9 @@ class TestSlackChannelDeletedEventStep:
             slack_id=slack_channel_id,
             slack_team_identity=slack_team_identity,
         ).exists()
+
+        # Slack messages should be cascade deleted when their channel is deleted
+        assert SlackMessage.objects.count() == 0
 
     def test_process_scenario_channel_does_not_exist(
         self,

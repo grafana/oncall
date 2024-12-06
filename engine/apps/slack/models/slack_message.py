@@ -89,11 +89,6 @@ class SlackMessage(models.Model):
         related_name="slack_messages",
     )
 
-    active_update_task_id = models.CharField(max_length=100, null=True, default=None)
-    """
-    DEPRECATED/TODO: drop this field in a separate PR/release
-    """
-
     class Meta:
         # slack_id is unique within the context of a channel or conversation
         constraints = [
@@ -112,10 +107,7 @@ class SlackMessage(models.Model):
 
         try:
             result = SlackClient(self.slack_team_identity).chat_getPermalink(
-                # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-                # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-                # channel=self.channel.slack_id,
-                channel=self._channel_id,
+                channel=self.channel.slack_id,
                 message_ts=self.slack_id,
             )
         except SlackAPIError:
@@ -128,9 +120,7 @@ class SlackMessage(models.Model):
 
     @property
     def deep_link(self) -> str:
-        # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-        # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-        return f"https://slack.com/app_redirect?channel={self._channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
+        return f"https://slack.com/app_redirect?channel={self.channel.slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
     @classmethod
     def send_slack_notification(
@@ -232,12 +222,9 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=organization,
-                _channel_id=slack_channel.slack_id,
                 channel=slack_channel,
             )
 
