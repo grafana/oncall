@@ -4,6 +4,7 @@
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
 base_url_protocol: http
+onCallApiUrl: http://helm-testing-oncall-engine:8080
 
 ## Optionally specify an array of imagePullSecrets.
 ## Secrets must be manually created in the namespace.
