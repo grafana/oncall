@@ -24,6 +24,7 @@ from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
     AlertReceiveChannelUpdateSerializer,
     FilterAlertReceiveChannelSerializer,
+    IntegrationAlertGroupLabelsSerializer,
 )
 from apps.api.serializers.alert_receive_channel_connection import (
     AlertReceiveChannelConnectedChannelSerializer,
@@ -309,7 +310,10 @@ class AlertReceiveChannelView(
         # check we have all the required information
         serializer.is_valid(raise_exception=True)
         if instance is None:
+            # pop extra fields so they are not passed to AlertReceiveChannel(**serializer.validated_data)
             serializer.validated_data.pop("create_default_webhooks", None)
+            IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(serializer.validated_data)
+
             # create in-memory instance to test with the (possible) unsaved data
             instance = AlertReceiveChannel(**serializer.validated_data)
         else:

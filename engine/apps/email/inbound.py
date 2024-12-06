@@ -144,8 +144,9 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
 
             messages = [event.message for event in events if isinstance(event, AnymailInboundEvent)]
             if messages:
-                logger.info(f"Received inbound email message from ESP: {esp}")
-                return messages[0]
+                message: AnymailInboundMessage = messages[0]
+                logger.info(f"Received inbound email message from ESP: {esp}, is HTML: {message.html is not None}")
+                return message
 
         logger.error("Failed to parse inbound email message")
         return None
