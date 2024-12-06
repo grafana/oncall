@@ -563,18 +563,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         """
         Generate a link for AlertGroup to declare Grafana Incident by click
         """
+        print("HELLO")
         caption = urllib.parse.quote_plus("OnCall Alert Group")
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
         params = f"?caption={caption}&url={link}&title={title}"
         if self.custom_fields is not None:
-            print("YOLO")
-            print(self.custom_fields)
-            print("BOLO")
-            print(type(self.custom_fields))
             jsonCustomFields = json.dumps(self.custom_fields)
-            print("DOLO")
             print(jsonCustomFields)
             custom_fields = urllib.parse.quote_plus(jsonCustomFields)
             params += f"&cf={custom_fields}"

@@ -335,12 +335,12 @@ def parse_custom_fields(
     # parse custom fields
     for field_config in alert_receive_channel.custom_fields.all():
         if field_config.static_value:
-            f = {"metaname": field_config.metaname, "static_value": field_config.static_value}
+            f = {"name": field_config.metaname, "value": field_config.static_value}
             fields.append(f)
         elif field_config.dynamic_template:
             try:
                 result = apply_jinja_template(field_config.dynamic_template, raw_request_data)
-                f = {"metaname": field_config.metaname, "value": result}
+                f = {"name": field_config.metaname, "value": result}
                 if result:
                     fields.append(f)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
