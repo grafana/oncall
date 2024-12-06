@@ -98,10 +98,7 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
 
     try:
         slack_client.chat_update(
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p173255546
-            # channel=slack_message.channel.slack_id,
-            channel=slack_message._channel_id,
+            channel=slack_message.channel.slack_id,
             ts=slack_message.slack_id,
             attachments=alert_group.render_slack_attachments(),
             blocks=alert_group.render_slack_blocks(),
@@ -125,27 +122,6 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         pass
 
     slack_message.mark_active_update_task_as_complete()
-
-
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
-def update_incident_slack_message(slack_team_identity_pk: int, alert_group_pk: int) -> None:
-    """
-    TODO: this method has been deprecated, and all references to it removed, remove it once task queues no
-    longer reference it.
-    """
-    from apps.alerts.models import AlertGroup
-
-    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-
-    # NOTE: alert_group can't be None here, AlertGroup.objects.get(pk=alert_group_pk) would
-    # raise AlertGroup.DoesNotExist in this case
-    if not alert_group.slack_message:
-        logger.info(
-            f"skipping update_incident_slack_message as AlertGroup {alert_group_pk} doesn't have a slack message"
-        )
-        return
-
-    alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

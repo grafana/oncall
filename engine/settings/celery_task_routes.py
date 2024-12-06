@@ -170,8 +170,6 @@ CELERY_TASK_ROUTES = {
     "apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel": {"queue": "slack"},
     "apps.slack.tasks.start_update_slack_user_group_for_schedules": {"queue": "slack"},
     "apps.slack.tasks.unpopulate_slack_user_identities": {"queue": "slack"},
-    # TODO: remove apps.slack.tasks.update_incident_slack_message after current tasks in queue have been processed
-    "apps.slack.tasks.update_incident_slack_message": {"queue": "slack"},
     "apps.slack.tasks.update_alert_group_slack_message": {"queue": "slack"},
     "apps.slack.tasks.update_slack_user_group_for_schedules": {"queue": "slack"},
     "apps.slack.representatives.alert_group_representative.on_create_alert_slack_representative_async": {

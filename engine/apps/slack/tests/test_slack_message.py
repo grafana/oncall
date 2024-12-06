@@ -25,7 +25,7 @@ def slack_message_setup(
         alert_group = make_alert_group(integration)
         slack_channel = make_slack_channel(slack_team_identity)
 
-        return make_slack_message(alert_group=alert_group, channel=slack_channel, cached_permalink=cached_permalink)
+        return make_slack_message(slack_channel, alert_group=alert_group, cached_permalink=cached_permalink)
 
     return _slack_message_setup
 
@@ -106,7 +106,7 @@ def test_send_slack_notification(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group)
 
     with patch("apps.slack.client.SlackClient.conversations_members") as mock_members:
         mock_members.return_value = {"members": [slack_user_identity.slack_id]}
@@ -132,7 +132,7 @@ def test_slack_message_deep_link(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group)
 
     expected = (
         f"https://slack.com/app_redirect?channel={slack_channel.slack_id}"
@@ -154,9 +154,9 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         """
         Test that the method exits early if alert_group is None.
         """
-        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        _, slack_team_identity = make_organization_with_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(channel=slack_channel, alert_group=None, organization=organization)
+        slack_message = make_slack_message(slack_channel)
 
         slack_message.update_alert_groups_message(debounce=True)
 
@@ -184,7 +184,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         alert_group = make_alert_group(alert_receive_channel)
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id(task_id)
 
         slack_message.update_alert_groups_message(debounce=True)
@@ -219,7 +219,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         alert_group = make_alert_group(alert_receive_channel)
 
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group, last_updated=None)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group, last_updated=None)
 
         assert slack_message.get_active_update_task_id() is None
 
@@ -260,7 +260,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
 
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(
-            channel=slack_channel,
+            slack_channel,
             alert_group=alert_group,
             last_updated=timezone.now() - timedelta(seconds=10),
         )
@@ -305,7 +305,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
 
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(
-            channel=slack_channel,
+            slack_channel,
             alert_group=alert_group,
             last_updated=timezone.now()
             - timedelta(seconds=SlackMessage.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS + 1),
@@ -353,7 +353,7 @@ class TestSlackMessageUpdateAlertGroupsMessage:
         slack_channel = make_slack_channel(slack_team_identity)
 
         # Set up SlackMessage with existing task ID in the cache
-        slack_message = make_slack_message(channel=slack_channel, alert_group=alert_group)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("existing-task-id")
 
         slack_message.update_alert_groups_message(debounce=False)

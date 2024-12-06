@@ -53,7 +53,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("original-task-id")
 
         update_alert_group_slack_message.apply((slack_message.pk,), task_id="different-task-id")
@@ -73,9 +73,9 @@ class TestUpdateAlertGroupSlackMessageTask:
         """
         Test that the task exits early if SlackMessage has no alert_group.
         """
-        organization, slack_team_identity = make_organization_with_slack_team_identity()
+        _, slack_team_identity = make_organization_with_slack_team_identity()
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(alert_group=None, channel=slack_channel, organization=organization)
+        slack_message = make_slack_message(slack_channel)
 
         update_alert_group_slack_message.apply((slack_message.pk,), task_id="task-id")
 
@@ -106,7 +106,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         # Ensure skip_escalation_in_slack is True
@@ -146,7 +146,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         # Ensure is_rate_limited_in_slack is True
@@ -183,14 +183,14 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         update_alert_group_slack_message.apply((slack_message.pk,), task_id="task-id")
 
         # Assert that SlackClient.chat_update was called with correct parameters
         mock_chat_update.assert_called_once_with(
-            channel=slack_message._channel_id,
+            channel=slack_message.channel.slack_id,
             ts=slack_message.slack_id,
             attachments=alert_group.render_slack_attachments(),
             blocks=alert_group.render_slack_blocks(),
@@ -230,7 +230,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         # SlackClient.chat_update raises SlackAPIRatelimitError
@@ -271,7 +271,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         # SlackClient.chat_update raises SlackAPIRatelimitError
@@ -322,7 +322,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
         slack_channel = make_slack_channel(slack_team_identity)
 
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         # SlackClient.chat_update raises the exception class
@@ -364,7 +364,7 @@ class TestUpdateAlertGroupSlackMessageTask:
         make_alert(alert_group=alert_group, raw_request_data={})
 
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
         slack_message.set_active_update_task_id("task-id")
 
         # SlackClient.chat_update raises a generic exception

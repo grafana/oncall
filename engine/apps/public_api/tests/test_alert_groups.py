@@ -162,7 +162,7 @@ def test_get_alert_group_slack_links(
     organization.slack_team_identity = slack_team_identity
     organization.save()
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel, cached_permalink="the-link")
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group, cached_permalink="the-link")
 
     url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
     response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
