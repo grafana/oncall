@@ -23,6 +23,7 @@ def drop_orphaned_slack_messages(apps, schema_editor):
     foreign key relationship, which prevents us from setting NOT NULL constraint on the channel_id field.
     """
     SlackMessage = apps.get_model("slack", "SlackMessage")
+    ShiftSwapRequest = apps.get_model("schedules", "ShiftSwapRequest")
 
     logger.info("Starting migration to drop orphaned SlackMessage records.")
 
@@ -34,6 +35,10 @@ def drop_orphaned_slack_messages(apps, schema_editor):
         return
 
     logger.info(f"Found {total_messages} orphaned SlackMessages to drop.")
+
+    # Set the referencing ShiftSwapRequests' slack_message_id field to NULL (only for orphaned SlackMessages)
+    ShiftSwapRequest.objects.filter(slack_message__in=slack_messages).update(slack_message=None)
+    logger.info("Unset slack_message references from ShiftSwapRequests.")
 
     slack_messages.delete()
 
