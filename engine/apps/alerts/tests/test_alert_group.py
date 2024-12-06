@@ -31,7 +31,7 @@ def test_render_for_phone_call(
 
     alert_group = make_alert_group(alert_receive_channel)
     slack_channel = make_slack_channel(slack_team_identity)
-    make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    make_slack_message(slack_channel, alert_group=alert_group)
 
     make_alert(
         alert_group,
@@ -105,7 +105,7 @@ def test_delete(
     make_alert(alert_group, raw_request_data={})
 
     # Create Slack messages
-    slack_message = make_slack_message(slack_team_identity, slack_channel1, alert_group=alert_group)
+    slack_message = make_slack_message(slack_channel1, alert_group=alert_group)
     resolution_note_1 = make_resolution_note_slack_message(
         alert_group=alert_group,
         user=user,
@@ -188,7 +188,7 @@ def test_delete_slack_ratelimit(
     make_alert(alert_group, raw_request_data={})
 
     # Create Slack messages
-    make_slack_message(slack_team_identity, slack_channel1, alert_group=alert_group)
+    make_slack_message(slack_channel1, alert_group=alert_group)
     make_resolution_note_slack_message(
         alert_group=alert_group,
         user=user,
@@ -259,7 +259,7 @@ def test_delete_slack_api_error_other_than_ratelimit(
     make_alert(alert_group, raw_request_data={})
 
     # Create Slack messages
-    make_slack_message(alert_group=alert_group, channel=slack_channel1)
+    make_slack_message(slack_channel1, alert_group=alert_group)
     make_resolution_note_slack_message(
         alert_group=alert_group,
         user=user,
@@ -825,7 +825,7 @@ class TestAlertGroupSlackChannelID:
         alert_receive_channel = make_alert_receive_channel(organization)
         alert_group = make_alert_group(alert_receive_channel)
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+        slack_message = make_slack_message(slack_channel, alert_group=alert_group)
 
         # Assert that slack_channel_id returns the channel.slack_id from slack_message
         assert alert_group.slack_channel_id == slack_message.channel.slack_id

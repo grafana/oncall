@@ -143,7 +143,7 @@ def test_organization_hard_delete(
     telegram_message = make_telegram_message(alert_group=alert_group, message_type=TelegramMessage.ALERT_GROUP_MESSAGE)
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group)
 
     plugin_token, _ = make_token_for_organization(organization)
     public_api_token, _ = make_public_api_token(user_1, organization)

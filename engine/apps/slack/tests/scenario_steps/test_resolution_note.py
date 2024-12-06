@@ -153,7 +153,7 @@ def test_post_or_update_resolution_note_in_thread_truncate_message_text(
     alert_group = make_alert_group(alert_receive_channel)
 
     slack_channel = make_slack_channel(slack_team_identity)
-    make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    make_slack_message(slack_channel, alert_group=alert_group)
 
     resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
 
@@ -189,7 +189,7 @@ def test_post_or_update_resolution_note_in_thread_update_truncate_message_text(
     alert_group = make_alert_group(alert_receive_channel)
 
     slack_channel = make_slack_channel(slack_team_identity)
-    make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    make_slack_message(slack_channel, alert_group=alert_group)
 
     resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
     make_resolution_note_slack_message(
@@ -319,7 +319,7 @@ def test_resolution_notes_modal_closed_before_update(
     alert_group = make_alert_group(alert_receive_channel)
 
     slack_channel = make_slack_channel(slack_team_identity)
-    make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    make_slack_message(slack_channel, alert_group=alert_group)
 
     payload = {
         "trigger_id": "TEST",
@@ -368,7 +368,7 @@ def test_add_to_resolution_note(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group)
 
     payload = {
         "channel": {"id": slack_channel.slack_id},
@@ -436,7 +436,7 @@ def test_add_to_resolution_note_deleted_org(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group)
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group)
     organization.delete()
 
     other_organization = make_organization(slack_team_identity=slack_team_identity)

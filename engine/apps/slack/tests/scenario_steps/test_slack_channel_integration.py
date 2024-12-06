@@ -234,7 +234,7 @@ class TestSlackChannelMessageEventStep:
         thread_ts = 16789.123
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group, slack_id=thread_ts)
+        make_slack_message(slack_channel, alert_group=alert_group, slack_id=thread_ts)
 
         mock_permalink = "http://example.com"
 
@@ -288,7 +288,7 @@ class TestSlackChannelMessageEventStep:
         thread_ts = 16789.123
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group, slack_id=thread_ts)
+        make_slack_message(slack_channel, alert_group=alert_group, slack_id=thread_ts)
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step._slack_client = Mock()
@@ -339,7 +339,7 @@ class TestSlackChannelMessageEventStep:
         thread_ts = 16789.123
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group, slack_id=thread_ts)
+        make_slack_message(slack_channel, alert_group=alert_group, slack_id=thread_ts)
 
         resolution_note_slack_message = None
         if resolution_note_slack_message_already_exists:
@@ -447,7 +447,7 @@ class TestSlackChannelMessageEventStep:
         slack_channel = make_slack_channel(slack_team_identity, slack_id=channel_id)
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
-        make_slack_message(slack_team_identity, slack_channel, alert_group=alert_group, slack_id=thread_ts)
+        make_slack_message(slack_channel, alert_group=alert_group, slack_id=thread_ts)
 
         payload = {
             "event": {
@@ -495,7 +495,7 @@ class TestSlackChannelMessageEventStep:
         ) = make_organization_and_user_with_slack_identities()
 
         slack_channel = make_slack_channel(slack_team_identity)
-        make_slack_message(slack_team_identity, slack_channel, slack_id=thread_ts)
+        make_slack_message(slack_channel, slack_id=thread_ts)
 
         payload = {
             "event": {
