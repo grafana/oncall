@@ -1,6 +1,7 @@
 import pytz
 from celery.utils.log import get_task_logger
 from django.core.cache import cache
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
@@ -30,7 +31,7 @@ def start_notify_about_gaps_in_schedule():
     today = timezone.now().date()
     week_ago = today - timezone.timedelta(days=7)
     schedules = OnCallSchedule.objects.filter(
-        gaps_report_sent_at__lte=week_ago,
+        Q(gaps_report_sent_at__lte=week_ago) | Q(gaps_report_sent_at__isnull=True),
         slack_channel__isnull=False,
         organization__deleted_at__isnull=True,
     )
