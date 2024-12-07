@@ -49,11 +49,33 @@ class MattermostChannel(models.Model):
 
     @classmethod
     def get_channel_for_alert_group(cls, alert_group: AlertGroup) -> typing.Optional["MattermostChannel"]:
+        from apps.mattermost.backend import MattermostBackend  # To avoid circular import
+
         default_channel = cls.objects.filter(
             organization=alert_group.channel.organization, is_default_channel=True
         ).first()
 
-        return default_channel
+        if (
+            alert_group.channel_filter is None
+            or not alert_group.channel_filter.notification_backends
+            or not alert_group.channel_filter.notification_backends.get(MattermostBackend.backend_id)
+        ):
+            return default_channel
+
+        channel_id = alert_group.channel_filter.notification_backends[MattermostBackend.backend_id].get("channel")
+        enabled = alert_group.channel_filter.notification_backends[MattermostBackend.backend_id].get("enabled")
+
+        if not enabled or not channel_id:
+            return default_channel
+
+        channel = cls.objects.filter(
+            organization=alert_group.channel.organization, public_primary_key=channel_id
+        ).first()
+
+        if not channel:
+            return default_channel
+
+        return channel
 
     def make_channel_default(self, author):
         try:
