@@ -4,6 +4,7 @@ import { Stack, useTheme2 } from '@grafana/ui';
 
 import { Timeline } from 'components/Timeline/Timeline';
 import { MSTeamsConnector } from 'containers/AlertRules/parts/connectors/MSTeamsConnector';
+import { MattermostConnector } from 'containers/AlertRules/parts/connectors/MattermostConnector';
 import { SlackConnector } from 'containers/AlertRules/parts/connectors/SlackConnector';
 import { TelegramConnector } from 'containers/AlertRules/parts/connectors/TelegramConnector';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -20,7 +21,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
 
   const store = useStore();
   const theme = useTheme2();
-  const { organizationStore, telegramChannelStore, msteamsChannelStore } = store;
+  const { organizationStore, telegramChannelStore, msteamsChannelStore, mattermostChannelStore } = store;
 
   const isSlackInstalled = Boolean(organizationStore.currentOrganization?.slack_team_identity);
   const isTelegramInstalled =
@@ -28,11 +29,14 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
 
   useEffect(() => {
     msteamsChannelStore.updateMSTeamsChannels();
+    mattermostChannelStore.updateItems();
   }, []);
 
   const isMSTeamsInstalled = msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0;
+  const connectedChannels = mattermostChannelStore.getSearchResult();
+  const isMattermostInstalled = store.hasFeature(AppFeature.Mattermost) && connectedChannels && connectedChannels.length
 
-  if (!isSlackInstalled && !isTelegramInstalled && !isMSTeamsInstalled) {
+  if (!isSlackInstalled && !isTelegramInstalled && !isMSTeamsInstalled && !isMattermostInstalled) {
     return null;
   }
 
@@ -42,6 +46,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}
         {isMSTeamsInstalled && <MSTeamsConnector channelFilterId={channelFilterId} />}
+        {isMattermostInstalled && <MattermostConnector channelFilterId={channelFilterId}/>}
       </Stack>
     </Timeline.Item>
   );
