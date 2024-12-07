@@ -22,6 +22,18 @@ export class MattermostChannelStore extends BaseStore {
   }
 
   @action.bound
+  async updateById(id: MattermostChannel['id']) {
+    const response = await this.getById(id);
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
+  }
+
+  @action.bound
   async updateItems(query = '') {
     const result = await this.getAll();
 
