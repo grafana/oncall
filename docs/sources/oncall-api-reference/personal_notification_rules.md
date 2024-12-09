@@ -14,6 +14,8 @@ refs:
 
 ## Post a personal notification rule
 
+**Required permission**: `grafana-oncall-app.user-settings:write` (user authentication only)
+
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/" \
   --request POST \
@@ -51,6 +53,8 @@ The above command returns JSON structured in the following way:
 
 ## Get personal notification rule
 
+**Required permission**: `grafana-oncall-app.user-settings:read` (user authentication only)
+
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/ND9EHN5LN1DUU/" \
   --request GET \
@@ -76,6 +80,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/personal_notification_rules/<PERSONAL_NOTIFICATION_RULE_ID>/`
 
 ## List personal notification rules
+
+**Required permission**: `grafana-oncall-app.user-settings:read` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/" \
@@ -140,6 +146,8 @@ The following available filter parameters should be provided as `GET` arguments:
 `GET {{API_URL}}/api/v1/personal_notification_rules/`
 
 ## Delete a personal notification rule
+
+**Required permission**: `grafana-oncall-app.user-settings:write` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/NWAL6WFJNWDD8/" \

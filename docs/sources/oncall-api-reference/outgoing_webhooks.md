@@ -30,6 +30,8 @@ For more details about specific fields of a webhook, refer to [Outgoing webhooks
 
 ## List webhooks
 
+**Required permission**: `grafana-oncall-app.outgoing-webhooks:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/webhooks/" \
   --request GET \
@@ -75,6 +77,8 @@ The above command returns JSON structured in the following way:
 
 ## Get webhook
 
+**Required permission**: `grafana-oncall-app.outgoing-webhooks:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/webhooks/{{WEBHOOK_UID}}/" \
   --request GET \
@@ -107,6 +111,8 @@ The above command returns JSON structured in the following way:
 ```
 
 ## Create webhook
+
+**Required permission**: `grafana-oncall-app.outgoing-webhooks:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/webhooks/" \
@@ -167,6 +173,8 @@ The above command returns JSON structured in the following way:
 
 ## Update webhook
 
+**Required permission**: `grafana-oncall-app.outgoing-webhooks:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/webhooks/{{WEBHOOK_UID}}/" \
   --request PUT \
@@ -200,6 +208,8 @@ The above command returns JSON structured in the following way:
 ```
 
 ## Delete webhook
+
+**Required permission**: `grafana-oncall-app.outgoing-webhooks:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/webhooks/{{WEBHOOK_UID}}/" \
