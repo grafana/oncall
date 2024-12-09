@@ -19,7 +19,22 @@ class AlertForwardingMixin:
             if not alert_receive_channel:
                 return JsonResponse({"error": "Invalid alert receive channel"}, status=400)
 
-            forwarded_payload = {}
+            forwarded_payload = [
+                {
+                    "labels": {
+                        "alertname": "HighLatency",
+                        "service": "my-service",
+                        "severity": "critical"
+                    },
+                    "annotations": {
+                        "summary": "The service is experiencing unusually high latency.",
+                        "description": "Latency has exceeded 300ms for the last 10 minutes."
+                    },
+                    "startsAt": "2024-12-09T10:00:00Z",
+                    "endsAt": "0001-01-01T00:00:00Z",
+                    "generatorURL": "http://my-service.example.com/metrics"
+                }
+            ]
             try:
                 data = json.loads(self.body)
                 # Transform Here
