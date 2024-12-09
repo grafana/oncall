@@ -179,7 +179,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             message = ""
 
         return {
-            "subject": email.subject.strip() or "",
+            "subject": email.subject.strip() if email.subject else "",
             "message": message,
             "sender": cls.get_sender_from_email_message(email),
         }
