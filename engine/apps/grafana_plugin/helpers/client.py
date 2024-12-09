@@ -351,6 +351,9 @@ class GrafanaAPIClient(APIClient):
             return False
         return True
 
+    def forward_alert(self, alert_payload):
+        return self.api_post("api/alertmanager/grafana/api/v2/alerts", alert_payload)
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"

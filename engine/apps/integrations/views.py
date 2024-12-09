@@ -25,6 +25,7 @@ from apps.integrations.mixins import (
     IntegrationRateLimitMixin,
     is_ratelimit_ignored,
 )
+from apps.integrations.mixins.alert_forwarding_mixin import AlertForwardingMixin
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.integrations.throttlers.integration_backsync_throttler import BacksyncRateThrottle
 from apps.slack.models import SlackChannel
@@ -318,7 +319,9 @@ class GrafanaAPIView(
         return alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_GRAFANA
 
 
-class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
+class UniversalAPIView(
+    BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView, AlertForwardingMixin
+):
     def post(self, request, *args, **kwargs):
         if request.FILES:
             # file-objects are not serializable when queuing the task
@@ -347,6 +350,13 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
             },
         )
         return Response("Ok.")
+
+    def dispatch(self, *args, **kwargs):
+        forwarded = AlertForwardingMixin.dispatch(*args, **kwargs)
+        if forwarded:
+            return forwarded
+
+        return AlertManagerAPIView.dispatch(self, *args, **kwargs)
 
 
 class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):
