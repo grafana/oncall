@@ -54,13 +54,14 @@ SUBJECT = "Test email"
 MESSAGE = "This is a test email message body."
 
 
-def _sns_inbound_email_payload_and_headers(sender_email, to_email, subject, message):
+def _sns_inbound_email_payload_and_headers(sender_email, to_email, subject, message, content_type="text/plain"):
     content = (
         f"From: Sender Name <{sender_email}>\n"
         f"To: {to_email}\n"
         f"Subject: {subject}\n"
         "Date: Tue, 5 Nov 2024 16:05:39 +0000\n"
-        "Message-ID: <example-message-id@mail.example.com>\n\n"
+        "Message-ID: <example-message-id@mail.example.com>\n"
+        f"Content-Type: {content_type}\n\n"
         f"{message}\r\n"
     )
 
@@ -130,7 +131,7 @@ def _sns_inbound_email_payload_and_headers(sender_email, to_email, subject, mess
                 {"name": "To", "value": to_email},
                 {
                     "name": "Content-Type",
-                    "value": 'multipart/alternative; boundary="00000000000036b9f706262c9312"',
+                    "value": f"{content_type}",
                 },
             ],
             "commonHeaders": {
@@ -520,6 +521,83 @@ def test_amazon_ses_validated_pass(
         raw_request_data={
             "subject": SUBJECT,
             "message": MESSAGE,
+            "sender": SENDER_EMAIL,
+        },
+        received_at=ANY,
+    )
+
+    mock_requests_get.assert_called_once_with(SIGNING_CERT_URL, timeout=5)
+
+
+@patch("requests.get", return_value=Mock(content=CERTIFICATE))
+@patch.object(create_alert, "delay")
+@pytest.mark.django_db
+def test_amazon_ses_validated_pass_html(
+    mock_create_alert, mock_requests_get, settings, make_organization, make_alert_receive_channel
+):
+    settings.INBOUND_EMAIL_ESP = "amazon_ses_validated,mailgun"
+    settings.INBOUND_EMAIL_DOMAIN = "inbound.example.com"
+    settings.INBOUND_EMAIL_WEBHOOK_SECRET = "secret"
+    settings.INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = AMAZON_SNS_TOPIC_ARN
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
+        token="test-token",
+    )
+
+    html_message = """\
+    <html>
+        <title>title</title>
+        <body>
+            <div>
+                <h1>h1</h1>
+                <br><br><br>
+                <p>p<b>b</b><i>i</i> <span>span</span></p>
+                <a href="https://example.com">link</a>
+                <ul>
+                    <li>li1</li>
+                    <li>li2</li>
+                </ul>
+                <table>
+                    <tr>
+                        <td>td1</td>
+                        <td>td2</td>
+                    </tr>
+                </table>
+            </div>
+        </body>
+    </html>
+    """
+    plaintext_message = "title\nh1\npbi span\nlink (https://example.com)\nli1\nli2\ntd1\ntd2"
+    sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=html_message,
+        content_type="text/html",
+    )
+
+    client = APIClient()
+    response = client.post(
+        reverse("integrations:inbound_email_webhook"),
+        data=sns_payload,
+        headers=sns_headers,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_create_alert.assert_called_once_with(
+        title=SUBJECT,
+        message=plaintext_message,
+        alert_receive_channel_pk=alert_receive_channel.pk,
+        image_url=None,
+        link_to_upstream_details=None,
+        integration_unique_data=None,
+        raw_request_data={
+            "subject": SUBJECT,
+            "message": plaintext_message,
             "sender": SENDER_EMAIL,
         },
         received_at=ANY,
