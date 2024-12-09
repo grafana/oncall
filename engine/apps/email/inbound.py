@@ -7,6 +7,7 @@ from anymail.exceptions import AnymailAPIError, AnymailInvalidAddress, AnymailWe
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
+from bs4 import BeautifulSoup
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.utils import timezone
 from rest_framework import status
@@ -74,11 +75,10 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         if request.method.lower() == "head":
             return HttpResponse(status=status.HTTP_200_OK)
 
-        integration_token = self.get_integration_token_from_request(request)
-        if integration_token is None:
+        if self.integration_token is None:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-        request.inbound_email_integration_token = integration_token  # used in RequestTimeLoggingMiddleware
-        return super().dispatch(request, alert_channel_key=integration_token)
+        request.inbound_email_integration_token = self.integration_token  # used in RequestTimeLoggingMiddleware
+        return super().dispatch(request, alert_channel_key=self.integration_token)
 
     def post(self, request):
         payload = self.get_alert_payload_from_email_message(self.message)
@@ -94,7 +94,8 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         )
         return Response("OK", status=status.HTTP_200_OK)
 
-    def get_integration_token_from_request(self, request) -> Optional[str]:
+    @cached_property
+    def integration_token(self) -> Optional[str]:
         if not self.message:
             return None
         # First try envelope_recipient field.
@@ -151,7 +152,8 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         logger.error("Failed to parse inbound email message")
         return None
 
-    def check_inbound_email_settings_set(self):
+    @staticmethod
+    def check_inbound_email_settings_set():
         """
         Guard method to checks if INBOUND_EMAIL settings present.
         Returns InternalServerError if not.
@@ -167,16 +169,35 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             logger.error("InboundEmailWebhookView: INBOUND_EMAIL_DOMAIN env variable must be set.")
             return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def get_alert_payload_from_email_message(self, email: AnymailInboundMessage) -> EmailAlertPayload:
-        subject = email.subject or ""
-        subject = subject.strip()
-        message = email.text or ""
-        message = message.strip()
-        sender = self.get_sender_from_email_message(email)
+    @classmethod
+    def get_alert_payload_from_email_message(cls, email: AnymailInboundMessage) -> EmailAlertPayload:
+        if email.text:
+            message = email.text.strip()
+        elif email.html:
+            message = cls.html_to_plaintext(email.html)
+        else:
+            message = ""
 
-        return {"subject": subject, "message": message, "sender": sender}
+        return {
+            "subject": email.subject.strip() or "",
+            "message": message,
+            "sender": cls.get_sender_from_email_message(email),
+        }
 
-    def get_sender_from_email_message(self, email: AnymailInboundMessage) -> str:
+    @staticmethod
+    def html_to_plaintext(html: str) -> str:
+        """Converts HTML to plain text. Renders links as "text (href)" and removes any empty lines."""
+        soup = BeautifulSoup(html, "html.parser")
+
+        # example: "<a href="https://example.com">example</a>" -> "example (https://example.com)"
+        for a in soup.find_all("a"):
+            if href := a.get("href"):
+                a.insert_after(f" ({href})")
+
+        return "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
+
+    @staticmethod
+    def get_sender_from_email_message(email: AnymailInboundMessage) -> str:
         try:
             if isinstance(email.from_email, list):
                 sender = email.from_email[0].addr_spec
