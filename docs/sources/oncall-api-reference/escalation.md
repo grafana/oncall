@@ -22,6 +22,8 @@ refs:
 
 # Escalation HTTP API
 
+**Required permission**: `grafana-oncall-app.alert-groups:direct-paging` (user authentication only)
+
 See [Manual paging integration](ref:manual-paging) for more background on how escalating to a team or user(s) works.
 
 ## Escalate to a set of users

@@ -14,6 +14,8 @@ refs:
 
 ## Create a route
 
+**Required permission**: `grafana-oncall-app.integrations:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/routes/" \
   --request POST \
@@ -67,6 +69,8 @@ Routes allow you to direct different alerts to different messenger channels and 
 
 ## Get a route
 
+**Required permission**: `grafana-oncall-app.integrations:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/routes/RIYGUJXCPFHXY/" \
   --request GET \
@@ -95,6 +99,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/routes/<ROUTE_ID>/`
 
 ## List routes
+
+**Required permission**: `grafana-oncall-app.integrations:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/routes/" \
@@ -153,6 +159,8 @@ The following available filter parameters should be provided as `GET` arguments:
 
 ## Update route
 
+**Required permission**: `grafana-oncall-app.integrations:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/routes/RIYGUJXCPFHXY/" \
   --request PUT \
@@ -188,6 +196,8 @@ The above command returns JSON structured in the following way:
 `PUT {{API_URL}}/api/v1/routes/<ROUTE_ID>/`
 
 ## Delete a route
+
+**Required permission**: `grafana-oncall-app.integrations:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/routes/RIYGUJXCPFHXY/" \

@@ -14,6 +14,8 @@ refs:
 
 ## Get a team
 
+**Required permission**: `grafana-oncall-app.user-settings:read`
+
 This endpoint retrieves the team object.
 
 ```shell
@@ -48,6 +50,8 @@ The above command returns JSON structured in the following way:
 | `avatar_url`      | Yes     | Avatar URL of the Grafana team |
 
 ## List Teams
+
+**Required permission**: `grafana-oncall-app.user-settings:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/teams/" \

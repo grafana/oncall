@@ -16,6 +16,8 @@ refs:
 
 ## List user groups
 
+**Required permission**: `grafana-oncall-app.chatops:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/user_groups/" \
   --request GET \

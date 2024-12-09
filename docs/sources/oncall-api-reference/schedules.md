@@ -14,6 +14,8 @@ refs:
 
 ## Create a schedule
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/schedules/" \
   --request POST \
@@ -65,6 +67,8 @@ The above command returns JSON structured in the following way:
 
 ## Get a schedule
 
+**Required permission**: `grafana-oncall-app.schedules:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
   --request GET \
@@ -95,6 +99,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
 ## List schedules
+
+**Required permission**: `grafana-oncall-app.schedules:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/" \
@@ -158,6 +164,8 @@ The following available filter parameter should be provided as a `GET` argument:
 
 ## Update a schedule
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
   --request PUT \
@@ -196,6 +204,8 @@ The above command returns JSON structured in the following way:
 
 ## Delete a schedule
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
   --request DELETE \
@@ -208,6 +218,8 @@ curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
 `DELETE {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
 ## Export a schedule's final shifts
+
+**Required permission**: `grafana-oncall-app.schedules:read`
 
 **HTTP request**
 

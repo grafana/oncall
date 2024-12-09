@@ -14,6 +14,8 @@ refs:
 
 ## Create an escalation chain
 
+**Required permission**: `grafana-oncall-app.escalation-chains:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/" \
   --request POST \
@@ -45,6 +47,8 @@ The above command returns JSON structured in the following way:
 
 ## Get an escalation chain
 
+**Required permission**: `grafana-oncall-app.escalation-chains:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/F5JU6KJET33FE/" \
   --request GET \
@@ -67,6 +71,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/escalation_chains/<ESCALATION_CHAIN_ID>/`
 
 ## List escalation chains
+
+**Required permission**: `grafana-oncall-app.escalation-chains:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/" \
@@ -102,6 +108,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/escalation_chains/`
 
 ## Delete an escalation chain
+
+**Required permission**: `grafana-oncall-app.escalation-chains:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/F5JU6KJET33FE/" \

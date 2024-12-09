@@ -14,6 +14,8 @@ refs:
 
 ## List alert groups
 
+**Required permission**: `grafana-oncall-app.alert-groups:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/" \
   --request GET \
@@ -97,6 +99,8 @@ These available filter parameters should be provided as `GET` arguments:
 
 ## Alert group details
 
+**Required permission**: `grafana-oncall-app.alert-groups:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1" \
   --request GET \
@@ -108,6 +112,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1" \
 `GET {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>`
 
 ## Acknowledge an alert group
+
+**Required permission**: `grafana-oncall-app.alert-groups:write` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/acknowledge" \
@@ -121,6 +127,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/acknowledge" \
 
 ## Unacknowledge an alert group
 
+**Required permission**: `grafana-oncall-app.alert-groups:write` (user authentication only)
+
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unacknowledge" \
   --request POST \
@@ -132,6 +140,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unacknowledge" \
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unacknowledge`
 
 ## Resolve an alert group
+
+**Required permission**: `grafana-oncall-app.alert-groups:write` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/resolve" \
@@ -145,6 +155,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/resolve" \
 
 ## Unresolve an alert group
 
+**Required permission**: `grafana-oncall-app.alert-groups:write` (user authentication only)
+
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
   --request POST \
@@ -156,6 +168,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unresolve`
 
 ## Silence an alert group
+
+**Required permission**: `grafana-oncall-app.alert-groups:write` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/silence" \
@@ -177,6 +191,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/silence" \
 
 ## Unsilence an alert group
 
+**Required permission**: `grafana-oncall-app.alert-groups:write` (user authentication only)
+
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unsilence" \
   --request POST \
@@ -188,6 +204,8 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unsilence" \
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unsilence`
 
 ## Delete an alert group
+
+**Required permission**: `grafana-oncall-app.alert-groups:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/" \

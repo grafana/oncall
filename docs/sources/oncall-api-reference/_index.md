@@ -29,7 +29,7 @@ To authorize, use the **Authorization** header:
 
 ```shell
 # With shell, you can just pass the correct header with each request
-curl "api_endpoint_here" --header "Authorization: "api_key_here""
+curl "api_endpoint_here" --header "Authorization: <api_key_here>"
 ```
 
 Grafana OnCall uses API keys to allow access to the API. You can request a new OnCall API key in OnCall -> Settings page.
@@ -38,6 +38,19 @@ An API key is specific to a user and a Grafana stack. If you want to switch to a
 request a different API key.
 
 The endpoint refers to the OnCall Application endpoint and can be found on the OnCall -> Settings page as well.
+
+### Authentication using Service Account tokens
+
+It is also possible to use a [service account token](https://grafana.com/docs/grafana/latest/administration/service-accounts/#service-account-tokens)
+to authenticate instead of an OnCall access token. In this case you will also need to provide a
+header (`X-Grafana-URL`) pointing to your Grafana stack:
+
+```shell
+# With shell, you can just pass the correct header with each request
+curl "api_endpoint_here" --header "Authorization: <service account token>" --header "X-Grafana-URL: <your stack URL>"
+```
+
+Service accounts allow you to set explicit permissions for tokens as well as expire and/or disable them if needed.
 
 ## Pagination
 
