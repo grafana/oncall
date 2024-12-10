@@ -39,7 +39,6 @@ def test_get_mattermost_channel_disabled_for_route(
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    default_channel = make_mattermost_channel(organization=organization, is_default_channel=True)
     channel = make_mattermost_channel(organization=organization)
     channel_filter = make_channel_filter(
         alert_receive_channel,
@@ -50,7 +49,7 @@ def test_get_mattermost_channel_disabled_for_route(
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
 
     ch = MattermostChannel.get_channel_for_alert_group(alert_group)
-    assert ch.public_primary_key == default_channel.public_primary_key
+    assert ch is None
 
 
 @pytest.mark.django_db
