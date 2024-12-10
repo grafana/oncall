@@ -65,7 +65,10 @@ class MattermostChannel(models.Model):
         channel_id = alert_group.channel_filter.notification_backends[MattermostBackend.backend_id].get("channel")
         enabled = alert_group.channel_filter.notification_backends[MattermostBackend.backend_id].get("enabled")
 
-        if not enabled or not channel_id:
+        if not enabled:
+            return None
+
+        if not channel_id:
             return default_channel
 
         channel = cls.objects.filter(

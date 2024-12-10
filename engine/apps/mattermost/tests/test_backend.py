@@ -65,8 +65,11 @@ def test_validate_channel_filter_data_update_only_channel(
 @pytest.mark.parametrize(
     "input_data,expected_data",
     [
+        ({}, {}),
         ({"enabled": True}, {"enabled": True}),
         ({"enabled": False}, {"enabled": False}),
+        ({"enabled": 1}, {"enabled": True}),
+        ({"enabled": 0}, {"enabled": False}),
         ({"channel": None, "enabled": True}, {"channel": None, "enabled": True}),
         ({"channel": None}, {"channel": None}),
     ],
