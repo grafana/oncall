@@ -93,7 +93,7 @@ def test_grafana_authentication_missing_org():
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
-    assert exc.value.detail == "Invalid organization."
+    assert exc.value.detail == "Organization not found."
 
 
 @pytest.mark.django_db
@@ -112,7 +112,7 @@ def test_grafana_authentication_invalid_grafana_url():
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
-    assert exc.value.detail == "Invalid Grafana URL."
+    assert exc.value.detail == "Organization not found."
 
 
 @pytest.mark.django_db
