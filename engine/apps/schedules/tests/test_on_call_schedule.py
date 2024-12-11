@@ -18,6 +18,7 @@ from apps.schedules.constants import (
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
 )
+from apps.schedules.ical_utils import MissingUser
 from apps.schedules.models import (
     CustomOnCallShift,
     OnCallSchedule,
@@ -350,6 +351,57 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [user.username],
+            "users": [],
+            "shift": {"pk": on_call_shift.public_primary_key},
+            "source": "api",
+        }
+    ]
+    assert events == expected
+
+
+@pytest.mark.django_db
+def test_filter_events_include_empty_if_deleted(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    user = make_user_for_organization(organization)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=8),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    # user is deleted, shift data still exists but the shift is empty
+    user.delete()
+
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_empty=True)
+    expected = [
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": on_call_shift.start,
+            "end": on_call_shift.start + on_call_shift.duration,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": True,
+            "is_gap": False,
+            "priority_level": on_call_shift.priority_level,
+            "missing_users": [MissingUser.DISPLAY_NAME],
             "users": [],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
