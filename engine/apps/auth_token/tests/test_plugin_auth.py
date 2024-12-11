@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.test import APIRequestFactory
 
-from apps.auth_token.auth import BasePluginAuthentication, PluginAuthentication
+from apps.auth_token.auth import PluginAuthentication
 
 INSTANCE_CONTEXT = '{"stack_id": 42, "org_id": 24, "grafana_token": "abc"}'
 
@@ -176,33 +176,3 @@ def test_plugin_authentication_self_hosted_setup_new_user(make_organization, mak
     assert ret_user.user_id == 12
     assert ret_token.organization == organization
     assert organization.users.count() == 1
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    "role,expected_raises", [("Admin", False), ("Editor", True), ("Viewer", True), ("Other", True)]
-)
-def test_plugin_authentication_service_account(make_organization, role, expected_raises):
-    # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
-    organization = make_organization(
-        stack_id=42, org_id=24, gcom_token="123", api_token="abc", gcom_token_org_last_time_synced=timezone.now()
-    )
-
-    headers = {
-        "HTTP_AUTHORIZATION": "gcom:123",
-        "HTTP_X-Instance-Context": INSTANCE_CONTEXT,
-        "HTTP_X-Grafana-Context": json.dumps({"UserId": 12, "Role": role, "IsServiceAccount": True}),
-    }
-    request = APIRequestFactory().get("/", **headers)
-
-    if expected_raises:
-        with pytest.raises(AuthenticationFailed):
-            BasePluginAuthentication().authenticate(request)
-    else:
-        ret_user, ret_token = BasePluginAuthentication().authenticate(request)
-        assert ret_user is None
-        assert ret_token.organization == organization
-
-    # PluginAuthentication should always raise an exception if the request comes from a service account
-    with pytest.raises(AuthenticationFailed):
-        PluginAuthentication().authenticate(request)

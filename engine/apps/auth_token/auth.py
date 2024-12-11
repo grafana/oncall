@@ -135,11 +135,9 @@ class BasePluginAuthentication(BaseAuthentication):
             user_id = context["UserID"]
 
         if context.get("IsServiceAccount", False):
-            # no user involved in service account requests
-            logger.info(f"serviceaccount request - id={user_id}")
             service_account_role = context.get("Role", "None")
-            if service_account_role.lower() != "admin":
-                raise exceptions.AuthenticationFailed("Service account requests must have Admin or Editor role.")
+            # no user involved in service account requests
+            logger.info(f"serviceaccount request - id={user_id} - role={service_account_role}")
             return None
 
         try:
@@ -361,7 +359,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
         organization = self.get_organization(request, auth)
         if not organization:
-            raise exceptions.AuthenticationFailed("Invalid organization.")
+            raise exceptions.AuthenticationFailed("Organization not found.")
         if organization.is_moved:
             raise OrganizationMovedException(organization)
         if organization.deleted_at:
@@ -374,9 +372,10 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         if grafana_url:
             organization = Organization.objects.filter(grafana_url=grafana_url).first()
             if not organization:
-                success = setup_organization(grafana_url, auth)
-                if not success:
-                    raise exceptions.AuthenticationFailed("Invalid Grafana URL.")
+                # trigger a request to sync the organization
+                # (ignore response since we can get a 400 if sync was already triggered;
+                # if organization exists, we are good)
+                setup_organization(grafana_url, auth)
                 organization = Organization.objects.filter(grafana_url=grafana_url).first()
             return organization
 

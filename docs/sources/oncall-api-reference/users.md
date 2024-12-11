@@ -14,6 +14,8 @@ refs:
 
 ## Get a user
 
+**Required permission**: `grafana-oncall-app.user-settings:read`
+
 This endpoint retrieves the user object.
 
 ```shell
@@ -61,6 +63,8 @@ Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 | `teams`           |   No    | List of team IDs the user belongs to                               |
 
 ## List Users
+
+**Required permission**: `grafana-oncall-app.user-settings:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/users/" \

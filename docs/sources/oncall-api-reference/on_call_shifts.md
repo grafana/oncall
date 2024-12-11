@@ -14,6 +14,8 @@ refs:
 
 ## Create an OnCall shift
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/" \
   --request POST \
@@ -77,6 +79,8 @@ For more information about recurrence rules, refer to [RFC 5545](https://tools.i
 
 ## Get OnCall shifts
 
+**Required permission**: `grafana-oncall-app.schedules:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
   --request GET \
@@ -105,6 +109,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
 
 ## List OnCall shifts
+
+**Required permission**: `grafana-oncall-app.schedules:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/" \
@@ -169,6 +175,8 @@ The following available filter parameters should be provided as `GET` arguments:
 
 ## Update OnCall shift
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
   --request PUT \
@@ -207,6 +215,8 @@ The above command returns JSON structured in the following way:
 `PUT {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
 
 ## Delete OnCall shift
+
+**Required permission**: `grafana-oncall-app.schedules:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
