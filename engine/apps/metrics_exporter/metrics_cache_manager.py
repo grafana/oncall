@@ -54,7 +54,7 @@ class MetricsCacheManager:
 
     @staticmethod
     def metrics_update_state_cache_for_alert_group(
-        integration_id, organization_id, service_name, old_state=None, new_state=None
+        integration_id, organization, service_name, old_state=None, new_state=None
     ):
         """
         Update state metric cache for one alert group.
@@ -62,7 +62,7 @@ class MetricsCacheManager:
         metrics_state_diff = MetricsCacheManager.update_integration_states_diff(
             {}, integration_id, service_name, previous_state=old_state, new_state=new_state
         )
-        metrics_update_alert_groups_state_cache(metrics_state_diff, organization_id)
+        metrics_update_alert_groups_state_cache(metrics_state_diff, organization)
 
     @staticmethod
     def metrics_update_response_time_cache_for_alert_group(
@@ -79,7 +79,7 @@ class MetricsCacheManager:
     @staticmethod
     def metrics_update_cache_for_alert_group(
         integration_id,
-        organization_id,
+        organization,
         old_state=None,
         new_state=None,
         response_time=None,
@@ -91,9 +91,9 @@ class MetricsCacheManager:
         if response_time and old_state == AlertGroupState.FIRING and started_at > get_response_time_period():
             response_time_seconds = int(response_time.total_seconds())
             MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
-                integration_id, organization_id, response_time_seconds, service_name
+                integration_id, organization, response_time_seconds, service_name
             )
         if old_state or new_state:
             MetricsCacheManager.metrics_update_state_cache_for_alert_group(
-                integration_id, organization_id, service_name, old_state, new_state
+                integration_id, organization, service_name, old_state, new_state
             )

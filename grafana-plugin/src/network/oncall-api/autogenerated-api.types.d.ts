@@ -1540,7 +1540,7 @@ export interface components {
       readonly status: number;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
-      team: string | null;
+      teams: components['schemas']['FastTeam'][];
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
@@ -1652,7 +1652,7 @@ export interface components {
       readonly status: number;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
-      team: string | null;
+      teams: components['schemas']['FastTeam'][];
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
