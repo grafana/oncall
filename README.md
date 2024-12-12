@@ -71,7 +71,7 @@ We prepared multiple environments:
 
    scrape_configs:
      - job_name: prometheus
-       metrics_path: /metrics/
+       metrics_path: /metrics
        authorization:
          credentials: my_random_prometheus_secret
        static_configs:
