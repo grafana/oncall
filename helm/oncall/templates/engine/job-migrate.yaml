@@ -26,7 +26,11 @@ spec:
   {{- end }}
   template:
     metadata:
+      {{- if .Values.migrate.useHook }}
+      name: {{ printf "%s-migrate" (include "oncall.engine.fullname" .) }}
+      {{- else }}
       name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
+      {{- end }}
       {{- with .Values.podAnnotations }}
       annotations:
         random-annotation: {{ randAlphaNum 10 | lower }}
