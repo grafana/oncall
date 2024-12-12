@@ -122,6 +122,7 @@ def _serialize_event_user(user):
         "id": user.public_primary_key,
         "username": user.username,
         "email": user.email,
+        "phone_number": user.verified_phone_number,
     }
 
 
