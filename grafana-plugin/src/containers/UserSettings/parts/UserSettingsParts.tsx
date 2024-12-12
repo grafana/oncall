@@ -72,9 +72,9 @@ export const Tabs = ({
         />
       )}
       {showGoogleCalendarTab && (
-        <Tab
+        <Tab"Google Calendar"
           active={activeTab === UserSettingsTab.GoogleCalendar}
-          label="Google Calendar"
+          label=
           key={UserSettingsTab.GoogleCalendar}
           onChangeTab={getTabClickHandler(UserSettingsTab.GoogleCalendar)}
           data-testid="google-calendar-tab"
@@ -90,7 +90,7 @@ export const Tabs = ({
       {showMobileAppConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.MobileAppConnection}
-          label="Mobile App Connection"
+          label="Mobile App"
           key={UserSettingsTab.MobileAppConnection}
           onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppConnection)}
           data-testid="tab-mobile-app"
@@ -99,7 +99,7 @@ export const Tabs = ({
       {showSlackConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.SlackInfo}
-          label="Slack Connection"
+          label="Slack"
           key={UserSettingsTab.SlackInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.SlackInfo)}
           data-testid="tab-slack"
@@ -108,7 +108,7 @@ export const Tabs = ({
       {showTelegramConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.TelegramInfo}
-          label="Telegram Connection"
+          label="Telegram"
           key={UserSettingsTab.TelegramInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.TelegramInfo)}
           data-testid="tab-telegram"
@@ -117,7 +117,7 @@ export const Tabs = ({
       {showMsTeamsConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.MSTeamsInfo}
-          label="Ms Teams Connection"
+          label="MS Teams"
           key={UserSettingsTab.MSTeamsInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.MSTeamsInfo)}
           data-testid="tab-msteams"
