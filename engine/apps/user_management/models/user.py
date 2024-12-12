@@ -221,6 +221,10 @@ class User(models.Model):
         return True
 
     @property
+    def is_service_account(self) -> bool:
+        return False
+
+    @property
     def has_google_oauth2_connected(self) -> bool:
         try:
             # https://stackoverflow.com/a/35005034/3902555

@@ -163,6 +163,7 @@ class WebhookCreateSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
 
     def validate_user(self, user):
+        # user may also be a string when handling requests from the deprecated custom action API
         if isinstance(user, ServiceAccountUser):
             return None
         return user

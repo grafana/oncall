@@ -336,6 +336,8 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
 
 
 def _sync_users_data(organization: Organization, sync_users: list[SyncUser], delete_extra=False):
+    if sync_users is None:
+        return
     users_to_sync = (
         User(
             organization_id=organization.pk,

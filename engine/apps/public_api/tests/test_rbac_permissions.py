@@ -108,13 +108,14 @@ def test_rbac_permissions(
 
 
 @pytest.mark.parametrize(
-    "rbac_enabled,role,give_perm",
+    "rbac_enabled,give_perm",
     [
-        # rbac disabled: auth is disabled
-        (False, LegacyAccessControlRole.ADMIN, None),
-        # rbac enabled: having role None, check the perm is required
-        (True, LegacyAccessControlRole.NONE, False),
-        (True, LegacyAccessControlRole.NONE, True),
+        # rbac enabled: check the perm is required
+        (True, False),
+        (True, True),
+        # rbac disabled: we still check for perms
+        (False, False),
+        (False, True),
     ],
 )
 @pytest.mark.django_db
@@ -124,7 +125,6 @@ def test_service_account_auth(
     make_service_account_for_organization,
     make_token_for_service_account,
     rbac_enabled,
-    role,
     give_perm,
 ):
     # APIView default actions
@@ -155,18 +155,14 @@ def test_service_account_auth(
             continue
         for viewset_method_name, required_perms in viewset.rbac_permissions.items():
             # setup Grafana API permissions response
-            if rbac_enabled:
-                permissions = {"perm": "value"}
-                expected = status.HTTP_403_FORBIDDEN
-                if give_perm:
-                    permissions = {perm.value: "value" for perm in required_perms}
-                    expected = status.HTTP_200_OK
-                mock_response = httpretty.Response(status=200, body=json.dumps(permissions))
-                perms_url = f"{organization.grafana_url}/api/access-control/user/permissions"
-                httpretty.register_uri(httpretty.GET, perms_url, responses=[mock_response])
-            else:
-                # service account auth is disabled
-                expected = status.HTTP_403_FORBIDDEN
+            permissions = {"perm": "value"}
+            expected = status.HTTP_403_FORBIDDEN
+            if give_perm:
+                permissions = {perm.value: "value" for perm in required_perms}
+                expected = status.HTTP_200_OK
+            mock_response = httpretty.Response(status=200, body=json.dumps(permissions))
+            perms_url = f"{organization.grafana_url}/api/access-control/user/permissions"
+            httpretty.register_uri(httpretty.GET, perms_url, responses=[mock_response])
 
             # iterate over all viewset actions, making an API request for each,
             # using the user's token and confirming the response status code

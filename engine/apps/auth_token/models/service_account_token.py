@@ -37,10 +37,6 @@ class ServiceAccountToken(BaseAuthToken):
 
     @classmethod
     def validate_token(cls, organization, token):
-        # require RBAC enabled to allow service account auth
-        if not organization.is_rbac_permissions_enabled:
-            raise InvalidToken
-
         # Grafana API request: get permissions and confirm token is valid
         permissions = get_service_account_token_permissions(organization, token)
         if not permissions:

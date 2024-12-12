@@ -270,13 +270,10 @@ def test_create_webhook_via_service_account(
         HTTP_AUTHORIZATION=f"{token_string}",
         HTTP_X_GRAFANA_URL=organization.grafana_url,
     )
-    if not organization.is_rbac_permissions_enabled:
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-    else:
-        assert response.status_code == status.HTTP_201_CREATED
-        webhook = Webhook.objects.get(public_primary_key=response.data["id"])
-        expected_result = _get_expected_result(webhook)
-        assert response.data == expected_result
+    assert response.status_code == status.HTTP_201_CREATED
+    webhook = Webhook.objects.get(public_primary_key=response.data["id"])
+    expected_result = _get_expected_result(webhook)
+    assert response.data == expected_result
 
 
 @pytest.mark.django_db
