@@ -890,6 +890,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     # Legacy are not shown, ordering isn't important
     "config_integrations.legacy_alertmanager",
     "config_integrations.legacy_grafana_alerting",
+    "config_integrations.adaptive_grafana_alerting",
 ]
 
 ADVANCED_WEBHOOK_PRESET = "apps.webhooks.presets.advanced.AdvancedWebhookPreset"
