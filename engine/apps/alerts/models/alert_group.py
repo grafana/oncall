@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import typing
 import urllib
@@ -358,6 +359,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     received_at = models.DateTimeField(blank=True, null=True, default=None)
 
+    # custom_fields is a dict of custom fields applied to the group.
+    # currently it does not support referral integrity, storing just string repr of a custom field key & value
+    custom_fields = models.JSONField(null=True, default=None)
+
     @property
     def is_silenced_forever(self):
         return self.silenced and self.silenced_until is None
@@ -562,12 +567,18 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         """
         Generate a link for AlertGroup to declare Grafana Incident by click
         """
+        print("HELLO")
         caption = urllib.parse.quote_plus("OnCall Alert Group")
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
-
-        return UIURLBuilder(self.channel.organization).declare_incident(f"?caption={caption}&url={link}&title={title}")
+        params = f"?caption={caption}&url={link}&title={title}"
+        if self.custom_fields is not None:
+            jsonCustomFields = json.dumps(self.custom_fields)
+            print(jsonCustomFields)
+            custom_fields = urllib.parse.quote_plus(jsonCustomFields)
+            params += f"&cf={custom_fields}"
+        return UIURLBuilder(self.channel.organization).declare_incident(params)
 
     @property
     def happened_while_maintenance(self):

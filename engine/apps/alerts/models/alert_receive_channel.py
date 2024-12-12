@@ -202,6 +202,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     organization: "Organization"
     team: typing.Optional["Team"]
     labels: "RelatedManager['AlertReceiveChannelAssociatedLabel']"
+    custom_fields: "RelatedManager['CustomField']"
 
     objects = AlertReceiveChannelManager()
     objects_with_maintenance = AlertReceiveChannelManagerWithMaintenance()
@@ -795,3 +796,17 @@ def listen_for_alertreceivechannel_model_save(
         metrics_remove_deleted_integration_from_cache(instance)
     else:
         metrics_update_integration_cache(instance)
+
+
+class CustomField(models.Model):
+    integration = models.ForeignKey(AlertReceiveChannel, on_delete=models.CASCADE, related_name="custom_fields")
+    # metadata.name of the custom field
+    metaname = models.CharField(max_length=200)
+    # template to parse dynamic value of a custom field
+    dynamic_template = models.TextField(null=True, default=None)
+    # static value is an identifier of selected option.
+    # Probably static_value should be split into the ID & display_name, but it's merged for sake of hackathon
+    static_value = models.CharField(null=True, default=None, max_length=200)
+
+    class Meta:
+        unique_together = ["integration", "metaname"]
