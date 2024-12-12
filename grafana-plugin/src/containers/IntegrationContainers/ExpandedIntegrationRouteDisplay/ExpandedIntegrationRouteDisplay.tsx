@@ -100,6 +100,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       escalationChainStore,
       alertReceiveChannelStore,
       grafanaTeamStore,
+      mattermostChannelStore,
     } = store;
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -125,7 +126,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     useEffect(() => {
       setIsLoading(true);
       (async () => {
-        await Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]);
+        await Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels(), mattermostChannelStore.updateItems()]);
         setIsLoading(false);
       })();
     }, []);

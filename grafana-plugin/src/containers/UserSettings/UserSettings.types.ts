@@ -7,4 +7,5 @@ export enum UserSettingsTab {
   TelegramInfo,
   MSTeamsInfo,
   MobileAppConnection,
+  MattermostInfo,
 }

@@ -20,6 +20,7 @@ mock_env_status = {
         "verification_call": False,
         "verification_sms": False,
     },
+    "mattermost_configured": False,
 }
 
 
@@ -360,3 +361,6 @@ def test_get_organization_telegram_config_checks(
     assert response.status_code == status.HTTP_200_OK
     expected_result["is_integration_chatops_connected"] = True
     assert response.json() == expected_result
+
+
+# TODO: Add test to validate mattermost is integrated once integration PR changes are made
