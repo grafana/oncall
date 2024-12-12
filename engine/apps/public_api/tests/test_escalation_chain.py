@@ -87,12 +87,9 @@ def test_create_escalation_chain_via_service_account(
         HTTP_AUTHORIZATION=f"{token_string}",
         HTTP_X_GRAFANA_URL=organization.grafana_url,
     )
-    if not organization.is_rbac_permissions_enabled:
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-    else:
-        assert response.status_code == status.HTTP_201_CREATED
-        escalation_chain = organization.escalation_chains.get(name="test")
-        assert escalation_chain.team == team
+    assert response.status_code == status.HTTP_201_CREATED
+    escalation_chain = organization.escalation_chains.get(name="test")
+    assert escalation_chain.team == team
 
 
 @pytest.mark.django_db
