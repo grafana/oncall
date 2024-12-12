@@ -185,15 +185,12 @@ def test_create_resolution_note_via_service_account(
         HTTP_AUTHORIZATION=f"{token_string}",
         HTTP_X_GRAFANA_URL=organization.grafana_url,
     )
-    if not organization.is_rbac_permissions_enabled:
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-    else:
-        assert response.status_code == status.HTTP_201_CREATED
-        mock_send_update_resolution_note_signal.assert_called_once()
-        resolution_note = ResolutionNote.objects.get(public_primary_key=response.data["id"])
-        assert resolution_note.author is None
-        assert resolution_note.text == data["text"]
-        assert resolution_note.alert_group == alert_group
+    assert response.status_code == status.HTTP_201_CREATED
+    mock_send_update_resolution_note_signal.assert_called_once()
+    resolution_note = ResolutionNote.objects.get(public_primary_key=response.data["id"])
+    assert resolution_note.author is None
+    assert resolution_note.text == data["text"]
+    assert resolution_note.alert_group == alert_group
 
 
 @pytest.mark.django_db

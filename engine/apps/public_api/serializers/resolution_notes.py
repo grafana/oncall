@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup, ResolutionNote
-from apps.user_management.models import ServiceAccountUser
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField, UserIdField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -36,7 +35,7 @@ class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
-        if not isinstance(user, ServiceAccountUser) and user.pk:
+        if not user.is_service_account and user.pk:
             validated_data["author"] = user
         validated_data["source"] = ResolutionNote.Source.WEB
         return super().create(validated_data)

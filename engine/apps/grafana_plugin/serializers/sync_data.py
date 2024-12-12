@@ -73,6 +73,10 @@ class SyncOnCallSettingsSerializer(serializers.Serializer):
     labels_enabled = serializers.BooleanField()
     irm_enabled = serializers.BooleanField(default=False)
 
+    def validate_grafana_url(self, value):
+        # remove trailing slash for URL consistency
+        return value.rstrip("/")
+
     def create(self, validated_data):
         return SyncSettings(**validated_data)
 
@@ -81,7 +85,7 @@ class SyncOnCallSettingsSerializer(serializers.Serializer):
 
 
 class SyncDataSerializer(serializers.Serializer):
-    users = serializers.ListField(child=SyncUserSerializer())
+    users = serializers.ListField(child=SyncUserSerializer(), allow_null=True, allow_empty=True)
     teams = serializers.ListField(child=SyncTeamSerializer(), allow_null=True, allow_empty=True)
     team_members = TeamMemberMappingField()
     settings = SyncOnCallSettingsSerializer()
