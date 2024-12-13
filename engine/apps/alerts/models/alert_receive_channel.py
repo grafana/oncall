@@ -308,6 +308,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     2. Value ID or None -  Deprecated, but left for backward compatibility with old data. Should be None all the time.
     3. Value Template or None – By business logic it should be always present, but it might be None if a legacy data.
     It means only [key_id, None, template] should be present.
+    // TODO: refactor to use just regular DB fields for dynamic label config.
     """
     DynamicLabelsEntryDB = tuple[str, str | None, str | None]
     DynamicLabelsConfigDB = list[DynamicLabelsEntryDB] | None

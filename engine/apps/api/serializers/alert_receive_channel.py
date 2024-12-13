@@ -33,6 +33,8 @@ def _additional_settings_serializer_from_type(integration_type: str) -> serializ
     return cls
 
 
+# TODO: refactor this types.
+#  We no longer support two types of label values here, nut only templates, so it should be simplified.
 # AlertGroupCustomLabelValue represents custom alert group label value for API requests
 # It handles two types of label's value:
 # 1. Just Label Value from a label repo for a static label

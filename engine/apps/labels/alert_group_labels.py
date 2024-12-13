@@ -178,7 +178,7 @@ def _apply_multi_label_extraction_template(
 
         result_labels[key] = rendered_labels[key]
 
-    return rendered_labels
+    return result_labels
 
 
 def _validate_templated_value(value: typing.Any) -> bool:
