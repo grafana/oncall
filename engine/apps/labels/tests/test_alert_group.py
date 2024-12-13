@@ -108,7 +108,7 @@ def test_assign_dynamic_labels(
             # templated label with jinja template pointing to nonexistent attribute in alert payload,  Expected to be ignored
             [label_key_region.id, None, "{{ payload.nonexistent }}"],
             # templated label explicitly set to None. Expected to be ignored
-            [label_key_team.id, None, "{{ payload.nonexistent or None}}"],
+            [label_key_team.id, None, "{{ payload.nonexistent or None }}"],
             # templated label with nonexistent key ID. Expected to be ignored
             ["nonexistent", None, "{{ payload.severity }}"],
         ],
