@@ -81,7 +81,7 @@ def test_assign_dynamic_labels(
     make_label_key_and_value,
     make_label_key,
     make_label_value,
-    make_integration_static_label_config,
+    make_static_label_config,
 ):
     organization = make_organization()
 
@@ -111,7 +111,7 @@ def test_assign_dynamic_labels(
             ["nonexistent", None, "{{ payload.severity }}"],
         ],
     )
-    make_integration_static_label_config(organization, alert_receive_channel, key_name="e", value_name="f")
+    make_static_label_config(organization, alert_receive_channel, key_name="e", value_name="f")
 
     # create alert group
     alert = Alert.create(
