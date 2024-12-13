@@ -173,9 +173,9 @@ def test_assign_labels_too_many(
     label_key, label_value = make_label_key_and_value(organization, key_name="a", value_name="test")
     alert_receive_channel = make_alert_receive_channel(
         organization,
-        alert_group_labels_custom=[[label_key.id, label_value.id, None]],
         alert_group_labels_template='{{ {"b": payload.b} | tojson }}',
     )
+    make_static_label_config(organization, alert_receive_channel, key_name="a", value_name="test")
     make_static_label_config(organization, alert_receive_channel, key_name="c", value_name="test")
 
     with mock.patch("apps.labels.alert_group_labels.MAX_LABELS_PER_ALERT_GROUP", 2):
