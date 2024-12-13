@@ -91,9 +91,9 @@ def test_assign_dynamic_labels(
     _ = make_label_value(label_key_severity, value_name="critical")
 
     # set-up some keys to test invalid templates
-    label_key_3 = make_label_key(organization=organization)
-    label_key_4 = make_label_key(organization=organization)
-    label_key_5 = make_label_key(organization=organization)
+    label_key_cluster = make_label_key(organization=organization, key_name="cluster")
+    label_key_region = make_label_key(organization=organization, key_name="region")
+    label_key_team = make_label_key(organization=organization, key_name="team")
 
     # create alert receive channel with all 3 types of labels
     alert_receive_channel = make_alert_receive_channel(
@@ -104,11 +104,11 @@ def test_assign_dynamic_labels(
             # valid templated label, parsed value NOT present in label repo  Expected to be attached anyway.
             [label_key_service.id, None, "{{ payload.service }}"],
             # templated label too long.  Expected to be ignored
-            [label_key_3.id, None, TOO_LONG_VALUE_NAME],
+            [label_key_cluster.id, None, TOO_LONG_VALUE_NAME],
             # templated label with jinja template pointing to nonexistent attribute in alert payload,  Expected to be ignored
-            [label_key_4.id, None, "{{ payload.nonexistent }}"],
+            [label_key_region.id, None, "{{ payload.nonexistent }}"],
             # templated label explicitly set to None. Expected to be ignored
-            [label_key_5.id, None, "{{ payload.nonexistent or None}}"],
+            [label_key_team.id, None, "{{ payload.nonexistent or None}}"],
             # templated label with nonexistent key ID. Expected to be ignored
             ["nonexistent", None, "{{ payload.severity }}"],
         ],
