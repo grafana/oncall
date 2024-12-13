@@ -303,15 +303,15 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     """
     alert_group_labels_custom stores config of dynamic labels - mapping of incoming alert payload to labels
-    LabelsSchemaEntryDB is a a one entry of a one labels schema. It's a tuple with 3 elements:
+    DynamicLabelsEntryDB is a a one entry of a one labels schema. It's a tuple with 3 elements:
     1. Key ID
     2. Value ID or None -  Deprecated, but left for backward compatibility with old data. Should be None all the time.
     3. Value Template or None – By business logic it should be always present, but it might be None if a legacy data.
     It means only [key_id, None, template] should be present.
     """
-    LabelsSchemaEntryDB = tuple[str, str | None, str | None]
-    LabelsSchemaDB = list[LabelsSchemaEntryDB] | None
-    alert_group_labels_custom: LabelsSchemaDB = models.JSONField(null=True, default=None)
+    DynamicLabelsEntryDB = tuple[str, str | None, str | None]
+    DynamicLabelsConfigDB = list[DynamicLabelsEntryDB] | None
+    alert_group_labels_custom: DynamicLabelsConfigDB = models.JSONField(null=True, default=None)
     """
     alert_group_labels_template is a Jinja2 template for "multi-label extraction template".
     It extracts multiple labels from incoming alert payload.
