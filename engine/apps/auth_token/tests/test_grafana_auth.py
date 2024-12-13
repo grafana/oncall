@@ -161,10 +161,12 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("grafana_url", ["http://grafana.test", "http://grafana.test/"])
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_existing_token(
-    make_organization, make_service_account_for_organization, make_token_for_service_account
+    make_organization, make_service_account_for_organization, make_token_for_service_account, grafana_url
 ):
+    # org grafana_url is consistently stored without trailing slash
     organization = make_organization(grafana_url="http://grafana.test")
     service_account = make_service_account_for_organization(organization)
     token_string = "glsa_the-token"
@@ -172,11 +174,11 @@ def test_grafana_authentication_existing_token(
 
     headers = {
         "HTTP_AUTHORIZATION": token_string,
-        "HTTP_X_GRAFANA_URL": organization.grafana_url,
+        "HTTP_X_GRAFANA_URL": grafana_url,  # trailing slash is ignored
     }
     request = APIRequestFactory().get("/", **headers)
 
-    # setup Grafana API responses
+    # setup Grafana API responses (use URL without trailing slash)
     setup_service_account_api_mocks(organization.grafana_url, {"some-perm": "value"})
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)

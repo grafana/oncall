@@ -374,13 +374,13 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             url = validate_url(grafana_url)
             if url is not None:
                 url = url.rstrip("/")
-                organization = Organization.objects.filter(grafana_url=grafana_url).first()
+                organization = Organization.objects.filter(grafana_url=url).first()
                 if not organization:
                     # trigger a request to sync the organization
                     # (ignore response since we can get a 400 if sync was already triggered;
                     # if organization exists, we are good)
-                    setup_organization(grafana_url, auth)
-                    organization = Organization.objects.filter(grafana_url=grafana_url).first()
+                    setup_organization(url, auth)
+                    organization = Organization.objects.filter(grafana_url=url).first()
                 return organization
 
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
