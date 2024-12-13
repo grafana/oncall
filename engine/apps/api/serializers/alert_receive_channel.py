@@ -206,7 +206,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     @staticmethod
     def _custom_labels_to_internal_value(
         custom_labels: AlertGroupCustomLabelsAPI,
-    ) -> AlertReceiveChannel.AlertGroupCustomLabelsDB:
+    ) -> AlertReceiveChannel.LabelsSchemaDB:
         """Convert custom labels from API representation to the schema used by the JSONField on the model."""
 
         return [
@@ -216,7 +216,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 
     @staticmethod
     def _custom_labels_to_representation(
-        custom_labels: AlertReceiveChannel.AlertGroupCustomLabelsDB,
+        custom_labels: AlertReceiveChannel.LabelsSchemaDB,
     ) -> AlertGroupCustomLabelsAPI:
         """
         Inverse of the _custom_labels_to_internal_value method above.

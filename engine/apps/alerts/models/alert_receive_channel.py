@@ -301,16 +301,23 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    AlertGroupCustomLabelsDB = list[tuple[str, str | None, str | None]] | None
-    alert_group_labels_custom: AlertGroupCustomLabelsDB = models.JSONField(null=True, default=None)
     """
-    Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
-    For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
-    For templated labels, the format is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>]
+    Stores "labels schema" - set of config to map incoming alert payload to labels.
+    Labels can be either "static" or "dynamic".
+    LabelsSchemaEntryDB is a a one entry of a one labels schema. It's a tuple with 3 elements:
+    1. Key ID
+    2. Value ID or None
+    3. Value Template or None
+    If label value ID is present - it's a static key-value pair. If it's None - it's a dynamic key-template pair.
     """
-
+    LabelsSchemaEntryDB = tuple[str, str | None, str | None]
+    LabelsSchemaDB = list[LabelsSchemaEntryDB] | None
+    alert_group_labels_custom: LabelsSchemaDB = models.JSONField(null=True, default=None)
+    """
+    alert_group_labels_template is a Jinja2 template for "multi-label extraction template".
+    It extracts multiple labels from incoming alert payload.
+    """
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
-    """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
 
     additional_settings: dict | None = models.JSONField(null=True, default=None)
 
