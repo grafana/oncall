@@ -306,7 +306,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     LabelsSchemaEntryDB is a a one entry of a one labels schema. It's a tuple with 3 elements:
     1. Key ID
     2. Value ID or None -  Deprecated, but left for backward compatibility with old data. Should be None all the time.
-    3. Value Template or None
+    3. Value Template or None – By business logic it should be always present, but it might be None if a legacy data.
     It means only [key_id, None, template] should be present.
     """
     LabelsSchemaEntryDB = tuple[str, str | None, str | None]
