@@ -16,6 +16,7 @@ from apps.user_management.exceptions import OrganizationDeletedException, Organi
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
 from apps.user_management.sync import get_or_create_user
+from common.utils import validate_url
 from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -370,14 +371,17 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
     def get_organization(self, request, auth):
         grafana_url = request.headers.get(X_GRAFANA_URL)
         if grafana_url:
-            organization = Organization.objects.filter(grafana_url=grafana_url).first()
-            if not organization:
-                # trigger a request to sync the organization
-                # (ignore response since we can get a 400 if sync was already triggered;
-                # if organization exists, we are good)
-                setup_organization(grafana_url, auth)
+            url = validate_url(grafana_url)
+            if url is not None:
+                url = url.rstrip("/")
                 organization = Organization.objects.filter(grafana_url=grafana_url).first()
-            return organization
+                if not organization:
+                    # trigger a request to sync the organization
+                    # (ignore response since we can get a 400 if sync was already triggered;
+                    # if organization exists, we are good)
+                    setup_organization(grafana_url, auth)
+                    organization = Organization.objects.filter(grafana_url=grafana_url).first()
+                return organization
 
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             instance_id = request.headers.get(X_GRAFANA_INSTANCE_ID)
