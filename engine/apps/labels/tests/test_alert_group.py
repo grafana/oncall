@@ -161,7 +161,7 @@ def test_assign_static_labels(
         link_to_upstream_details=None,
     )
 
-    assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [("a", "b")]
+    assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [("severity", "critical")]
 
 
 @pytest.mark.django_db
