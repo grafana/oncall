@@ -89,11 +89,11 @@ def test_update_labels_cache(make_organization, make_label_key_and_value, make_l
 
 @pytest.mark.django_db
 def test_update_instances_labels_cache_recently_synced(
-    make_organization, make_alert_receive_channel, make_integration_static_label_config
+    make_organization, make_alert_receive_channel, make_static_label_config
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    label_association = make_integration_static_label_config(organization, alert_receive_channel)
+    label_association = make_static_label_config(organization, alert_receive_channel)
 
     assert not label_association.key.is_outdated
     assert not label_association.value.is_outdated
@@ -109,11 +109,11 @@ def test_update_instances_labels_cache_recently_synced(
 
 @pytest.mark.django_db
 def test_update_instances_labels_cache_outdated(
-    make_organization, make_alert_receive_channel, make_integration_static_label_config
+    make_organization, make_alert_receive_channel, make_static_label_config
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    label_association = make_integration_static_label_config(organization, alert_receive_channel)
+    label_association = make_static_label_config(organization, alert_receive_channel)
     outdated_last_synced = timezone.now() - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES + 1)
 
     LabelKeyCache.objects.filter(id=label_association.key_id).update(last_synced=outdated_last_synced)
@@ -140,12 +140,10 @@ def test_update_instances_labels_cache_outdated(
 
 
 @pytest.mark.django_db
-def test_update_instances_labels_cache_error(
-    make_organization, make_alert_receive_channel, make_integration_static_label_config
-):
+def test_update_instances_labels_cache_error(make_organization, make_alert_receive_channel, make_static_label_config):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    label_association = make_integration_static_label_config(organization, alert_receive_channel)
+    label_association = make_static_label_config(organization, alert_receive_channel)
     outdated_last_synced = timezone.now() - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES + 1)
 
     LabelKeyCache.objects.filter(id=label_association.key_id).update(last_synced=outdated_last_synced)

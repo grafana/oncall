@@ -12,11 +12,11 @@ TOO_LONG_VALUE_NAME = "v" * (MAX_VALUE_NAME_LENGTH + 1)
 @mock.patch("apps.labels.alert_group_labels.is_labels_feature_enabled", return_value=False)
 @pytest.mark.django_db
 def test_assign_labels_feature_flag_disabled(
-    _, make_organization, make_alert_receive_channel, make_integration_static_label_config
+    _, make_organization, make_alert_receive_channel, make_static_label_config
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    make_integration_static_label_config(organization, alert_receive_channel)
+    make_static_label_config(organization, alert_receive_channel)
 
     alert = Alert.create(
         title="the title",
@@ -37,7 +37,7 @@ def test_multi_label_extraction_template(
     make_alert_receive_channel,
     make_label_key_and_value,
     make_label_key,
-    make_integration_static_label_config,
+    make_static_label_config,
 ):
     organization = make_organization()
 
@@ -141,17 +141,15 @@ def test_assign_dynamic_labels(
 def test_assign_static_labels(
     make_organization,
     make_alert_receive_channel,
-    make_integration_static_label_config,
+    make_static_label_config,
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization, alert_group_labels_custom=None)
     # Configure a static label - expected to be attached to group.
-    make_integration_static_label_config(
-        organization, alert_receive_channel, key_name="severity", value_name="critical"
-    )
+    make_static_label_config(organization, alert_receive_channel, key_name="severity", value_name="critical")
 
     # Configure a static label & delete key and value caches. Expected to be ignored.
-    make_integration_static_label_config(organization, alert_receive_channel, key_name="service", value_name="oncall")
+    make_static_label_config(organization, alert_receive_channel, key_name="service", value_name="oncall")
     key = LabelKeyCache.objects.get(name="service")
     LabelValueCache.objects.filter(name="oncall", key=key).delete()
     key.delete()
@@ -171,7 +169,7 @@ def test_assign_static_labels(
 
 @pytest.mark.django_db
 def test_assign_labels_too_many(
-    make_organization, make_alert_receive_channel, make_integration_static_label_config, make_label_key_and_value
+    make_organization, make_alert_receive_channel, make_static_label_config, make_label_key_and_value
 ):
     organization = make_organization()
 
@@ -181,7 +179,7 @@ def test_assign_labels_too_many(
         alert_group_labels_custom=[[label_key.id, label_value.id, None]],
         alert_group_labels_template='{{ {"b": payload.b} | tojson }}',
     )
-    make_integration_static_label_config(organization, alert_receive_channel, key_name="c", value_name="test")
+    make_static_label_config(organization, alert_receive_channel, key_name="c", value_name="test")
 
     with mock.patch("apps.labels.alert_group_labels.MAX_LABELS_PER_ALERT_GROUP", 2):
         alert = Alert.create(
