@@ -98,7 +98,7 @@ def test_grafana_authentication_missing_org():
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-def test_grafana_authentication_invalid_grafana_url():
+def test_grafana_authentication_no_org_grafana_url():
     grafana_url = "http://grafana.test"
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
@@ -110,6 +110,23 @@ def test_grafana_authentication_invalid_grafana_url():
     request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true"
     httpretty.register_uri(httpretty.POST, request_sync_url, status=404)
 
+    with pytest.raises(exceptions.AuthenticationFailed) as exc:
+        GrafanaServiceAccountAuthentication().authenticate(request)
+    assert exc.value.detail == "Organization not found."
+
+
+@pytest.mark.parametrize("grafana_url", ["null;", "foo", ""])
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_grafana_authentication_invalid_grafana_url(grafana_url):
+    token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
+    headers = {
+        "HTTP_AUTHORIZATION": token,
+        "HTTP_X_GRAFANA_URL": grafana_url,  # no org for this URL
+    }
+    request = APIRequestFactory().get("/", **headers)
+
+    # NOTE: no sync requests are made in this case
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
     assert exc.value.detail == "Organization not found."
@@ -144,10 +161,12 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("grafana_url", ["http://grafana.test", "http://grafana.test/"])
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_existing_token(
-    make_organization, make_service_account_for_organization, make_token_for_service_account
+    make_organization, make_service_account_for_organization, make_token_for_service_account, grafana_url
 ):
+    # org grafana_url is consistently stored without trailing slash
     organization = make_organization(grafana_url="http://grafana.test")
     service_account = make_service_account_for_organization(organization)
     token_string = "glsa_the-token"
@@ -155,11 +174,11 @@ def test_grafana_authentication_existing_token(
 
     headers = {
         "HTTP_AUTHORIZATION": token_string,
-        "HTTP_X_GRAFANA_URL": organization.grafana_url,
+        "HTTP_X_GRAFANA_URL": grafana_url,  # trailing slash is ignored
     }
     request = APIRequestFactory().get("/", **headers)
 
-    # setup Grafana API responses
+    # setup Grafana API responses (use URL without trailing slash)
     setup_service_account_api_mocks(organization.grafana_url, {"some-perm": "value"})
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
