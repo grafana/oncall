@@ -145,25 +145,29 @@ def _apply_multi_label_extraction_template(
     if not alert_receive_channel.alert_group_labels_template:
         return {}
 
+    # render template - output will be a string.
+    # It's expected that it will be a JSON string, to be parsed into a dict.
     try:
-        rendered = apply_jinja_template(alert_receive_channel.alert_group_labels_template, raw_request_data)
+        rendered_labels = apply_jinja_template(alert_receive_channel.alert_group_labels_template, raw_request_data)
     except (JinjaTemplateError, JinjaTemplateWarning) as e:
         logger.warning("Failed to apply template. %s", e.fallback_message)
         return {}
 
+    # unmarshal rendered_labels JSON string to dict
     try:
-        rendered_labels = json.loads(rendered)
+        labels_dict = json.loads(rendered_labels)
     except (TypeError, json.JSONDecodeError):
-        logger.warning("Failed to parse template result. %s", rendered)
+        # it's expected, if user misconfigured the template
+        logger.warning("Failed to parse template result. %s", rendered_labels)
         return {}
 
-    if not isinstance(rendered_labels, dict):
-        logger.warning("Template result is not a dict. %s", rendered_labels)
+    if not isinstance(labels_dict, dict):
+        logger.warning("Template result is not a dict. %s", labels_dict)
         return {}
 
-    # validate rendered k-v pairs & drop invalid ones
+    # validate dict of labels, drop invalid keys & values, convert all values to strings
     result_labels = {}
-    for key in rendered_labels:
+    for key in labels_dict:
         # check key length
         if len(key) == 0:
             logger.warning("Template result key is empty. %s", key)
@@ -173,24 +177,25 @@ def _apply_multi_label_extraction_template(
             logger.warning("Template result key is too long. %s", key)
             continue
 
-        if not _validate_templated_value(rendered_labels[key]):
+        # Checks specific to multi-label extraction template, because we're receiving value from a JSON:
+        # 1. check type
+        # 2. convert back to string
+        if not isinstance(labels_dict[key], LABEL_VALUE_TYPES):
+            logger.warning("Templated value has invalid type. %s", labels_dict[key])
+            continue
+        value = str(labels_dict[key])
+
+        # apply common value checks
+        if not _validate_templated_value(value):
             continue
 
-        result_labels[key] = rendered_labels[key]
+        result_labels[key] = labels_dict[key]
 
     return result_labels
 
 
-def _validate_templated_value(value: typing.Any) -> bool:
+def _validate_templated_value(value: str) -> bool:
     from apps.labels.models import MAX_VALUE_NAME_LENGTH
-
-    # check value type
-    if not isinstance(value, LABEL_VALUE_TYPES):
-        logger.warning("Templated value has invalid type. %s", value)
-        return False
-
-    # convert value to string
-    value = str(value)
 
     # check value length
     if len(value) == 0:
@@ -199,5 +204,9 @@ def _validate_templated_value(value: typing.Any) -> bool:
 
     if len(value) > MAX_VALUE_NAME_LENGTH:
         logger.warning("Templated value is too long. %s", value)
+        return False
+
+    if value.lower().strip() == "none":
+        logger.warning("Templated value is None. %s", value)
         return False
     return True
