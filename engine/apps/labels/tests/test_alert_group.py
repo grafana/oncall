@@ -94,6 +94,7 @@ def test_assign_dynamic_labels(
     # set-up some keys to test invalid templates
     label_key_3 = make_label_key(organization=organization)
     label_key_4 = make_label_key(organization=organization)
+    label_key_5 = make_label_key(organization=organization)
 
     # create alert receive channel with all 3 types of labels
     alert_receive_channel = make_alert_receive_channel(
@@ -107,6 +108,8 @@ def test_assign_dynamic_labels(
             [label_key_3.id, None, TOO_LONG_VALUE_NAME],
             # templated label with jinja template pointing to nonexistent attribute in alert payload,  Expected to be ignored
             [label_key_4.id, None, "{{ payload.nonexistent }}"],
+            # templated label explicitly set to None. Expected to be ignored
+            [label_key_5.id, None, "{{ payload.nonexistent or None}}"],
             # templated label with nonexistent key ID. Expected to be ignored
             ["nonexistent", None, "{{ payload.severity }}"],
         ],

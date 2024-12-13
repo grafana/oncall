@@ -162,21 +162,21 @@ def _apply_multi_label_extraction_template(
         return {}
 
     # validate rendered k-v pairs & drop invalid ones
+    result_labels = {}
     for key in rendered_labels:
         # check key length
         if len(key) == 0:
             logger.warning("Template result key is empty. %s", key)
-            del rendered_labels[key]
             continue
 
         if len(key) > MAX_KEY_NAME_LENGTH:
             logger.warning("Template result key is too long. %s", key)
-            del rendered_labels[key]
             continue
 
         if not _validate_templated_value(rendered_labels[key]):
-            del rendered_labels[key]
             continue
+
+        result_labels[key] = rendered_labels[key]
 
     return rendered_labels
 
