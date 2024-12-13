@@ -302,13 +302,12 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
     """
-    Stores "labels schema" - set of config to map incoming alert payload to labels.
-    Labels can be either "static" or "dynamic".
+    alert_group_labels_custom stores config of dynamic labels - mapping of incoming alert payload to labels
     LabelsSchemaEntryDB is a a one entry of a one labels schema. It's a tuple with 3 elements:
     1. Key ID
-    2. Value ID or None
+    2. Value ID or None -  Deprecated, but left for backward compatibility with old data. Should be None all the time.
     3. Value Template or None
-    If label value ID is present - it's a static key-value pair. If it's None - it's a dynamic key-template pair.
+    It means only [key_id, None, template] should be present.
     """
     LabelsSchemaEntryDB = tuple[str, str | None, str | None]
     LabelsSchemaDB = list[LabelsSchemaEntryDB] | None

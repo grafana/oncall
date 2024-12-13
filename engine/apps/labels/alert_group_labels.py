@@ -25,15 +25,13 @@ def gather_labels_from_alert_receive_channel_and_raw_request_data(
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return None
 
-    # inherit labels from the integration
+    # apply static labels by inheriting labels from the integration
     labels = {
         label.key.name: label.value.name for label in alert_receive_channel.labels.all().select_related("key", "value")
     }
 
-    # apply custom labels
-    labels.update(_apply_labels_schema(alert_receive_channel, raw_request_data))
+    labels.update(_apply_dynamic_labels(alert_receive_channel, raw_request_data))
 
-    # apply template labels
     labels.update(_apply_multi_label_extraction_template(alert_receive_channel, raw_request_data))
 
     return labels
@@ -73,10 +71,10 @@ def assign_labels(
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
 
 
-def _apply_labels_schema(
+def _apply_dynamic_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
 ) -> types.AlertLabels:
-    from apps.labels.models import MAX_VALUE_NAME_LENGTH, LabelKeyCache, LabelValueCache
+    from apps.labels.models import LabelKeyCache, LabelValueCache
 
     if alert_receive_channel.alert_group_labels_custom is None:
         return {}
@@ -97,32 +95,17 @@ def _apply_labels_schema(
         ).only("id", "name")
     }
 
-    rendered_labels = {}
+    result_labels = {}
     for label in alert_receive_channel.alert_group_labels_custom:
-        label = _apply_labels_schema_entry(label, label_key_names, label_value_names, raw_request_data)
+        label = _apply_dynamic_label_entry(label, label_key_names, label_value_names, raw_request_data)
         if label:
             key, value = label
-            rendered_labels[key] = value
+            result_labels[key] = value
 
-    labels = {}
-    for key in rendered_labels:
-        value = rendered_labels[key]
-
-        # check value length
-        if len(value) == 0:
-            logger.warning("Template result value is empty. %s", value)
-            continue
-
-        if len(value) > MAX_VALUE_NAME_LENGTH:
-            logger.warning("Template result value is too long. %s", value)
-            continue
-
-        labels[key] = value
-
-    return labels
+    return result_labels
 
 
-def _apply_labels_schema_entry(
+def _apply_dynamic_label_entry(
     label: "AlertReceiveChannel.LabelsSchemaEntryDB", keys, values, payload
 ) -> typing.Optional[str, str]:
     key_id, value_id, template = label
@@ -135,13 +118,11 @@ def _apply_labels_schema_entry(
         logger.warning("Label key cache not found. %s", key_id)
         return None
 
-    # if value_id is present - it's a static k-v pair
     if value_id:
-        if value_id in values:
-            value = values[value_id]
-        else:
-            logger.warning("Label value cache not found. %s", value_id)
-            return None
+        # if value_id is present - it's a static k-v pair. Deprecated.
+        logger.warning(
+            "value_id is present in dynamic label entry. It's deprecated & should not be there. %s", value_id
+        )
     elif template:
         # otherwise, it's a key-template pair, applying template
         try:
