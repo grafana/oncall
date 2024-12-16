@@ -221,7 +221,7 @@ The benefits of connecting to Grafana Cloud OnCall include:
 
 To connect to Grafana Cloud OnCall, refer to the **Cloud** page in your OSS Grafana OnCall instance.
 
-Check the Settings page for the Grafana Cloud OnCall API Url. If it's not `https://oncall-prod-us-central-0.grafana.net/oncall`,
+Check the Settings page for the Grafana Cloud OnCall API URL. If it's not `https://oncall-prod-us-central-0.grafana.net/oncall`,
 you will need to set the `GRAFANA_CLOUD_ONCALL_API_URL` variable in your self-hosted OnCall, so that it can connect properly.
 
 ## Supported Phone Providers
