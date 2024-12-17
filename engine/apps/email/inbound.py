@@ -195,14 +195,84 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
 
     @staticmethod
     def html_to_plaintext(html: str) -> str:
-        """Converts HTML to plain text. Renders links as "text (href)" and removes any empty lines."""
+        """
+        Converts HTML to plain text. Renders links as "text (href)" and removes any empty lines.
+        Converting HTML to plaintext is a non-trivial task, so this method may not work perfectly for all cases.
+        """
         soup = BeautifulSoup(html, "html.parser")
+
+        # Browsers typically render these elements on their own line.
+        # There is no single official HTML5 list for this, so we go with HTML tags that render as
+        # display: block, display: list-item, display: table, display: table-row by default according to the HTML standard:
+        # https://html.spec.whatwg.org/multipage/rendering.html
+        newline_tags = [
+            "address",
+            "article",
+            "aside",
+            "blockquote",
+            "body",
+            "center",
+            "dd",
+            "details",
+            "dialog",
+            "dir",
+            "div",
+            "dl",
+            "dt",
+            "fieldset",
+            "figcaption",
+            "figure",
+            "footer",
+            "form",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "header",
+            "hgroup",
+            "hr",
+            "html",
+            "legend",
+            "li",
+            "listing",
+            "main",
+            "menu",
+            "nav",
+            "ol",
+            "p",
+            "plaintext",
+            "pre",
+            "search",
+            "section",
+            "summary",
+            "table",
+            "tr",
+            "ul",
+            "xmp",
+        ]
+        # Insert a newline after each block-level element
+        for tag in soup.find_all(newline_tags):
+            tag.insert_before("\n")
+            tag.insert_after("\n")
+
+        # <br> tags are also typically rendered as newlines
+        for br in soup.find_all("br"):
+            br.replace_with("\n")
 
         # example: "<a href="https://example.com">example</a>" -> "example (https://example.com)"
         for a in soup.find_all("a"):
             if href := a.get("href"):
-                a.insert_after(f" ({href})")
+                a.append(f" ({href})")
 
+        for li in soup.find_all("li"):
+            li.insert_before("* ")
+
+        for hr in soup.find_all("hr"):
+            hr.replace_with("-" * 32)
+
+        # remove empty lines
         return "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
 
     @staticmethod

@@ -554,7 +554,7 @@ def test_amazon_ses_validated_pass_html(
             <div>
                 <h1>h1</h1>
                 <br><br><br>
-                <p>p<b>b</b><i>i</i> <span>span</span></p>
+                <p>p<b>b</b><i>i</i> <span>span</span></p> <p>new line</p> <hr>
                 <a href="https://example.com">link</a>
                 <ul>
                     <li>li1</li>
@@ -570,7 +570,18 @@ def test_amazon_ses_validated_pass_html(
         </body>
     </html>
     """
-    plaintext_message = "title\nh1\npbi span\nlink (https://example.com)\nli1\nli2\ntd1\ntd2"
+    plaintext_message = (
+        "title\n"
+        "h1\n"
+        "pbi span\n"
+        "new line\n"
+        "--------------------------------\n"
+        "link (https://example.com)\n"
+        "* li1\n"
+        "* li2\n"
+        "td1\n"
+        "td2"
+    )
     sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
         sender_email=SENDER_EMAIL,
         to_email=TO_EMAIL,
