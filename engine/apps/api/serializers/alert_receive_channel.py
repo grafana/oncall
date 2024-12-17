@@ -13,8 +13,9 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
-from apps.labels.models import AlertReceiveChannelAssociatedLabel, LabelKeyCache, LabelValueCache
+from apps.labels.models import LabelKeyCache, LabelValueCache
 from apps.labels.types import LabelKey
+from apps.labels.utils import get_service_label_custom
 from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
@@ -119,25 +120,48 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         }
 
     @classmethod
-    def update(
-        cls, instance: AlertReceiveChannel, alert_group_labels: IntegrationAlertGroupLabels | None
-    ) -> AlertReceiveChannel:
-        if alert_group_labels is None:
-            return instance
+    def update_validated_data_and_label_cache(
+        cls,
+        integration: str,
+        organization: "Organization",
+        validated_data: dict,
+        alert_group_labels: IntegrationAlertGroupLabels | None,
+        new_integration: bool,
+    ) -> dict:
+        """
+        Update validated data with alert group custom labels and labels template.
+        Update label cache.
+        Add `service_name` dynamic label for new Grafana Alerting integration.
+        """
 
+        is_new_alerting_integration = (
+            new_integration and integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+        )
+        if not organization.is_grafana_labels_enabled or (
+            alert_group_labels is None and not is_new_alerting_integration
+        ):
+            return validated_data
+
+        custom_labels = cls._custom_labels_to_internal_value(alert_group_labels["custom"]) if alert_group_labels else []
         # update DB cache for custom labels
-        cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
-        # save static labels as integration labels
-        # todo: it's needed to cover delay between backend and frontend rollout, and can be removed later
-        cls._save_static_labels_as_integration_labels(instance, alert_group_labels["custom"])
-        # update custom labels
-        instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
+        cls._create_custom_labels(organization, custom_labels)
 
-        # update template
-        instance.alert_group_labels_template = alert_group_labels["template"]
+        # if it's a new alerting integration, add service label to custom labels if it's not there
+        if is_new_alerting_integration:
+            service_label_custom = get_service_label_custom(organization)
+            if service_label_custom:
+                is_service_label_added = False
+                # check if service_name label has already been added to custom labels by user
+                for key in set(label[0] for label in custom_labels):
+                    if key == service_label_custom[0]:
+                        is_service_label_added = True
+                        break
+                if not is_service_label_added:
+                    custom_labels.append(service_label_custom)
 
-        instance.save(update_fields=["alert_group_labels_custom", "alert_group_labels_template"])
-        return instance
+        validated_data["alert_group_labels_custom"] = custom_labels or None
+        validated_data["alert_group_labels_template"] = alert_group_labels["template"] if alert_group_labels else None
+        return validated_data
 
     @staticmethod
     def _create_custom_labels(organization: Organization, labels: AlertGroupCustomLabelsAPI) -> None:
@@ -166,25 +190,6 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 
         LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
         LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
-
-    @staticmethod
-    def _save_static_labels_as_integration_labels(instance: AlertReceiveChannel, labels: AlertGroupCustomLabelsAPI):
-        labels_associations_to_create = []
-        labels_copy = labels[:]
-        for label in labels_copy:
-            if label["value"]["id"] is not None:
-                labels_associations_to_create.append(
-                    AlertReceiveChannelAssociatedLabel(
-                        key_id=label["key"]["id"],
-                        value_id=label["value"]["id"],
-                        organization=instance.organization,
-                        alert_receive_channel=instance,
-                    )
-                )
-                labels.remove(label)
-        AlertReceiveChannelAssociatedLabel.objects.bulk_create(
-            labels_associations_to_create, ignore_conflicts=True, batch_size=5000
-        )
 
     @classmethod
     def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
@@ -413,6 +418,14 @@ class AlertReceiveChannelSerializer(
         # pop associated labels and alert group labels, so they are not passed to AlertReceiveChannel.create
         labels = validated_data.pop("labels", None)
         alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
+        # update validated data with alert group labels and update label cache if needed
+        validated_data = IntegrationAlertGroupLabelsSerializer.update_validated_data_and_label_cache(
+            integration=integration,
+            organization=organization,
+            validated_data=validated_data,
+            alert_group_labels=alert_group_labels,
+            new_integration=True,
+        )
 
         try:
             instance = AlertReceiveChannel.create(
@@ -424,9 +437,8 @@ class AlertReceiveChannelSerializer(
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-        # Create label associations first, then update alert group labels
+        # Create label associations
         self.update_labels_association_if_needed(labels, instance, organization)
-        instance = IntegrationAlertGroupLabelsSerializer.update(instance, alert_group_labels)
 
         # Create default webhooks if needed
         if create_default_webhooks and hasattr(instance.config, "create_default_webhooks"):
@@ -438,10 +450,14 @@ class AlertReceiveChannelSerializer(
         # update associated labels
         labels = validated_data.pop("labels", None)
         self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
-
-        # update alert group labels
-        instance = IntegrationAlertGroupLabelsSerializer.update(
-            instance, IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
+        alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
+        # update validated data with alert group labels and update label cache if needed
+        validated_data = IntegrationAlertGroupLabelsSerializer.update_validated_data_and_label_cache(
+            integration=instance.integration,
+            organization=instance.organization,
+            validated_data=validated_data,
+            alert_group_labels=alert_group_labels,
+            new_integration=False,
         )
 
         try:
