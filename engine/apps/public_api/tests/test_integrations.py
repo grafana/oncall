@@ -41,6 +41,7 @@ def test_get_list_integrations(
                     "slack": {"channel_id": None, "enabled": True},
                     "telegram": {"id": None, "enabled": False},
                     TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+                    "update_team": False,
                 },
                 "heartbeat": {
                     "link": f"{integration.integration_url}heartbeat/",
@@ -272,6 +273,7 @@ def test_update_integration_template(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -335,6 +337,7 @@ def test_update_integration_template_messaging_backend(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -414,6 +417,7 @@ def test_update_resolve_signal_template(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -525,6 +529,7 @@ def test_update_sms_template_with_empty_dict(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -588,6 +593,7 @@ def test_update_integration_name(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -651,6 +657,7 @@ def test_update_integration_name_and_description_short(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -717,6 +724,7 @@ def test_set_default_template(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -786,6 +794,7 @@ def test_set_default_messaging_backend_template(
             "slack": {"channel_id": None, "enabled": True},
             "telegram": {"id": None, "enabled": False},
             TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+            "update_team": False,
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",

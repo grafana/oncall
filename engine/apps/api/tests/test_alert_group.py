@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import (
+    Alert,
     AlertGroup,
     AlertGroupExternalID,
     AlertGroupLogRecord,
@@ -887,14 +888,35 @@ def test_get_filter_by_teams(
     alert_receive_channel_1 = make_alert_receive_channel(organization, team=team1)
     alert_receive_channel_2 = make_alert_receive_channel(organization, team=team2)
 
-    alert_group_0 = make_alert_group(alert_receive_channel_0)
-    make_alert(alert_group=alert_group_0, raw_request_data=alert_raw_request_data)
+    alert_group_0 = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel_0,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
-    alert_group_1 = make_alert_group(alert_receive_channel_1)
-    make_alert(alert_group=alert_group_1, raw_request_data=alert_raw_request_data)
+    alert_group_1 = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel_1,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
-    alert_group_2 = make_alert_group(alert_receive_channel_2)
-    make_alert(alert_group=alert_group_2, raw_request_data=alert_raw_request_data)
+    alert_group_2 = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel_2,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
     url = reverse("api-internal:alertgroup-list")
 
@@ -911,6 +933,7 @@ def test_get_filter_by_teams(
     # check the "No team" case
     response = client.get(url + "?team=null", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+    print()
     assert len(response.data["results"]) == 1
     assert {ag["pk"] for ag in response.data["results"]} == {alert_group_0.public_primary_key}
 

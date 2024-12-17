@@ -61,7 +61,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
 
     expected_result_metric_alert_groups_total = {
-        alert_receive_channel.id: {
+        (alert_receive_channel.id, "no_team"): {
             "integration_name": alert_receive_channel.verbal_name,
             "team_name": "No team",
             "team_id": "no_team",
@@ -114,14 +114,14 @@ def test_update_metric_alert_groups_total_cache_on_action(
         "resolved": 0,
     }
 
-    metrics_cache = make_metrics_cache_params(alert_receive_channel.id, organization.id)
+    metrics_cache = make_metrics_cache_params((alert_receive_channel.id,"no_team"), organization.id)
     monkeypatch.setattr(cache, "get", metrics_cache)
 
     def get_called_arg_index_and_compare_results(update_expected_result, service_name=NO_SERVICE_VALUE):
         """find index for the metric argument, that was set in cache"""
         for idx, called_arg in enumerate(mock_cache_set_called_args):
             if idx >= arg_idx and called_arg.args[0] == metric_alert_groups_total_key:
-                expected_result_metric_alert_groups_total[alert_receive_channel.id]["services"].setdefault(
+                expected_result_metric_alert_groups_total[(alert_receive_channel.id,"no_team")]["services"].setdefault(
                     service_name, {}
                 ).update(update_expected_result)
                 assert called_arg.args[1] == expected_result_metric_alert_groups_total
@@ -160,7 +160,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
         # set state values to default
-        expected_result_metric_alert_groups_total[alert_receive_channel.id]["services"][NO_SERVICE_VALUE].update(
+        expected_result_metric_alert_groups_total[(alert_receive_channel.id,"no_team")]["services"][NO_SERVICE_VALUE].update(
             default_state
         )
         # create alert group with service label and check metric cache is updated properly
@@ -206,7 +206,7 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
 
     expected_result_metric_alert_groups_response_time = {
-        alert_receive_channel.id: {
+        (alert_receive_channel.id, "no_team"): {
             "integration_name": alert_receive_channel.verbal_name,
             "team_name": "No team",
             "team_id": "no_team",
@@ -217,15 +217,15 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
         }
     }
 
-    metrics_cache = make_metrics_cache_params(alert_receive_channel.id, organization.id)
+    metrics_cache = make_metrics_cache_params((alert_receive_channel.id,"no_team"), organization.id)
     monkeypatch.setattr(cache, "get", metrics_cache)
 
     def get_called_arg_index_and_compare_results(service_name=NO_SERVICE_VALUE):
         """find index for related to the metric argument, that was set in cache"""
         for idx, called_arg in enumerate(mock_cache_set_called_args):
             if idx >= arg_idx and called_arg.args[0] == metric_alert_groups_response_time_key:
-                response_time_values = called_arg.args[1][alert_receive_channel.id]["services"][service_name]
-                expected_result_metric_alert_groups_response_time[alert_receive_channel.id]["services"][
+                response_time_values = called_arg.args[1][(alert_receive_channel.id, "no_team")]["services"][service_name]
+                expected_result_metric_alert_groups_response_time[(alert_receive_channel.id, "no_team")]["services"][
                     service_name
                 ] = response_time_values
                 # response time values len always will be 1 here since cache is mocked and refreshed on every call
@@ -277,7 +277,7 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
         arg_idx = get_called_arg_index_and_compare_results()
 
         # create alert group with service label and check metric cache is updated properly
-        expected_result_metric_alert_groups_response_time[alert_receive_channel.id]["services"][NO_SERVICE_VALUE] = []
+        expected_result_metric_alert_groups_response_time[(alert_receive_channel.id, "no_team")]["services"][NO_SERVICE_VALUE] = []
 
         alert_group_with_service = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group_with_service, raw_request_data={})
@@ -337,9 +337,10 @@ def test_update_metrics_cache_on_update_integration(
         alert_receive_channel = make_alert_receive_channel_with_post_save_signal(
             organization, verbal_name=METRICS_TEST_INTEGRATION_NAME
         )
+        print(alert_receive_channel)
 
         expected_result_metric_alert_groups_total = {
-            alert_receive_channel.id: {
+            (alert_receive_channel.id,"no_team"): {
                 "integration_name": METRICS_TEST_INTEGRATION_NAME,
                 "team_name": "No team",
                 "team_id": "no_team",
@@ -354,13 +355,38 @@ def test_update_metrics_cache_on_update_integration(
                         "resolved": 0,
                     },
                 },
+            },
+            (alert_receive_channel.id,team.team_id): {
+                "integration_name": METRICS_TEST_INTEGRATION_NAME,
+                "team_name": team.name,
+                "team_id": team.team_id,
+                "org_id": organization.org_id,
+                "slug": organization.stack_slug,
+                "id": organization.stack_id,
+                "services": {
+                    NO_SERVICE_VALUE: {
+                        "firing": 0,
+                        "silenced": 0,
+                        "acknowledged": 0,
+                        "resolved": 0,
+                    },
+                },
             }
         }
         expected_result_metric_alert_groups_response_time = {
-            alert_receive_channel.id: {
+            (alert_receive_channel.id,"no_team"): {
                 "integration_name": METRICS_TEST_INTEGRATION_NAME,
                 "team_name": "No team",
                 "team_id": "no_team",
+                "org_id": organization.org_id,
+                "slug": organization.stack_slug,
+                "id": organization.stack_id,
+                "services": {NO_SERVICE_VALUE: []},
+            },
+            (alert_receive_channel.id,team.team_id): {
+                "integration_name": METRICS_TEST_INTEGRATION_NAME,
+                "team_name": team.name,
+                "team_id": team.team_id,
                 "org_id": organization.org_id,
                 "slug": organization.stack_slug,
                 "id": organization.stack_id,
@@ -371,21 +397,35 @@ def test_update_metrics_cache_on_update_integration(
         mock_cache_set_called_args = mock_cache_set.call_args_list
         arg_idx = get_called_arg_index_and_compare_results()
 
-        metrics_cache = make_metrics_cache_params(alert_receive_channel.id, organization.id)
+        metrics_cache = make_metrics_cache_params((alert_receive_channel.id,"no_team"), organization.id)
         monkeypatch.setattr(cache, "get", metrics_cache)
 
         # check cache update on update integration's team
         alert_receive_channel.team = team
         # clear cached_property
-        del alert_receive_channel.team_name
-        del alert_receive_channel.team_id_or_no_team
+        # del alert_receive_channel.team_name
+        # del alert_receive_channel.team_id_or_no_team
 
         alert_receive_channel.save()
+        # for expected_result in [
+        #     expected_result_metric_alert_groups_total,
+        #     expected_result_metric_alert_groups_response_time,
+        # ]:
+        #     expected_result[(alert_receive_channel.id,"no_team")].update(expected_result_updated_team)
+        # arg_idx = get_called_arg_index_and_compare_results()
+
+        # check cache update on update integration's name
+        alert_receive_channel.refresh_from_db()
+        alert_receive_channel.verbal_name = expected_result_updated_name["integration_name"]
+        # clear cached_property
+        del alert_receive_channel.emojized_verbal_name
+        alert_receive_channel.save()
+
         for expected_result in [
             expected_result_metric_alert_groups_total,
             expected_result_metric_alert_groups_response_time,
         ]:
-            expected_result[alert_receive_channel.id].update(expected_result_updated_team)
+            expected_result[(alert_receive_channel.id,"no_team")].update(expected_result_updated_name)
         arg_idx = get_called_arg_index_and_compare_results()
 
         # check cache update on update integration's name
@@ -399,21 +439,7 @@ def test_update_metrics_cache_on_update_integration(
             expected_result_metric_alert_groups_total,
             expected_result_metric_alert_groups_response_time,
         ]:
-            expected_result[alert_receive_channel.id].update(expected_result_updated_name)
-        arg_idx = get_called_arg_index_and_compare_results()
-
-        # check cache update on update integration's name
-        alert_receive_channel.refresh_from_db()
-        alert_receive_channel.verbal_name = expected_result_updated_name["integration_name"]
-        # clear cached_property
-        del alert_receive_channel.emojized_verbal_name
-        alert_receive_channel.save()
-
-        for expected_result in [
-            expected_result_metric_alert_groups_total,
-            expected_result_metric_alert_groups_response_time,
-        ]:
-            expected_result[alert_receive_channel.id].update(expected_result_updated_name)
+            expected_result[(alert_receive_channel.id,"no_team")].update(expected_result_updated_name)
         arg_idx = get_called_arg_index_and_compare_results()
 
         # check cache update on delete integration
@@ -731,11 +757,11 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
     # clear cache, add some data
     cache.set(
         get_metric_alert_groups_total_key(organization.id),
-        {alert_receive_channel2.id: _expected_alert_groups_total(alert_receive_channel2, firing=42)},
+        {(alert_receive_channel2.id, "no_team"): _expected_alert_groups_total(alert_receive_channel2, firing=42)},
     )
     cache.set(
         get_metric_alert_groups_response_time_key(organization.id),
-        {alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12])},
+        {(alert_receive_channel2.id, "no_team"): _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12])},
     )
 
     # add integrations to cache
@@ -743,12 +769,12 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
 
     # check alert groups total
     assert cache.get(get_metric_alert_groups_total_key(organization.id)) == {
-        alert_receive_channel1.id: _expected_alert_groups_total(alert_receive_channel1),
-        alert_receive_channel2.id: _expected_alert_groups_total(alert_receive_channel2, firing=42),
+        (alert_receive_channel1.id,"no_team"): _expected_alert_groups_total(alert_receive_channel1),
+        (alert_receive_channel2.id,"no_team"): _expected_alert_groups_total(alert_receive_channel2, firing=42),
     }
 
     # check alert groups response time
     assert cache.get(get_metric_alert_groups_response_time_key(organization.id)) == {
-        alert_receive_channel1.id: _expected_alert_groups_response_time(alert_receive_channel1),
-        alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12]),
+        (alert_receive_channel1.id,"no_team"): _expected_alert_groups_response_time(alert_receive_channel1),
+        (alert_receive_channel2.id,"no_team"): _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12]),
     }

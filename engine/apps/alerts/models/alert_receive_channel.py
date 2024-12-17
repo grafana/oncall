@@ -792,4 +792,4 @@ def listen_for_alertreceivechannel_model_save(
 
         metrics_remove_deleted_integration_from_cache(instance, instance.organization)
     else:
-        metrics_update_integration_cache(instance, instance.organization)
+        metrics_update_integration_cache(instance)
