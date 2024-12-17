@@ -4,6 +4,8 @@ import typing
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
+from apps.metrics_exporter.constants import SERVICE_LABEL
+
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
     from apps.labels.models import AssociatedLabel
@@ -14,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 LABEL_OUTDATED_TIMEOUT_MINUTES = 30
 ASSOCIATED_MODEL_NAME = "AssociatedLabel"
+SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION = "{{ payload.common_labels.service_name }}"
 
 
 def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedLabel"]:
@@ -43,3 +46,14 @@ def get_alert_group_labels_dict(alert_group: "AlertGroup") -> dict[str, str]:
     It's different from get_labels_dict, because AlertGroupAssociated labels store key/value_name, not key/value_id
     """
     return {label.key_name: label.value_name for label in alert_group.labels.all()}
+
+
+def get_service_label_custom(organization: "Organization") -> list[str, None, str] | None:
+    """
+    Returns `service_name` label template in custom label format: [key_id, None, template]
+    (see AlertReceiveChannel.alert_group_labels_custom).
+    """
+    from apps.labels.models import LabelKeyCache
+
+    service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)
+    return [service_label_key.id, None, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION] if service_label_key else None
