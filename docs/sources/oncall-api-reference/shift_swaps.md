@@ -14,6 +14,8 @@ refs:
 
 ## Create a shift swap request
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/" \
   --request POST \
@@ -87,6 +89,8 @@ The above command returns JSON structured in the following way:
 
 ## Get a shift swap request
 
+**Required permission**: `grafana-oncall-app.schedules:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
   --request GET \
@@ -144,6 +148,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/shift_swaps/<SHIFT_SWAP_REQUEST_ID>/`
 
 ## List shift swap requests
+
+**Required permission**: `grafana-oncall-app.schedules:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/" \
@@ -206,6 +212,8 @@ The following available filter parameters may be provided as a `GET` arguments:
 `GET {{API_URL}}/api/v1/shift_swaps/`
 
 ## Update a shift swap request
+
+**Required permission**: `grafana-oncall-app.schedules:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
@@ -271,6 +279,8 @@ The above command returns JSON structured in the following way:
 
 ## Delete a shift swap request
 
+**Required permission**: `grafana-oncall-app.schedules:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
   --request DELETE \
@@ -283,6 +293,8 @@ curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
 `DELETE {{API_URL}}/api/v1/shift_swaps/<SHIFT_SWAP_REQUEST_ID>/`
 
 ## Take a shift swap request
+
+**Required permission**: `grafana-oncall-app.schedules:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/take" \

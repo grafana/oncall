@@ -10,7 +10,7 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.auth import X_GRAFANA_INSTANCE_ID, GrafanaServiceAccountAuthentication
 from apps.auth_token.models import ServiceAccountToken
 from apps.auth_token.tests.helpers import setup_service_account_api_mocks
-from apps.user_management.models import Organization, ServiceAccountUser
+from apps.user_management.models import Organization
 from common.constants.plugin_ids import PluginID
 from settings.base import CLOUD_LICENSE_NAME, OPEN_SOURCE_LICENSE_NAME, SELF_HOSTED_SETTINGS
 
@@ -93,12 +93,12 @@ def test_grafana_authentication_missing_org():
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
-    assert exc.value.detail == "Invalid organization."
+    assert exc.value.detail == "Organization not found."
 
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-def test_grafana_authentication_invalid_grafana_url():
+def test_grafana_authentication_no_org_grafana_url():
     grafana_url = "http://grafana.test"
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
@@ -112,34 +112,30 @@ def test_grafana_authentication_invalid_grafana_url():
 
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
-    assert exc.value.detail == "Invalid Grafana URL."
+    assert exc.value.detail == "Organization not found."
 
 
+@pytest.mark.parametrize("grafana_url", ["null;", "foo", ""])
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-def test_grafana_authentication_rbac_disabled_fails(make_organization):
-    organization = make_organization(grafana_url="http://grafana.test")
-    if organization.is_rbac_permissions_enabled:
-        return
-
+def test_grafana_authentication_invalid_grafana_url(grafana_url):
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
         "HTTP_AUTHORIZATION": token,
-        "HTTP_X_GRAFANA_URL": organization.grafana_url,
+        "HTTP_X_GRAFANA_URL": grafana_url,  # no org for this URL
     }
     request = APIRequestFactory().get("/", **headers)
 
+    # NOTE: no sync requests are made in this case
     with pytest.raises(exceptions.AuthenticationFailed) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
-    assert exc.value.detail == "Invalid token."
+    assert exc.value.detail == "Organization not found."
 
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_permissions_call_fails(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
-    if not organization.is_rbac_permissions_enabled:
-        return
 
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
@@ -165,29 +161,29 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("grafana_url", ["http://grafana.test", "http://grafana.test/"])
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_existing_token(
-    make_organization, make_service_account_for_organization, make_token_for_service_account
+    make_organization, make_service_account_for_organization, make_token_for_service_account, grafana_url
 ):
+    # org grafana_url is consistently stored without trailing slash
     organization = make_organization(grafana_url="http://grafana.test")
-    if not organization.is_rbac_permissions_enabled:
-        return
     service_account = make_service_account_for_organization(organization)
     token_string = "glsa_the-token"
     token = make_token_for_service_account(service_account, token_string)
 
     headers = {
         "HTTP_AUTHORIZATION": token_string,
-        "HTTP_X_GRAFANA_URL": organization.grafana_url,
+        "HTTP_X_GRAFANA_URL": grafana_url,  # trailing slash is ignored
     }
     request = APIRequestFactory().get("/", **headers)
 
-    # setup Grafana API responses
+    # setup Grafana API responses (use URL without trailing slash)
     setup_service_account_api_mocks(organization.grafana_url, {"some-perm": "value"})
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
-    assert isinstance(user, ServiceAccountUser)
+    assert user.is_service_account
     assert user.service_account == service_account
     assert user.public_primary_key == service_account.public_primary_key
     assert user.username == service_account.username
@@ -206,8 +202,6 @@ def test_grafana_authentication_existing_token(
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_token_created(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
-    if not organization.is_rbac_permissions_enabled:
-        return
     token_string = "glsa_the-token"
 
     headers = {
@@ -223,7 +217,7 @@ def test_grafana_authentication_token_created(make_organization):
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
-    assert isinstance(user, ServiceAccountUser)
+    assert user.is_service_account
     service_account = user.service_account
     assert service_account.organization == organization
     assert user.public_primary_key == service_account.public_primary_key
@@ -248,8 +242,6 @@ def test_grafana_authentication_token_created(make_organization):
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_token_created_older_grafana(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
-    if not organization.is_rbac_permissions_enabled:
-        return
     token_string = "glsa_the-token"
 
     headers = {
@@ -265,7 +257,7 @@ def test_grafana_authentication_token_created_older_grafana(make_organization):
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
-    assert isinstance(user, ServiceAccountUser)
+    assert user.is_service_account
     service_account = user.service_account
     assert service_account.organization == organization
     # use fallback data
@@ -278,8 +270,6 @@ def test_grafana_authentication_token_created_older_grafana(make_organization):
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_token_reuse_service_account(make_organization, make_service_account_for_organization):
     organization = make_organization(grafana_url="http://grafana.test")
-    if not organization.is_rbac_permissions_enabled:
-        return
     service_account = make_service_account_for_organization(organization)
     token_string = "glsa_the-token"
 
@@ -299,7 +289,7 @@ def test_grafana_authentication_token_reuse_service_account(make_organization, m
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
-    assert isinstance(user, ServiceAccountUser)
+    assert user.is_service_account
     assert user.service_account == service_account
     assert auth_token.service_account == service_account
 
@@ -335,7 +325,7 @@ def test_grafana_authentication_token_setup_org_if_missing(make_organization):
 
     mock_setup_org.assert_called_once()
 
-    assert isinstance(user, ServiceAccountUser)
+    assert user.is_service_account
     service_account = user.service_account
     # organization is created
     organization = Organization.objects.filter(grafana_url=grafana_url).get()
