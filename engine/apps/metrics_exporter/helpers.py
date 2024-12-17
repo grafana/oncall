@@ -31,6 +31,13 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertReceiveChannel
     from apps.user_management.models import Organization
 
+def _get_teams_for_cache(organization):
+    teams = list(organization.teams.all())
+    class NoTeam():
+        team_id = "no_team"
+        name = "No team"
+    teams.append(NoTeam())
+    return teams
 
 def get_organization_ids_from_db():
     from apps.alerts.models import AlertReceiveChannel
@@ -141,19 +148,26 @@ def get_default_states_dict() -> AlertGroupStateDict:
     }
 
 
-def metrics_update_integration_cache(integration: "AlertReceiveChannel", organization: "Organization") -> None:
+def metrics_update_integration_cache(integration: "AlertReceiveChannel") -> None:
     """Update integration data in metrics cache"""
-    metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
-
-    for team in organization.teams.all():
+    metrics_cache_timeout = get_metrics_cache_timeout(integration.organization.id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization.id)
+    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization.id)
+    print(integration.organization.id)
+    print("cccc")
+    for team in _get_teams_for_cache(integration.organization):
+        print(team)
         for metric_key in [metric_alert_groups_total_key, metric_alert_groups_response_time_key]:
+            print(metric_key)
             metric_cache = cache.get(metric_key, {})
+            print(metric_cache)
             integration_metric_cache = metric_cache.get((integration.id,team.team_id))
+            print(integration_metric_cache)
             if integration_metric_cache:
                 cache_updated = False
+                print("eeee")
                 if integration_metric_cache["integration_name"] != integration.emojized_verbal_name:
+                    print("dddd")
                     integration_metric_cache["integration_name"] = integration.emojized_verbal_name
                     cache_updated = True
                 if cache_updated:
@@ -163,10 +177,10 @@ def metrics_update_integration_cache(integration: "AlertReceiveChannel", organiz
 def metrics_remove_deleted_integration_from_cache(integration: "AlertReceiveChannel", organization: "Organization"):
     """Remove data related to deleted integration from metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization.id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
 
-    for team in organization.teams.all():
+    for team in _get_teams_for_cache(organization):
         for metric_key in [metric_alert_groups_total_key, metric_alert_groups_response_time_key]:
             metric_cache = cache.get(metric_key)
             if metric_cache:
@@ -178,8 +192,8 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
     """
     Bulk add new integration data to metrics cache. This method is safe to call multiple times on the same integrations.
     """
-    metrics_cache_timeout = get_metrics_cache_timeout(organization.org_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.org_id)
+    metrics_cache_timeout = get_metrics_cache_timeout(organization.id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
 
     instance_slug = organization.stack_slug
     instance_id = organization.stack_id
@@ -187,7 +201,7 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
     metric_alert_groups_total: typing.Dict[int, AlertGroupsTotalMetricsDict] = cache.get(
         metric_alert_groups_total_key, {}
     )
-    for team in organization.teams.all():
+    for team in _get_teams_for_cache(organization):
         for integration in integrations:
             metric_alert_groups_total.setdefault(
                 (integration.id,team.team_id),
@@ -203,12 +217,12 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
             )
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
 
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.org_id)
+    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
     metric_alert_groups_response_time: typing.Dict[int, AlertGroupsResponseTimeMetricsDict] = cache.get(
         metric_alert_groups_response_time_key, {}
     )
 
-    for team in organization.teams.all():
+    for team in _get_teams_for_cache(organization):
         for integration in integrations:
             metric_alert_groups_response_time.setdefault(
                 (integration.id, team.team_id),
@@ -239,17 +253,17 @@ def metrics_bulk_update_team_label_cache(teams_updated_data: dict, organization_
     # TODO need to work out how to handle team changes... or if we need to.
 
     for team_id, team_data in teams_updated_data.items():
-        for integration_id, team_id in metric_alert_groups_total:
-            if metric_alert_groups_total[(integration_id, team_id)]["team_id"] == team_id:
-                integration_response_time_metrics = metric_alert_groups_response_time.get(integration_id)
+        for index in metric_alert_groups_total:
+            if metric_alert_groups_total[index]["team_id"] == team_id:
+                integration_response_time_metrics = metric_alert_groups_response_time.get(index)
                 if team_data["deleted"]:
-                    metric_alert_groups_total[(integration_id, team_id)]["team_id"] = "no_team"
-                    metric_alert_groups_total[(integration_id, team_id)]["team_name"] = "No team"
+                    metric_alert_groups_total[index]["team_id"] = "no_team"
+                    metric_alert_groups_total[index]["team_name"] = "No team"
                     if integration_response_time_metrics:
                         integration_response_time_metrics["team_id"] = "no_team"
                         integration_response_time_metrics["team_name"] = "No team"
                 else:
-                    metric_alert_groups_total[(integration_id, team_id)]["team_name"] = team_data["team_name"]
+                    metric_alert_groups_total[index]["team_name"] = team_data["team_name"]
                     if integration_response_time_metrics:
                         integration_response_time_metrics["team_name"] = team_data["team_name"]
 
@@ -283,32 +297,31 @@ def metrics_update_alert_groups_state_cache(states_diff: dict, organization: "Or
     if not states_diff:
         return
 
-    metrics_cache_timeout = get_metrics_cache_timeout(organization.org_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.org_id)
+    metrics_cache_timeout = get_metrics_cache_timeout(organization.id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
     metric_alert_groups_total = cache.get(metric_alert_groups_total_key, {})
 
 
     if not metric_alert_groups_total:
         return
-    for integration_id, service_data in states_diff.items():
-        for team in organization.teams.all():
-            integration_alert_groups = metric_alert_groups_total.get((int(integration_id), team.team_id))
-            if not integration_alert_groups:
-                continue
-            for service_name, service_state_diff in service_data.items():
-                states_to_update = integration_alert_groups["services"].setdefault(service_name, get_default_states_dict())
-                for previous_state, counter in service_state_diff["previous_states"].items():
-                    if states_to_update[previous_state] - counter > 0:
-                        states_to_update[previous_state] -= counter
-                    else:
-                        states_to_update[previous_state] = 0
-                for new_state, counter in service_state_diff["new_states"].items():
-                    states_to_update[new_state] += counter
+    for index, service_data in states_diff.items():
+        integration_alert_groups = metric_alert_groups_total.get(index)
+        if not integration_alert_groups:
+            continue
+        for service_name, service_state_diff in service_data.items():
+            states_to_update = integration_alert_groups["services"].setdefault(service_name, get_default_states_dict())
+            for previous_state, counter in service_state_diff["previous_states"].items():
+                if states_to_update[previous_state] - counter > 0:
+                    states_to_update[previous_state] -= counter
+                else:
+                    states_to_update[previous_state] = 0
+            for new_state, counter in service_state_diff["new_states"].items():
+                states_to_update[new_state] += counter
 
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
 
 
-def metrics_update_alert_groups_response_time_cache(integrations_response_time: dict, organization_id: int):
+def metrics_update_alert_groups_response_time_cache(integrations_response_time: dict, organization):
     """
     Update alert groups response time metric cache for each integration in `integrations_response_time` dict.
     integrations_response_time dict example:
@@ -320,14 +333,13 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time: 
     """
     if not integrations_response_time:
         return
-
-    metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
+    metrics_cache_timeout = get_metrics_cache_timeout(organization.id)
+    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
     metric_alert_groups_response_time = cache.get(metric_alert_groups_response_time_key, {})
     if not metric_alert_groups_response_time:
         return
-    for integration_id, service_data in integrations_response_time.items():
-        integration_response_time_metrics = metric_alert_groups_response_time.get(int(integration_id))
+    for index, service_data in integrations_response_time.items():
+        integration_response_time_metrics = metric_alert_groups_response_time.get(index)
         if not integration_response_time_metrics:
             continue
         for service_name, response_time_values in service_data.items():

@@ -54,27 +54,27 @@ class MetricsCacheManager:
 
     @staticmethod
     def metrics_update_state_cache_for_alert_group(
-        integration_id, organization, service_name, old_state=None, new_state=None
+        index, organization, service_name, old_state=None, new_state=None
     ):
         """
         Update state metric cache for one alert group.
         """
         metrics_state_diff = MetricsCacheManager.update_integration_states_diff(
-            {}, integration_id, service_name, previous_state=old_state, new_state=new_state
+            {}, index, service_name, previous_state=old_state, new_state=new_state
         )
         metrics_update_alert_groups_state_cache(metrics_state_diff, organization)
 
     @staticmethod
     def metrics_update_response_time_cache_for_alert_group(
-        integration_id, organization_id, response_time_seconds, service_name
+        index, organization, response_time_seconds, service_name
     ):
         """
         Update response time metric cache for one alert group.
         """
         metrics_response_time: typing.Dict[int, typing.Dict[str, typing.List[int]]] = {
-            integration_id: {service_name: [response_time_seconds]}
+            index: {service_name: [response_time_seconds]}
         }
-        metrics_update_alert_groups_response_time_cache(metrics_response_time, organization_id)
+        metrics_update_alert_groups_response_time_cache(metrics_response_time, organization)
 
     @staticmethod
     def metrics_update_cache_for_alert_group(
@@ -85,15 +85,18 @@ class MetricsCacheManager:
         response_time=None,
         started_at=None,
         service_name=None,
+        teams=None
     ):
         """Call methods to update state and response time metrics cache for one alert group."""
-
-        if response_time and old_state == AlertGroupState.FIRING and started_at > get_response_time_period():
-            response_time_seconds = int(response_time.total_seconds())
-            MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
-                integration_id, organization, response_time_seconds, service_name
-            )
-        if old_state or new_state:
-            MetricsCacheManager.metrics_update_state_cache_for_alert_group(
-                integration_id, organization, service_name, old_state, new_state
-            )
+        update_teams = [x.team_id for x in teams] if teams else ["no_team"]
+        for team_id in update_teams:
+            if response_time and old_state == AlertGroupState.FIRING and started_at > get_response_time_period():
+                response_time_seconds = int(response_time.total_seconds())
+                MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
+                    (int(integration_id), team_id), organization, response_time_seconds, service_name
+                )
+                print("aaaa")
+            if old_state or new_state:
+                MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+                    (int(integration_id), team_id), organization, service_name, old_state, new_state
+                )

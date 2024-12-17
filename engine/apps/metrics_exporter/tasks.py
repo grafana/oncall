@@ -294,6 +294,7 @@ def update_metrics_for_alert_group(alert_group_id, organization_id, previous_sta
         response_time=updated_response_time,
         started_at=alert_group.started_at,
         service_name=service_name,
+        teams=list(alert_group.teams.all())
     )
 
 

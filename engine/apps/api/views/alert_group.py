@@ -182,9 +182,9 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             ).distinct()
         return queryset
 
-
+# TODO need to probably rework this to ensure it works correctly with both paradigms 
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
-    TEAM_LOOKUP = "team"
+    TEAM_LOOKUP = "teams"
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -293,6 +293,8 @@ class AlertGroupView(
     filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
     filterset_class = AlertGroupFilter
 
+    TEAM_LOOKUP="teams"
+
     def get_serializer_class(self):
         if self.action == "list":
             return AlertGroupListSerializer
@@ -304,11 +306,12 @@ class AlertGroupView(
 
         team_values = self.request.query_params.getlist("team", [])
         if team_values:
-            null_team_lookup = Q(teams__isnull=True) if NO_TEAM_VALUE in team_values else None
+            null_team_lookup = (Q(teams__isnull=True) | Q(teams=None)) if NO_TEAM_VALUE in team_values else None
             teams_lookup = Q(teams__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
             if null_team_lookup:
                 teams_lookup = teams_lookup | null_team_lookup
 
+        # TODO also need to filter on integration as well.
         if not ignore_filtering_by_available_teams:
             queryset = AlertGroup.objects.filter(*self.available_teams_lookup_args)
         else:
@@ -316,7 +319,6 @@ class AlertGroupView(
         
         if team_values:
             queryset = queryset.filter(teams_lookup)
-        
 
         if self.action in ("list", "stats") and not self.request.query_params.get("started_at"):
             queryset = queryset.filter(started_at__gte=timezone.now() - timezone.timedelta(days=30))
