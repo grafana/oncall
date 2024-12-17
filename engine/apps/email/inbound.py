@@ -8,6 +8,7 @@ from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.utils import timezone
 from rest_framework import status
@@ -25,6 +26,14 @@ logger = logging.getLogger(__name__)
 class AmazonSESValidatedInboundWebhookView(amazon_ses.AmazonSESInboundWebhookView):
     # disable "Your Anymail webhooks are insecure and open to anyone on the web." warning
     warn_if_no_basic_auth = False
+
+    def __init__(self):
+        super().__init__(
+            session_params={
+                "aws_access_key_id": settings.INBOUND_EMAIL_AWS_ACCESS_KEY_ID,
+                "aws_secret_access_key": settings.INBOUND_EMAIL_AWS_SECRET_ACCESS_KEY,
+            },
+        )
 
     def validate_request(self, request):
         """Add SNS message validation to Amazon SES inbound webhook view, which is not implemented in Anymail."""
