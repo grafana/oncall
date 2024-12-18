@@ -74,7 +74,7 @@ def assign_labels(
 def _apply_dynamic_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
 ) -> types.AlertLabels:
-    from apps.labels.models import LabelKeyCache, LabelValueCache
+    from apps.labels.models import LabelKeyCache
 
     if alert_receive_channel.alert_group_labels_custom is None:
         return {}
@@ -87,17 +87,9 @@ def _apply_dynamic_labels(
         ).only("id", "name")
     }
 
-    # fetch up-to-date label value names
-    label_value_names = {
-        v.id: v.name
-        for v in LabelValueCache.objects.filter(
-            id__in=[label[1] for label in alert_receive_channel.alert_group_labels_custom if label[1]]
-        ).only("id", "name")
-    }
-
     result_labels = {}
     for label in alert_receive_channel.alert_group_labels_custom:
-        label = _apply_dynamic_label_entry(label, label_key_names, label_value_names, raw_request_data)
+        label = _apply_dynamic_label_entry(label, label_key_names, raw_request_data)
         if label:
             key, value = label
             result_labels[key] = value
