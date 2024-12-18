@@ -155,7 +155,14 @@ webhook integrations to adjust them for incoming payloads.
 This scenario may be relevant where you are unable to import your list of Grafana users, but would like to experiment
 with Grafana OnCall, using your existing PagerDuty setup as a starting point for experimentation.
 
-If this is relevant to you, you can migrate as such:
+If this is relevant to you, you can migrate as such 👇
+
+> [!IMPORTANT]
+> As outlined several times in the documentation below, if you first import data into Grafana OnCall without
+> including users, make changes to that data within OnCall, and then later re-import the data with users, Grafana OnCall
+> will delete and recreate those objects, as part of the subsequent migration.
+>
+> As a result, any modifications you made after the initial import will be lost.
 
 ```bash
 # Step 1: run a plan of what will be migrated, ignoring users for now
