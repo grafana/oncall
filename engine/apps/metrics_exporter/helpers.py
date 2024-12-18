@@ -150,37 +150,29 @@ def get_default_states_dict() -> AlertGroupStateDict:
 
 def metrics_update_integration_cache(integration: "AlertReceiveChannel") -> None:
     """Update integration data in metrics cache"""
-    metrics_cache_timeout = get_metrics_cache_timeout(integration.organization.id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization.id)
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization.id)
-    print(integration.organization.id)
-    print("cccc")
+    metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
+    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
     for team in _get_teams_for_cache(integration.organization):
-        print(team)
         for metric_key in [metric_alert_groups_total_key, metric_alert_groups_response_time_key]:
-            print(metric_key)
             metric_cache = cache.get(metric_key, {})
-            print(metric_cache)
             integration_metric_cache = metric_cache.get((integration.id,team.team_id))
-            print(integration_metric_cache)
             if integration_metric_cache:
                 cache_updated = False
-                print("eeee")
                 if integration_metric_cache["integration_name"] != integration.emojized_verbal_name:
-                    print("dddd")
                     integration_metric_cache["integration_name"] = integration.emojized_verbal_name
                     cache_updated = True
                 if cache_updated:
                     cache.set(metric_key, metric_cache, timeout=metrics_cache_timeout)
 
 
-def metrics_remove_deleted_integration_from_cache(integration: "AlertReceiveChannel", organization: "Organization"):
+def metrics_remove_deleted_integration_from_cache(integration: "AlertReceiveChannel"):
     """Remove data related to deleted integration from metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization.id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
 
-    for team in _get_teams_for_cache(organization):
+    for team in _get_teams_for_cache(integration.organization):
         for metric_key in [metric_alert_groups_total_key, metric_alert_groups_response_time_key]:
             metric_cache = cache.get(metric_key)
             if metric_cache:
