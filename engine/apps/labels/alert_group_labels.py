@@ -106,7 +106,7 @@ def _apply_dynamic_labels(
 
 
 def _apply_dynamic_label_entry(
-    label: "AlertReceiveChannel.DynamicLabelsEntryDB", keys, values, payload
+    label: "AlertReceiveChannel.DynamicLabelsEntryDB", keys: dict, payload: "Alert.RawRequestData"
 ) -> typing.Optional[tuple[str, str]]:
     key_id, value_id, template = label
     key, value = "", ""
