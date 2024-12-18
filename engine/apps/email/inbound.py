@@ -32,6 +32,7 @@ class AmazonSESValidatedInboundWebhookView(amazon_ses.AmazonSESInboundWebhookVie
             session_params={
                 "aws_access_key_id": settings.INBOUND_EMAIL_AWS_ACCESS_KEY_ID,
                 "aws_secret_access_key": settings.INBOUND_EMAIL_AWS_SECRET_ACCESS_KEY,
+                "region_name": settings.INBOUND_EMAIL_AWS_REGION,
             },
         )
 
