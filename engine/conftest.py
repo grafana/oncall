@@ -1088,7 +1088,7 @@ def make_label_key_and_value(make_label_key, make_label_value):
 
 
 @pytest.fixture
-def make_integration_label_association(make_label_key_and_value):
+def make_static_label_config(make_label_key_and_value):
     def _make_integration_label_association(
         organization, alert_receive_channel, key_id=None, key_name=None, value_id=None, value_name=None, **kwargs
     ):
