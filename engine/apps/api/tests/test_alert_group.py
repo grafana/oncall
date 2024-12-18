@@ -933,7 +933,6 @@ def test_get_filter_by_teams(
     # check the "No team" case
     response = client.get(url + "?team=null", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    print()
     assert len(response.data["results"]) == 1
     assert {ag["pk"] for ag in response.data["results"]} == {alert_group_0.public_primary_key}
 
