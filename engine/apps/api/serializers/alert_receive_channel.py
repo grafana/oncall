@@ -33,6 +33,7 @@ def _additional_settings_serializer_from_type(integration_type: str) -> serializ
     return cls
 
 
+# TODO: refactor this types as w no longer support storing static labels in this field.
 # AlertGroupCustomLabelValue represents custom alert group label value for API requests
 # It handles two types of label's value:
 # 1. Just Label Value from a label repo for a static label
@@ -206,7 +207,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     @staticmethod
     def _custom_labels_to_internal_value(
         custom_labels: AlertGroupCustomLabelsAPI,
-    ) -> AlertReceiveChannel.AlertGroupCustomLabelsDB:
+    ) -> AlertReceiveChannel.DynamicLabelsConfigDB:
         """Convert custom labels from API representation to the schema used by the JSONField on the model."""
 
         return [
@@ -216,7 +217,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 
     @staticmethod
     def _custom_labels_to_representation(
-        custom_labels: AlertReceiveChannel.AlertGroupCustomLabelsDB,
+        custom_labels: AlertReceiveChannel.DynamicLabelsConfigDB,
     ) -> AlertGroupCustomLabelsAPI:
         """
         Inverse of the _custom_labels_to_internal_value method above.
