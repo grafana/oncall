@@ -702,7 +702,7 @@ def _get_team_select_blocks(
     if not teams:
         direct_paging_info_msg["elements"][0][
             "text"
-        ] += ". There are currently no teams which have a Direct Paging integration that is configured."
+        ] += ".\n\nThere are currently no teams which have a Direct Paging integration that is configured."
         blocks.append(direct_paging_info_msg)
         return blocks
 
@@ -740,6 +740,10 @@ def _get_team_select_blocks(
         },
         "dispatch_action": True,
         "optional": True,
+    }
+
+    team_severity = {
+        "type": "checkboxes"
     }
 
     blocks.append(team_select)
