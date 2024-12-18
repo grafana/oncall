@@ -7,6 +7,7 @@ from lib.common.resources.users import match_user
 from lib.oncall.api_client import OnCallAPIClient
 from lib.pagerduty.config import (
     EXPERIMENTAL_MIGRATE_EVENT_RULES,
+    MIGRATE_USERS,
     MODE,
     MODE_PLAN,
     PAGERDUTY_API_TOKEN,
@@ -46,8 +47,12 @@ def migrate() -> None:
     session = APISession(PAGERDUTY_API_TOKEN)
     session.timeout = 20
 
-    print("▶ Fetching users...")
-    users = session.list_all("users", params={"include[]": "notification_rules"})
+    if MIGRATE_USERS:
+        print("▶ Fetching users...")
+        users = session.list_all("users", params={"include[]": "notification_rules"})
+    else:
+        print("▶ Skipping user migration as MIGRATE_USERS is false...")
+        users = []
 
     oncall_users = OnCallAPIClient.list_users_with_notification_rules()
 
@@ -97,8 +102,9 @@ def migrate() -> None:
             rules = session.list_all(f"rulesets/{ruleset['id']}/rules")
             ruleset["rules"] = rules
 
-    for user in users:
-        match_user(user, oncall_users)
+    if MIGRATE_USERS:
+        for user in users:
+            match_user(user, oncall_users)
 
     user_id_map = {
         u["id"]: u["oncall_user"]["id"] if u["oncall_user"] else None for u in users
@@ -138,11 +144,14 @@ def migrate() -> None:
 
         return
 
-    print("▶ Migrating user notification rules...")
-    for user in users:
-        if user["oncall_user"]:
-            migrate_notification_rules(user)
-            print(TAB + format_user(user))
+    if MIGRATE_USERS:
+        print("▶ Migrating user notification rules...")
+        for user in users:
+            if user["oncall_user"]:
+                migrate_notification_rules(user)
+                print(TAB + format_user(user))
+    else:
+        print("▶ Skipping migrating user notification rules as MIGRATE_USERS is false...")
 
     print("▶ Migrating schedules...")
     for schedule in schedules:
