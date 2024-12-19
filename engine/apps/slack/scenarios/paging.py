@@ -840,24 +840,26 @@ def _get_team_select_blocks(
 
     blocks.extend(
         [
+            team_severity_checkboxes_element,
             typing.cast(
                 Block.Context,
                 {
+                    # NOTE: we add this here instead of as a checkbox option description because those can only
+                    # be defined as plain text (ie. not markdown where links are supported)
                     "type": "context",
                     "elements": [
                         {
                             "type": "mrkdwn",
                             "text": (
-                                "Check the following box if you would like to escalate to this team as an 'important' "
-                                "escalation. This will set a `payload.oncall.important` attribute in the alert to `true`. "
-                                "Teams can configure their Direct Paging Integration to route to different escalation chains "
-                                "based on this. <https://grafana.com/docs/oncall/latest/integrations/manual/#important-escalations|Learn more>"
+                                "Check the above box if you would like to escalate to this team as an 'important' "
+                                "escalation. Teams can configure their Direct Paging Integration to route to different "
+                                "escalation chains based on this. "
+                                "<https://grafana.com/docs/oncall/latest/integrations/manual/#important-escalations|Learn more>"
                             ),
                         },
                     ],
                 },
             ),
-            team_severity_checkboxes_element,
         ]
     )
 

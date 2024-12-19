@@ -539,7 +539,7 @@ def test_get_team_select_blocks(
     )
 
     assert len(blocks) == 4
-    input_block, context_block, team_severity_context_block, team_severity_checkboxes = blocks
+    input_block, context_block, team_severity_checkboxes, team_severity_context_block = blocks
 
     team_severity_important_checkbox_option = {
         "text": {
@@ -566,10 +566,10 @@ def test_get_team_select_blocks(
     )
 
     assert team_severity_context_block["elements"][0]["text"] == (
-        "Check the following box if you would like to escalate to this team as an 'important' "
-        "escalation. This will set a `payload.oncall.important` attribute in the alert to `true`. "
-        "Teams can configure their Direct Paging Integration to route to different escalation chains "
-        "based on this. <https://grafana.com/docs/oncall/latest/integrations/manual/#important-escalations|Learn more>"
+        "Check the above box if you would like to escalate to this team as an 'important' "
+        "escalation. Teams can configure their Direct Paging Integration to route to different "
+        "escalation chains based on this. "
+        "<https://grafana.com/docs/oncall/latest/integrations/manual/#important-escalations|Learn more>"
     )
     assert team_severity_checkboxes["accessory"]["type"] == "checkboxes"
     assert team_severity_checkboxes["accessory"]["options"] == [team_severity_important_checkbox_option]
