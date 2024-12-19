@@ -1,0 +1,5 @@
+from apps.alerts.signals import alert_create_signal, alert_group_action_triggered_signal
+from apps.mattermost.alert_group_representative import AlertGroupMattermostRepresentative
+
+alert_create_signal.connect(AlertGroupMattermostRepresentative.on_create_alert)
+alert_group_action_triggered_signal.connect(AlertGroupMattermostRepresentative.on_alert_group_action_triggered)

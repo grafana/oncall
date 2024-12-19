@@ -52,6 +52,7 @@ from apps.auth_token.models import (
     ApiAuthToken,
     GoogleOAuth2Token,
     IntegrationBacksyncAuthToken,
+    MattermostAuthToken,
     PluginAuthToken,
     ServiceAccountToken,
     SlackAuthToken,
@@ -76,6 +77,7 @@ from apps.labels.tests.factories import (
     LabelValueFactory,
     WebhookAssociatedLabelFactory,
 )
+from apps.mattermost.tests.factories import MattermostChannelFactory, MattermostMessageFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
@@ -158,6 +160,8 @@ register(LabelValueFactory)
 register(AlertReceiveChannelAssociatedLabelFactory)
 register(GoogleOAuth2UserFactory)
 register(UserNotificationBundleFactory)
+register(MattermostChannelFactory)
+register(MattermostMessageFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
@@ -323,6 +327,14 @@ def make_slack_token_for_user():
         return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
 
     return _make_slack_token_for_user
+
+
+@pytest.fixture
+def make_mattermost_token_for_user():
+    def _make_mattermost_token_for_user(user):
+        return MattermostAuthToken.create_auth_token(organization=user.organization, user=user)
+
+    return _make_mattermost_token_for_user
 
 
 @pytest.fixture
@@ -905,6 +917,14 @@ def make_telegram_message():
         return TelegramMessageFactory(alert_group=alert_group, message_type=message_type, **kwargs)
 
     return _make_telegram_message
+
+
+@pytest.fixture()
+def make_mattermost_channel():
+    def _make_mattermost_channel(organization, **kwargs):
+        return MattermostChannelFactory(organization=organization, **kwargs)
+
+    return _make_mattermost_channel
 
 
 @pytest.fixture()
