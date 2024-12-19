@@ -89,11 +89,13 @@ def test_escalation_new_alert_group(
     assert alert.message == message
 
 
+@pytest.mark.parametrize("important_team_escalation", [True, False])
 @pytest.mark.django_db
 def test_escalation_team(
     make_organization_and_user_with_token,
     make_team,
     make_user_auth_headers,
+    important_team_escalation,
 ):
     organization, user, token = make_organization_and_user_with_token()
     team = make_team(organization=organization)
@@ -110,6 +112,7 @@ def test_escalation_team(
             "team": team.public_primary_key,
             "message": message,
             "source_url": source_url,
+            "important_team_escalation": important_team_escalation,
         },
         format="json",
         **make_user_auth_headers(user, token),
@@ -120,7 +123,16 @@ def test_escalation_team(
     alert_group = AlertGroup.objects.get(public_primary_key=response.json()["id"])
     alert = alert_group.alerts.first()
 
-    assert alert.raw_request_data["oncall"]["permalink"] == source_url
+    assert alert.raw_request_data == {
+        "oncall": {
+            "title": mock.ANY,
+            "message": message,
+            "uid": mock.ANY,
+            "author_username": mock.ANY,
+            "permalink": source_url,
+            "important": important_team_escalation,
+        },
+    }
 
 
 @pytest.mark.django_db

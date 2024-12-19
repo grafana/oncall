@@ -39,6 +39,7 @@ class BasePagingSerializer(serializers.Serializer):
 
     users = UserReferenceSerializer(many=True, required=False, default=list)
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    important_team_escalation = serializers.BooleanField(required=False, default=False)
 
     alert_group_id = serializers.CharField(required=False, default=None)
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate

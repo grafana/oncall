@@ -41,6 +41,7 @@ class EscalationView(APIView):
                 title=validated_data["title"],
                 source_url=validated_data["source_url"],
                 team=validated_data["team"],
+                important_team_escalation=validated_data["important_team_escalation"],
                 users=[(user["instance"], user["important"]) for user in validated_data["users"]],
                 alert_group=validated_data["alert_group"],
             )

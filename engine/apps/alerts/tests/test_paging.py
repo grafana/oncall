@@ -1,4 +1,4 @@
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 import pytest
 from django.utils import timezone
@@ -86,22 +86,45 @@ def test_direct_paging_user(make_organization, make_user_for_organization, djang
         assert_log_record(ag, f"{from_user.username} paged user {u.username}", expected_info=expected_info)
 
 
+@pytest.mark.parametrize("important_team_escalation", [True, False])
 @pytest.mark.django_db
-def test_direct_paging_team(make_organization, make_team, make_user_for_organization):
+def test_direct_paging_team(make_organization, make_team, make_user_for_organization, important_team_escalation):
     organization = make_organization()
     from_user = make_user_for_organization(organization)
     team = make_team(organization)
+
+    from_author_username = from_user.username
+    source_url = "https://www.example.com"
+    title = f"{from_author_username} is paging {team.name} to join escalation"
     msg = "Fire"
 
-    direct_paging(organization, from_user, msg, team=team)
+    direct_paging(
+        organization,
+        from_user,
+        msg,
+        source_url=source_url,
+        team=team,
+        important_team_escalation=important_team_escalation,
+    )
 
     # alert group created
     alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
-    assert alert.title == f"{from_user.username} is paging {team.name} to join escalation"
+    assert alert.title == title
     assert alert.message == msg
+
+    assert alert.raw_request_data == {
+        "oncall": {
+            "title": title,
+            "message": msg,
+            "uid": ANY,
+            "author_username": from_author_username,
+            "permalink": source_url,
+            "important": important_team_escalation,
+        },
+    }
 
     assert ag.channel.verbal_name == f"Direct paging ({team.name} team)"
     assert ag.channel.team == team

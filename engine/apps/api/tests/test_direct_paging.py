@@ -1,3 +1,5 @@
+from unittest.mock import ANY
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
@@ -59,11 +61,13 @@ def test_direct_paging_new_alert_group(
     assert alert.message == message
 
 
+@pytest.mark.parametrize("important_team_escalation", [True, False])
 @pytest.mark.django_db
 def test_direct_paging_page_team(
     make_organization_and_user_with_plugin_token,
     make_team,
     make_user_auth_headers,
+    important_team_escalation,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
     team = make_team(organization=organization)
@@ -81,6 +85,7 @@ def test_direct_paging_page_team(
             "message": message,
             "source_url": source_url,
             "grafana_incident_id": grafana_incident_id,
+            "important_team_escalation": important_team_escalation,
         },
         format="json",
         **make_user_auth_headers(user, token),
@@ -92,7 +97,16 @@ def test_direct_paging_page_team(
     alert = alert_group.alerts.first()
 
     assert alert_group.grafana_incident_id == grafana_incident_id
-    assert alert.raw_request_data["oncall"]["permalink"] == source_url
+    assert alert.raw_request_data == {
+        "oncall": {
+            "title": ANY,
+            "message": message,
+            "uid": ANY,
+            "author_username": ANY,
+            "permalink": source_url,
+            "important": important_team_escalation,
+        },
+    }
 
 
 @pytest.mark.django_db

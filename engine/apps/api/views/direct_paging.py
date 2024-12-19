@@ -40,6 +40,7 @@ class DirectPagingAPIView(APIView):
                 source_url=validated_data["source_url"],
                 grafana_incident_id=validated_data["grafana_incident_id"],
                 team=validated_data["team"],
+                important_team_escalation=validated_data["important_team_escalation"],
                 users=[(user["instance"], user["important"]) for user in validated_data["users"]],
                 alert_group=validated_data["alert_group"],
             )

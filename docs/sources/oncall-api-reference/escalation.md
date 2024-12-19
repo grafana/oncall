@@ -18,6 +18,11 @@ refs:
       destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/manual
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/configure/integrations/references/manual
+  manual-paging-team-important:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/manual#important-escalations
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/configure/integrations/references/manual#important-escalations
 ---
 
 # Escalation HTTP API
@@ -90,7 +95,8 @@ curl "{{API_URL}}/api/v1/escalation/" \
     "title": "We are seeing a network outage in the datacenter",
     "message": "I need help investigating, can you join the investigation?",
     "source_url": "https://github.com/myorg/myrepo/issues/123",
-    "team": "TI73TDU19W48J"
+    "team": "TI73TDU19W48J",
+    "important_team_escalation": True
   }'
 ```
 
@@ -176,6 +182,7 @@ The above command returns JSON structured in the following way:
 | `team`               |  No   |       Yes (see [Things to Note](#things-to-note))        | Grafana OnCall team ID. If specified, will use the "Direct Paging" Integration associated with this Grafana OnCall team, to create the Alert Group.                                                                                                                                                                                        |
 | `users`               |  No   |       Yes (see [Things to Note](#things-to-note))        | List of user(s) to escalate to. See above request example for object schema. `id` represents the Grafana OnCall user's ID. `important` is a boolean representing whether to escalate the Alert Group using this user's default or important personal notification policy.                                                                                                                                                                                        |
 | `alert_group_id`               |  No   |       No        | If specified, will escalate the specified users for this Alert Group.                                                                                                                                                                                         |
+| `important_team_escalation`               |  No   |       No        | Sets the value of `payload.oncall.important` to the value specified here (default is `False`; see [Things to Note](#things-to-note) for more details). |
 
 ## Things to note
 
@@ -186,6 +193,10 @@ existing Alert Group
 if you are trying to escalate to a set of users on an existing Alert Group, you cannot update the `title`, `message`, or
 `source_url` of that Alert Group
 - If escalating to a set of users for an existing Alert Group, the Alert Group cannot be in a resolved state
+- Regarding `important_team_escalation`; this can be useful to send an "important" escalation to the specified team.
+Teams can configure their Direct Paging Integration to route to different escalation chains based on the value of
+`payload.oncall.important`. See [Manual paging integration - important escalations](ref:manual-paging-team-important)
+for more details.
 
 **HTTP request**
 
