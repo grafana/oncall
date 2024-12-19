@@ -52,6 +52,8 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         """List of labels keys"""
         organization = self.request.auth.organization
         keys, response = LabelsAPIClient(organization.grafana_url, organization.api_token).get_keys()
+        # TODO: Change all error responses here and below in the file to raise exceptions
+        # LabelsRepoAPIException should be raised as drf APIException, so we can handle them in handle_exception
         return Response(keys, status=response.status_code)
 
     @extend_schema(responses=LabelOptionSerializer)
