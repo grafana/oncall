@@ -12,12 +12,14 @@ from apps.slack.scenarios.paging import (
     DIRECT_PAGING_MESSAGE_INPUT_ID,
     DIRECT_PAGING_ORG_SELECT_ID,
     DIRECT_PAGING_TEAM_SELECT_ID,
+    DIRECT_PAGING_TEAM_SEVERITY_CHECKBOXES_ID,
     DIRECT_PAGING_USER_SELECT_ID,
     DataKey,
     FinishDirectPaging,
     OnPagingItemActionChange,
     OnPagingOrgChange,
     OnPagingTeamChange,
+    OnPagingTeamSeverityCheckboxChange,
     OnPagingUserChange,
     Policy,
     StartDirectPaging,
@@ -28,7 +30,13 @@ from apps.user_management.models import Organization
 
 
 def make_paging_view_slack_payload(
-    selected_org=None, predefined_org=None, team=None, user=None, current_users=None, actions=None
+    selected_org=None,
+    predefined_org=None,
+    team=None,
+    important_team_escalation=False,
+    user=None,
+    current_users=None,
+    actions=None,
 ):
     """
     Helper function to create a payload for paging view.
@@ -65,6 +73,15 @@ def make_paging_view_slack_payload(
                                 "value": make_value({"id": organization.pk if selected_org else None}, organization)
                             }
                         }
+                    },
+                    DIRECT_PAGING_TEAM_SEVERITY_CHECKBOXES_ID: {
+                        OnPagingTeamSeverityCheckboxChange.routing_uid(): {
+                            "selected_options": [
+                                {"value": "important"},
+                            ]
+                            if important_team_escalation
+                            else []
+                        },
                     },
                     DIRECT_PAGING_TEAM_SELECT_ID: {
                         OnPagingTeamChange.routing_uid(): {
@@ -141,6 +158,7 @@ def test_page_team_with_predefined_org(make_organization_and_user_with_slack_ide
         from_user=user,
         message="The Message",
         team=team,
+        important_team_escalation=False,
         users=[],
     )
 
@@ -385,15 +403,21 @@ def test_trigger_paging_additional_responders(make_organization_and_user_with_sl
         from_user=user,
         message="The Message",
         team=team,
+        important_team_escalation=False,
         users=[(user, True)],
     )
 
 
+@pytest.mark.parametrize("important_team_escalation", [True, False])
 @pytest.mark.django_db
-def test_page_team(make_organization_and_user_with_slack_identities, make_team):
+def test_page_team(make_organization_and_user_with_slack_identities, make_team, important_team_escalation):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     team = make_team(organization)
-    payload = make_paging_view_slack_payload(selected_org=organization, team=team)
+    payload = make_paging_view_slack_payload(
+        selected_org=organization,
+        team=team,
+        important_team_escalation=important_team_escalation,
+    )
 
     step = FinishDirectPaging(slack_team_identity)
     with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
@@ -405,6 +429,7 @@ def test_page_team(make_organization_and_user_with_slack_identities, make_team):
         from_user=user,
         message="The Message",
         team=team,
+        important_team_escalation=important_team_escalation,
         users=[],
     )
 
@@ -421,6 +446,7 @@ def test_get_organization_select(make_organization):
     assert select["element"]["options"][0]["text"]["text"] == "Organization (stack_slug)"
 
 
+@pytest.mark.parametrize("is_team_escalation_important", [True, False])
 @pytest.mark.django_db
 def test_get_team_select_blocks(
     make_organization_and_user_with_slack_identities,
@@ -428,6 +454,7 @@ def test_get_team_select_blocks(
     make_alert_receive_channel,
     make_escalation_chain,
     make_channel_filter,
+    is_team_escalation_important,
 ):
     info_msg = (
         "*Note*: You can only page teams which have a Direct Paging integration that is configured. "
@@ -444,7 +471,14 @@ def test_get_team_select_blocks(
 
     # no team selected - no team direct paging integrations available
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
-    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+    blocks = _get_team_select_blocks(
+        slack_user_identity,
+        organization,
+        False,
+        None,
+        is_team_escalation_important,
+        input_id_prefix,
+    )
 
     assert len(blocks) == 1
 
@@ -452,7 +486,7 @@ def test_get_team_select_blocks(
     assert context_block["type"] == "context"
     assert (
         context_block["elements"][0]["text"]
-        == info_msg + ". There are currently no teams which have a Direct Paging integration that is configured."
+        == info_msg + ".\n\nThere are currently no teams which have a Direct Paging integration that is configured."
     )
 
     # no team selected - 1 team direct paging integration available
@@ -462,7 +496,14 @@ def test_get_team_select_blocks(
     escalation_chain = make_escalation_chain(organization)
     make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
 
-    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+    blocks = _get_team_select_blocks(
+        slack_user_identity,
+        organization,
+        False,
+        None,
+        is_team_escalation_important,
+        input_id_prefix,
+    )
 
     assert len(blocks) == 2
     input_block, context_block = blocks
@@ -472,7 +513,7 @@ def test_get_team_select_blocks(
     assert input_block["element"]["options"] == [_contstruct_team_option(team)]
     assert context_block["elements"][0]["text"] == info_msg
 
-    # team selected
+    # team selected - team severity checkbox should also now appear
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
     team1 = make_team(organization)
     team2 = make_team(organization)
@@ -488,10 +529,25 @@ def test_get_team_select_blocks(
     _setup_direct_paging_integration(team1)
     team2_direct_paging_arc = _setup_direct_paging_integration(team2)
 
-    blocks = _get_team_select_blocks(slack_user_identity, organization, True, team2, input_id_prefix)
+    blocks = _get_team_select_blocks(
+        slack_user_identity,
+        organization,
+        True,
+        team2,
+        is_team_escalation_important,
+        input_id_prefix,
+    )
 
-    assert len(blocks) == 2
-    input_block, context_block = blocks
+    assert len(blocks) == 4
+    input_block, context_block, team_severity_context_block, team_severity_checkboxes = blocks
+
+    team_severity_important_checkbox_option = {
+        "text": {
+            "type": "mrkdwn",
+            "text": "Important escalation",
+        },
+        "value": "important",
+    }
 
     team1_option = _contstruct_team_option(team1)
     team2_option = _contstruct_team_option(team2)
@@ -509,6 +565,20 @@ def test_get_team_select_blocks(
         == f"Integration <{team2_direct_paging_arc.web_link}|{team2_direct_paging_arc.verbal_name}> will be used for notification."
     )
 
+    assert team_severity_context_block["elements"][0]["text"] == (
+        "Check the following box if you would like to escalate to this team as an 'important' "
+        "escalation. This will set a `payload.oncall.important` attribute in the alert to `true`. "
+        "Teams can configure their Direct Paging Integration to route to different escalation chains "
+        "based on this. <https://grafana.com/docs/oncall/latest/integrations/manual/#important-escalations|Learn more>"
+    )
+    assert team_severity_checkboxes["accessory"]["type"] == "checkboxes"
+    assert team_severity_checkboxes["accessory"]["options"] == [team_severity_important_checkbox_option]
+
+    if is_team_escalation_important:
+        assert team_severity_checkboxes["accessory"]["initial_options"] == [team_severity_important_checkbox_option]
+    else:
+        assert "initial_options" not in team_severity_checkboxes["accessory"]
+
     # team's direct paging integration has two routes associated with it
     # the team should only be displayed once
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
@@ -519,7 +589,14 @@ def test_get_team_select_blocks(
     make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
     make_channel_filter(arc, escalation_chain=escalation_chain)
 
-    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+    blocks = _get_team_select_blocks(
+        slack_user_identity,
+        organization,
+        False,
+        None,
+        is_team_escalation_important,
+        input_id_prefix,
+    )
 
     assert len(blocks) == 2
     input_block, context_block = blocks
