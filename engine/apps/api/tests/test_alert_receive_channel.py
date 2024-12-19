@@ -2719,7 +2719,12 @@ def test_alert_receive_channel_integration_options_search(
     response = client.get(search_url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
     returned_choices = [i["display_name"] for i in response.json()]
-    assert returned_choices == ["Grafana Alerting", "Grafana Legacy Alerting", "(Deprecated) Grafana Alerting"]
+    assert returned_choices == [
+        "Grafana Alerting",
+        "Grafana Legacy Alerting",
+        "(Deprecated) Grafana Alerting",
+        "Adaptive Grafana Alerting",
+    ]
 
     search_url = f"{url}?search=notfound"
     response = client.get(search_url, format="json", **make_user_auth_headers(user, token))
