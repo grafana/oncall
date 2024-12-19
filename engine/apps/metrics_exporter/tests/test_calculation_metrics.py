@@ -58,7 +58,7 @@ def test_calculate_and_cache_metrics_task(
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
 
     expected_result_metric_alert_groups_total = {
-        alert_receive_channel_1.id: {
+        (alert_receive_channel_1.id, "no_team"): {
             "integration_name": alert_receive_channel_1.verbal_name,
             "team_name": "No team",
             "team_id": "no_team",
@@ -80,7 +80,7 @@ def test_calculate_and_cache_metrics_task(
                 },
             },
         },
-        alert_receive_channel_2.id: {
+        (alert_receive_channel_2.id, team.id): {
             "integration_name": alert_receive_channel_2.verbal_name,
             "team_name": team.name,
             "team_id": team.id,
@@ -104,7 +104,7 @@ def test_calculate_and_cache_metrics_task(
         },
     }
     expected_result_metric_alert_groups_response_time = {
-        alert_receive_channel_1.id: {
+        (alert_receive_channel_1.id, 'no_team'): {
             "integration_name": alert_receive_channel_1.verbal_name,
             "team_name": "No team",
             "team_id": "no_team",
@@ -113,7 +113,7 @@ def test_calculate_and_cache_metrics_task(
             "id": organization.stack_id,
             "services": {NO_SERVICE_VALUE: [], "test": []},
         },
-        alert_receive_channel_2.id: {
+        (alert_receive_channel_2.id, team.id): {
             "integration_name": alert_receive_channel_2.verbal_name,
             "team_name": team.name,
             "team_id": team.id,

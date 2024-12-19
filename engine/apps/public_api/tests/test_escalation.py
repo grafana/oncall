@@ -80,6 +80,7 @@ def test_escalation_new_alert_group(
             "created_at": ag.alerts.last().created_at.isoformat().replace("+00:00", "Z"),
             "payload": ag.alerts.last().raw_request_data,
         },
+        "teams": []
     }
 
     alert = ag.alerts.get()

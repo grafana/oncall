@@ -13,7 +13,10 @@ from common.api_helpers.mixins import EagerLoadingMixin
 class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_id = serializers.CharField(source="channel.public_primary_key")
+
+    # This uses the old integration based teams assignment to retain backwards compatibility in the api
     team_id = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
+
     route_id = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="started_at")
     alerts_count = serializers.SerializerMethodField()
@@ -23,6 +26,10 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     resolved_by = UserIdField(read_only=True, source="resolved_by_user")
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
     last_alert = serializers.SerializerMethodField()
+
+    # Unlike the internal API we don't fallback to using the integration team as we don't need to be backwards compatible here
+    # since we are retaining the .team_id field in the api
+    teams = serializers.SlugRelatedField(read_only=True, many=True, slug_field="public_primary_key", allow_null=True)
 
     SELECT_RELATED = [
         "channel",
@@ -67,6 +74,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "permalinks",
             "silenced_at",
             "last_alert",
+            "teams"
         ]
 
     def get_title(self, obj):
