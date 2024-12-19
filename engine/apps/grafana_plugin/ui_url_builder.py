@@ -13,7 +13,7 @@ class UIURLBuilder:
     """
 
     def __init__(self, organization: "Organization", base_url: typing.Optional[str] = None) -> None:
-        self.base_url = base_url if base_url else organization.grafana_url
+        self.base_url = "http://localhost:3000"
         self.is_grafana_irm_enabled = organization.is_grafana_irm_enabled
 
     def _build_url(self, page: str, path_extra: str = "", plugin_id: typing.Optional[str] = None) -> str:

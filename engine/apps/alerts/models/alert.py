@@ -20,6 +20,7 @@ from common.jinja_templater import apply_jinja_template_to_alert_payload_and_lab
 from common.jinja_templater.apply_jinja_template import (
     JinjaTemplateError,
     JinjaTemplateWarning,
+    apply_jinja_template,
     templated_value_is_truthy,
 )
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -142,6 +143,8 @@ class Alert(models.Model):
 
         if group_created:
             assign_labels(group, alert_receive_channel, parsed_labels)
+            group.custom_fields = parse_custom_fields(alert_receive_channel, raw_request_data)
+            group.save(update_fields=["custom_fields"])
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 
@@ -321,3 +324,27 @@ class Alert(models.Model):
             distinction = str(uuid4())
 
         return distinction
+
+
+# parse_custom_fields parses custom fields from the alert payload.
+# It returns a dictionary of custom fields_id:parsed_value
+def parse_custom_fields(
+    alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
+) -> typing.List:
+    fields = []
+    # parse custom fields
+    for field_config in alert_receive_channel.custom_fields.all():
+        if field_config.static_value:
+            f = {"name": field_config.metaname, "value": field_config.static_value}
+            fields.append(f)
+        elif field_config.dynamic_template:
+            try:
+                result = apply_jinja_template(field_config.dynamic_template, raw_request_data)
+                f = {"name": field_config.metaname, "value": result}
+                if result:
+                    fields.append(f)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning("parse_custom_fields: failed to apply template: %s", e.fallback_message)
+                continue
+    fields.sort(key=lambda x: x["metaname"])
+    return fields
