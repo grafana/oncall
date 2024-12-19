@@ -15,6 +15,7 @@ import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 import { move } from 'state/helpers';
+import i18n from '../../i18n/i18n'
 
 export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']; isFull: boolean }) => {
   const { incident, isFull } = props;
@@ -27,7 +28,7 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
   let users = [...related_users];
 
   if (!users.length && isFull) {
-    return <Text type="secondary">No users involved</Text>;
+    return <Text type="secondary">{i18n.t('incidents_helpers.no_users_involved')}</Text>;
   }
 
   function renderUser(user: Partial<ApiSchemas['User']>) {

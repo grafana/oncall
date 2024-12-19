@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import i18n from '../../../i18n/i18n'
 
 interface SilenceSelectProps {
   placeholder?: string;
@@ -15,7 +16,7 @@ interface SilenceSelectProps {
 }
 
 export const SilenceSelect = observer((props: SilenceSelectProps) => {
-  const { placeholder = 'Silence for', disabled = false, onSelect } = props;
+  const { placeholder = i18n.t('silence_select.silence_for'), disabled = false, onSelect } = props;
 
   return (
     <>

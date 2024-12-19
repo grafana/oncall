@@ -53,6 +53,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getIncidentsStyles } from './Incidents.styles';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceSelect } from './parts/SilenceSelect';
+import i18n from '../../i18n/i18n';
 
 interface Pagination {
   start: number;
@@ -181,7 +182,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <div>
           <div className={styles.title}>
             <Stack justifyContent="space-between">
-              <Text.Title level={3}>Alert Groups</Text.Title>
+              <Text.Title level={3}>{i18n.t('incidents.alert_groups')}</Text.Title>
 
               <div className={styles.rightSideFilters}>
                 <div ref={this.filtersPortalRef} />
@@ -239,7 +240,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <div key="new" className={styles.col}>
           <CardButton
             icon={<Icon name="bell" size="xxl" />}
-            description="Firing"
+            description={i18n.t('incidents.firing')}
             title={stats[IncidentStatus.Firing]}
             selected={status.includes(IncidentStatus.Firing)}
             onClick={this.getStatusButtonClickHandler(
@@ -253,7 +254,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <div key="acknowledged" className={styles.col}>
           <CardButton
             icon={<Icon name="eye" size="xxl" />}
-            description="Acknowledged"
+            description={i18n.t('incidents.acknowledged')}
             title={stats[IncidentStatus.Acknowledged]}
             selected={status.includes(IncidentStatus.Acknowledged)}
             onClick={this.getStatusButtonClickHandler(
@@ -267,7 +268,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <div key="resolved" className={styles.col}>
           <CardButton
             icon={<Icon name="check" size="xxl" />}
-            description="Resolved"
+            description={i18n.t('incidents.resolved')}
             title={stats[IncidentStatus.Resolved]}
             selected={status.includes(IncidentStatus.Resolved)}
             onClick={this.getStatusButtonClickHandler(
@@ -281,7 +282,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <div key="silenced" className={styles.col}>
           <CardButton
             icon={<Icon name="bell-slash" size="xxl" />}
-            description="Silenced"
+            description={i18n.t('incidents.silenced')}
             title={stats[IncidentStatus.Silenced]}
             selected={status.includes(IncidentStatus.Silenced)}
             onClick={this.getStatusButtonClickHandler(
@@ -500,7 +501,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   variant="primary"
                   onClick={(ev) => this.onBulkActionClick('resolve', ev)}
                 >
-                  Resolve
+                  {i18n.t('incidents.resolve')}
                 </Button>
               </WithPermissionControlTooltip>
             )}
@@ -511,7 +512,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   variant="secondary"
                   onClick={(ev) => this.onBulkActionClick('acknowledge', ev)}
                 >
-                  Acknowledge
+                  {i18n.t('incidents.acknowledge')}
                 </Button>
               </WithPermissionControlTooltip>
             )}
@@ -522,7 +523,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   variant="secondary"
                   onClick={(ev) => this.onBulkActionClick('restart', ev)}
                 >
-                  Restart
+                  {i18n.t('incidents.restart')}
                 </Button>
               </WithPermissionControlTooltip>
             )}
@@ -537,7 +538,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             <Text type="secondary" className={styles.alertsSelected}>
               {hasSelected
                 ? `${selectedIncidentIds.length} Alert Group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
-                : 'No Alert Groups selected'}
+                : i18n.t('incidents.no_alert_groups_selected')}
             </Text>
           </div>
 
@@ -574,12 +575,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           title={
             <Stack direction="column" alignItems="center" gap={StackSize.lg}>
               <Text type="secondary">
-                No alert groups found, review your filter and team settings. Make sure you have at least one working
-                integration.
+                {i18n.t('incidents.alert_groups_not_found')}
               </Text>
               <PluginLink query={{ page: 'integrations' }}>
                 <Button variant="primary" size="lg">
-                  Go to integrations page
+                  {i18n.t('incidents.go_to_integrations_page')}
                 </Button>
               </PluginLink>
             </Stack>
@@ -847,25 +847,25 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         width: 100,
       },
       Status: {
-        title: 'Status',
+        title: i18n.t('incidents.status'),
         key: 'time',
         render: this.renderStatus,
         width: 110,
       },
       Alerts: {
-        title: 'Alerts',
+        title: i18n.t('incidents.alerts'),
         key: 'alerts',
         render: this.renderAlertsCounter,
         width: 70,
       },
       Integration: {
-        title: 'Integration',
+        title: i18n.t('incidents.integration'),
         key: 'integration',
         render: this.renderSource,
         grow: 1.7,
       },
       Title: {
-        title: 'Title',
+        title: i18n.t('incidents.title'),
         key: 'title',
         render: this.renderTitle,
         className: css`
@@ -874,7 +874,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         grow: 3.5,
       },
       Created: {
-        title: 'Created',
+        title: i18n.t('incidents.created'),
         key: 'created',
         render: this.renderStartedAt,
         grow: 1,
@@ -886,7 +886,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         grow: 1,
       },
       Users: {
-        title: 'Users',
+        title: i18n.t('incidents.users'),
         key: 'users',
         render: (item: ApiSchemas['AlertGroup'], isFull: boolean) => (
           <IncidentRelatedUsers incident={item} isFull={isFull} />

@@ -179,7 +179,9 @@
     "stylelint-config-standard": "^22.0.0",
     "throttle-debounce": "^2.1.0",
     "tinycolor2": "^1.6.0",
-    "tslib": "2.5.3"
+    "tslib": "2.5.3",
+    "react-i18next": "^11.18.1",
+    "i18next": "^21.6.3"
   },
   "resolutions": {
     "braces": "3.0.3",
