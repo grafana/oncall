@@ -92,12 +92,12 @@ def test_label_associate_existing_label(make_label_key_and_value, make_organizat
 
 @pytest.mark.django_db
 def test_label_update_association_by_removing_label(
-    make_integration_label_association, make_organization, make_alert_receive_channel
+    make_static_label_config, make_organization, make_alert_receive_channel
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    label_association_1 = make_integration_label_association(organization, alert_receive_channel)
-    label_association_2 = make_integration_label_association(organization, alert_receive_channel)
+    label_association_1 = make_static_label_config(organization, alert_receive_channel)
+    label_association_2 = make_static_label_config(organization, alert_receive_channel)
     labels_data = [
         {
             "key": {"id": label_association_1.key_id, "name": label_association_1.key.name, "prescribed": False},
