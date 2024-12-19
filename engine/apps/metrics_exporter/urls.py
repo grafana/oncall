@@ -1,7 +1,7 @@
-from django.urls import path
+from django.urls import re_path
 
 from .views import MetricsExporterView
 
 urlpatterns = [
-    path("", MetricsExporterView.as_view(), name="metrics-exporter"),
+    re_path(r"^/?$", MetricsExporterView.as_view(), name="metrics-exporter"),
 ]
