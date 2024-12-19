@@ -17,6 +17,7 @@ from apps.api.serializers.labels import (
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.tasks import update_instances_labels_cache, update_label_option_cache
+from apps.labels.types import LabelOption
 from apps.labels.utils import is_labels_feature_enabled
 from common.api_helpers.exceptions import BadRequest
 
@@ -64,6 +65,18 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
             key_id
         )
         self._update_labels_cache(label_option)
+        return Response(label_option, status=response.status_code)
+
+    @extend_schema(responses=LabelOptionSerializer)
+    def get_key_by_name(self, request, key_name):
+        """
+        get_key_by_name returns LabelOption – key with the list of values
+        """
+        organization = self.request.auth.organization
+        label_option, response = LabelsAPIClient(
+            organization.grafana_url,
+            organization.api_token,
+        ).get_label_by_key_name(key_name)
         return Response(label_option, status=response.status_code)
 
     @extend_schema(responses=LabelValueSerializer)
@@ -133,7 +146,7 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         self._update_labels_cache(label_option)
         return Response(label_option, status=status)
 
-    def _update_labels_cache(self, label_option):
+    def _update_labels_cache(self, label_option: LabelOption):
         if not label_option:
             return
         serializer = LabelOptionSerializer(data=label_option)

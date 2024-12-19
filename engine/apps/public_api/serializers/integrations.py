@@ -7,6 +7,8 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
+from apps.labels.utils import get_service_label_custom
+from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
@@ -123,6 +125,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
+            validated_data = self._add_service_label_if_needed(organization, validated_data)
         user = self.context["request"].user
         with transaction.atomic():
             try:
@@ -384,6 +387,14 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter
+
+    def _add_service_label_if_needed(self, organization: "Organization", validated_data: dict) -> dict:
+        if not organization.is_grafana_labels_enabled:
+            return validated_data
+        service_label_custom = get_service_label_custom(organization)
+        if service_label_custom:
+            validated_data["alert_group_labels_custom"] = [service_label_custom]
+        return validated_data
 
 
 class IntegrationUpdateSerializer(IntegrationSerializer):

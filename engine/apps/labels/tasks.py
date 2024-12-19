@@ -7,12 +7,14 @@ from django.utils import timezone
 
 from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.types import LabelOption, LabelPair
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model, get_service_label_custom
 from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
+
+MAX_RETRIES = 1 if settings.DEBUG else 10
 
 
 class KVPair(typing.TypedDict):
@@ -129,9 +131,7 @@ def _update_labels_cache(values_id_to_pair: typing.Dict[str, LabelPair]):
     LabelValueCache.objects.bulk_update(values, fields=["name", "last_synced", "prescribed"])
 
 
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
-)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def update_instances_labels_cache(organization_id: int, instance_ids: typing.List[int], instance_model_name: str):
     from apps.labels.models import LabelValueCache
 
@@ -162,3 +162,56 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
             continue
         if label_option:
             update_label_option_cache.apply_async((label_option,))
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def add_service_label_for_alerting_integrations():
+    """Starts tasks that add `service_name` dynamic label to custom labels for alerting integrations"""
+
+    from apps.alerts.models import AlertReceiveChannel
+
+    organization_ids = (
+        AlertReceiveChannel.objects.filter(
+            integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+            organization__is_grafana_labels_enabled=True,
+            organization__deleted_at__isnull=True,
+        )
+        .values_list("organization", flat=True)
+        .distinct()
+    )
+
+    for idx, organization_id in enumerate(organization_ids):
+        countdown = idx // 10
+        add_service_label_per_org.apply_async((organization_id,), countdown=countdown)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def add_service_label_per_org(organization_id: int):
+    """Add `service_name` dynamic label to custom labels for alerting integrations"""
+
+    from apps.alerts.models import AlertReceiveChannel
+    from apps.user_management.models import Organization
+
+    organization = Organization.objects.get(id=organization_id)
+    service_label_custom = get_service_label_custom(organization)
+    if not service_label_custom:
+        return
+    integrations = AlertReceiveChannel.objects.filter(
+        integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        organization=organization,
+    )
+    integrations_to_update = []
+    # add service label to integration custom labels if it's not already there
+    for integration in integrations:
+        custom_service_label_exists = False
+        custom_labels = integration.alert_group_labels_custom if integration.alert_group_labels_custom else []
+        for label in custom_labels:
+            if label[0] == service_label_custom[0]:
+                custom_service_label_exists = True
+                break
+        if custom_service_label_exists:
+            continue
+        integration.alert_group_labels_custom = custom_labels + [service_label_custom]
+        integrations_to_update.append(integration)
+
+    AlertReceiveChannel.objects.bulk_update(integrations_to_update, fields=["alert_group_labels_custom"])
