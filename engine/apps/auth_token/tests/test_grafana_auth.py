@@ -110,9 +110,9 @@ def test_grafana_authentication_no_org_grafana_url():
     request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true"
     httpretty.register_uri(httpretty.POST, request_sync_url, status=404)
 
-    with pytest.raises(exceptions.AuthenticationFailed) as exc:
+    with pytest.raises(exceptions.Throttled) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
-    assert exc.value.detail == "Organization not found."
+    assert exc.value.detail == "Organization being synced, please retry."
 
 
 @pytest.mark.parametrize("grafana_url", ["null;", "foo", ""])

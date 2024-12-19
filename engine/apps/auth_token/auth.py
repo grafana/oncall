@@ -381,6 +381,9 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
                     # if organization exists, we are good)
                     setup_organization(url, auth)
                     organization = Organization.objects.filter(grafana_url=url).first()
+                    if organization is None:
+                        # sync may still be in progress, client should retry
+                        raise exceptions.Throttled(detail="Organization being synced, please retry.")
                 return organization
 
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
