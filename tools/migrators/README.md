@@ -150,6 +150,75 @@ oncall-migrator
 Consider modifying [alert templates](https://grafana.com/docs/oncall/latest/alert-behavior/alert-templates/) of the created
 webhook integrations to adjust them for incoming payloads.
 
+### Migrate your PagerDuty data while ignoring Grafana users
+
+This scenario may be relevant where you are unable to import your list of Grafana users, but would like to experiment
+with Grafana OnCall, using your existing PagerDuty setup as a starting point for experimentation.
+
+If this is relevant to you, you can migrate as such 👇
+
+> [!IMPORTANT]
+> As outlined several times in the documentation below, if you first import data into Grafana OnCall without
+> including users, make changes to that data within OnCall, and then later re-import the data with users, Grafana OnCall
+> will delete and recreate those objects, as part of the subsequent migration.
+>
+> As a result, any modifications you made after the initial import will be lost.
+
+```bash
+# Step 1: run a plan of what will be migrated, ignoring users for now
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="plan" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+-e MIGRATE_USERS="false" \
+oncall-migrator
+
+# Step 2. Actually migrate your PagerDuty data, again ignoring users
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="migrate" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+-e MIGRATE_USERS="false" \
+oncall-migrator
+
+# Step 3. Optional; import your users from PagerDuty into your Grafana stack using our provided script
+# For more information on our script, see "Migrating Users" section below for some more information on
+# how users are migrated.
+#
+# Alternatively this can be done with other Grafana IAM methods.
+# See Grafana's "Plan your IAM integration strategy" docs for more information on this.
+# https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/planning-iam-strategy/
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e GRAFANA_URL="<GRAFANA_API_URL>" \
+-e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
+-e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+oncall-migrator python /app/add_users_to_grafana.py
+
+# Step 4: When ready, run a plan of what will be migrated, including users this time
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="plan" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+oncall-migrator
+
+# Step 4: And finally, when ready, actually migrate your PagerDuty data, again including users
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="migrate" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+oncall-migrator
+```
+
 ### Configuration
 
 Configuration is done via environment variables passed to the docker container.
@@ -165,6 +234,7 @@ Configuration is done via environment variables passed to the docker container.
 | `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS`         | When set to `true`, integrations with unsupported type will be migrated to Grafana OnCall integrations with type "webhook". When set to `false`, integrations with unsupported type won't be migrated. | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES`            | Migrate global event rulesets to Grafana OnCall integrations.                                                                                                                                          | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` | Include service & integrations names from PD in migrated integrations (only effective when `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`).                                                              | Boolean                             | `false` |
+| `MIGRATE_USERS` | If `false`, will allow you to important all objects, while ignoring user references in schedules and escalation policies. In addition, if `false`, will also skip importing User notification rules. This may be helpful in cases where you are unable to import your list of Grafana users, but would like to experiment with OnCall using your existing PagerDuty setup as a starting point for experimentation. | Boolean                             | `true` |
 
 ### Resources
 
@@ -340,9 +410,9 @@ Grafana users via the Grafana HTTP API.
 ```bash
 docker run --rm \
 -e MIGRATING_FROM="pagerduty" \
--e GRAFANA_URL="http://localhost:3000" \
--e GRAFANA_USERNAME="admin" \
--e GRAFANA_PASSWORD="admin" \
+-e GRAFANA_URL="<GRAFANA_API_URL>" \
+-e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
+-e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
 oncall-migrator python /app/add_users_to_grafana.py
 ```
@@ -352,9 +422,9 @@ oncall-migrator python /app/add_users_to_grafana.py
 ```bash
 docker run --rm \
 -e MIGRATING_FROM="splunk" \
--e GRAFANA_URL="http://localhost:3000" \
--e GRAFANA_USERNAME="admin" \
--e GRAFANA_PASSWORD="admin" \
+-e GRAFANA_URL="<GRAFANA_API_URL>" \
+-e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
+-e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
 -e SPLUNK_API_ID="<SPLUNK_API_ID>" \
 -e SPLUNK_API_KEY="<SPLUNK_API_KEY>" \
 oncall-migrator python /app/add_users_to_grafana.py
