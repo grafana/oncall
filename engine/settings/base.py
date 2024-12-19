@@ -257,7 +257,7 @@ CACHES = {
             "DB": REDIS_DATABASE,
             "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
+            "CONNECTION_POOL_KWARGS": REDIS_SSL_CONFIG
             | {
                 "max_connections": 50,
                 "timeout": 20,
