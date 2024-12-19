@@ -293,8 +293,6 @@ class AlertGroupView(
     filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
     filterset_class = AlertGroupFilter
 
-    TEAM_LOOKUP="teams"
-
     def get_serializer_class(self):
         if self.action == "list":
             return AlertGroupListSerializer
@@ -304,10 +302,36 @@ class AlertGroupView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
 
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
+             organization_id=self.request.auth.organization.id
+         )
+        if not ignore_filtering_by_available_teams:
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args_with_field(field="team"))
+
+        # Filter by team(s). Since we really filter teams from integrations, this is not an AlertGroup model filter.
+        # This is based on the common.api_helpers.ByTeamModelFieldFilterMixin implementation
+
         team_values = self.request.query_params.getlist("team", [])
+
         if team_values:
-            null_team_lookup = (Q(teams__isnull=True) | Q(teams=None)) if NO_TEAM_VALUE in team_values else None
-            teams_lookup = Q(teams__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
+            null_team_lookup = Q(team__isnull=True) if NO_TEAM_VALUE in team_values else None
+            alert_receive_channels_teams_lookup = Q(team__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
+            if null_team_lookup:
+                alert_receive_channels_teams_lookup = alert_receive_channels_teams_lookup | null_team_lookup
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(alert_receive_channels_teams_lookup)
+
+        alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
+        print(alert_receive_channels_ids)
+
+        
+        if team_values:
+            # need to also filter null team by null in in the receive channels so that we don't provide alertgroups where the team is assoicated to the channel
+            null_team_lookup = ((Q(teams__isnull=True) | Q(teams=None)) & Q(channel__in=alert_receive_channels_ids)) if NO_TEAM_VALUE in team_values else None
+            teams_lookup = (
+                Q(teams__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE]) | # handle alertgroups with teams property
+                ((Q(teams__isnull=True) | Q(teams=None)) & Q(channel__in=alert_receive_channels_ids))   # handle alertgroups without a teams property set
+            )
+
             if null_team_lookup:
                 teams_lookup = teams_lookup | null_team_lookup
 

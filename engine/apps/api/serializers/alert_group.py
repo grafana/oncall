@@ -200,10 +200,12 @@ class AlertGroupListSerializer(
         Handle AlertGroups that haven't been assigned a team yet
         """
 
-        if obj.teams:
+        if obj.teams.exists():
             teams = obj.teams
         elif obj.channel.team:
             teams = [obj.channel.team]
+        else:
+            teams = []
         return FastTeamSerializer(teams, context=self.context, many=True).data
 
     def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
