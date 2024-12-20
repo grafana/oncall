@@ -259,27 +259,47 @@ def test_create_missing_direct_paging_integrations(
 ):
     organization = make_organization()
 
-    # team with no direct paging integration
+    # two teams with no direct paging integration
     team1 = make_team(organization)
+    team2 = make_team(organization)
 
     # team with direct paging integration
-    team2 = make_team(organization)
+    team3 = make_team(organization)
     alert_receive_channel = make_alert_receive_channel(
-        organization, team=team2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        organization, team=team3, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
     )
     make_channel_filter(alert_receive_channel, is_default=True, order=0)
 
     # create missing direct paging integration for organization
     AlertReceiveChannel.objects.create_missing_direct_paging_integrations(organization)
 
+    assert organization.alert_receive_channels.count() == 3
+
     # check that missing integrations and default routes were created
-    assert organization.alert_receive_channels.count() == 2
-    mock_metrics_add_integrations_to_cache.assert_called_once()
+    #
+    # NOTE: we explicitly don't test team3, it already has a Direct Paging integraiton associated with it
+    # and AlertReceiveChannel.objects.create_missing_direct_paging_integrations is not responsible for filling
+    # in missing routes.
+    #
+    # See apps/alerts/migrations/0072_upsert_direct_paging_integration_routes.py which is a data migration that does
+    # exactly this.
     for team in [team1, team2]:
-        alert_receive_channel = organization.alert_receive_channels.get(
-            team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-        )
-        assert alert_receive_channel.channel_filters.get().is_default
+        alert_receive_channel = organization.alert_receive_channels.get(team=team)
+
+        direct_paging_integration_routes = alert_receive_channel.channel_filters.all()
+
+        assert direct_paging_integration_routes.count() == 2
+
+        for route in direct_paging_integration_routes:
+            if route.is_default:
+                assert route.order == 1
+                assert route.filtering_term is None
+            else:
+                assert route.order == 0
+                assert route.filtering_term == "{{ payload.oncall.important }}"
+                assert route.filtering_term_type == route.FILTERING_TERM_TYPE_JINJA2
+
+    mock_metrics_add_integrations_to_cache.assert_called_once()
 
 
 @pytest.mark.django_db

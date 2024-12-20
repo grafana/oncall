@@ -126,6 +126,8 @@ class AlertReceiveChannelManager(models.Manager):
     def create_missing_direct_paging_integrations(organization: "Organization") -> None:
         from apps.alerts.models import ChannelFilter
 
+        logger.info(f"Starting create_missing_direct_paging_integrations for organization: {organization.id}")
+
         # fetch teams without direct paging integration
         teams_missing_direct_paging = list(
             organization.teams.exclude(
@@ -134,10 +136,17 @@ class AlertReceiveChannelManager(models.Manager):
                 ).values_list("team_id", flat=True)
             )
         )
+        number_of_teams_missing_direct_paging = len(teams_missing_direct_paging)
+        logger.info(
+            f"Found {number_of_teams_missing_direct_paging} teams missing direct paging integrations.",
+        )
+
         if not teams_missing_direct_paging:
+            logger.info("No missing direct paging integrations found. Exiting.")
             return
 
         # create missing integrations
+        logger.info(f"Creating missing direct paging integrations for {number_of_teams_missing_direct_paging} teams.")
         AlertReceiveChannel.objects.bulk_create(
             [
                 AlertReceiveChannel(
@@ -151,29 +160,49 @@ class AlertReceiveChannelManager(models.Manager):
             batch_size=5000,
             ignore_conflicts=True,  # ignore if direct paging integration already exists for team
         )
+        logger.info("Missing direct paging integrations creation step completed.")
 
         # fetch integrations for teams (some of them are created above, but some may already exist previously)
         alert_receive_channels = organization.alert_receive_channels.filter(
             team__in=teams_missing_direct_paging, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
         )
+        logger.info(f"Fetched {alert_receive_channels.count()} direct paging integrations for the specified teams.")
 
-        # create default routes
+        # we create two routes for each Direct Paging Integration
+        # 1. route for important alerts (using the payload.oncall.important alert field value) - non-default
+        # 2. route for all other alerts - default
+        routes_to_create = []
+        for alert_receive_channel in alert_receive_channels:
+            routes_to_create.extend(
+                [
+                    ChannelFilter(
+                        alert_receive_channel=alert_receive_channel,
+                        filtering_term="{{ payload.oncall.important }}",
+                        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
+                        is_default=False,
+                        order=0,
+                    ),
+                    ChannelFilter(
+                        alert_receive_channel=alert_receive_channel,
+                        filtering_term=None,
+                        is_default=True,
+                        order=1,
+                    ),
+                ]
+            )
+
+        logger.info(f"Creating {len(routes_to_create)} channel filter routes.")
         ChannelFilter.objects.bulk_create(
-            [
-                ChannelFilter(
-                    alert_receive_channel=alert_receive_channel,
-                    filtering_term=None,
-                    is_default=True,
-                    order=0,
-                )
-                for alert_receive_channel in alert_receive_channels
-            ],
+            routes_to_create,
             batch_size=5000,
-            ignore_conflicts=True,  # ignore if default route already exists for integration
+            ignore_conflicts=True,  # ignore if routes already exist for integration
         )
+        logger.info("Direct paging routes creation completed.")
 
         # add integrations to metrics cache
+        logger.info("Adding integrations to metrics cache.")
         metrics_add_integrations_to_cache(list(alert_receive_channels), organization)
+        logger.info("Integrations have been added to the metrics cache.")
 
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(

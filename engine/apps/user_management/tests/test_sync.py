@@ -203,23 +203,33 @@ def test_sync_teams_for_organization(make_organization, make_team, make_alert_re
     assert created_team.team_id == api_teams[2]["id"]
     assert created_team.name == api_teams[2]["name"]
 
+    def _assert_teams_direct_paging_integration_is_configured_properly(integration):
+        assert integration.channel_filters.count() == 2
+
+        for route in integration.channel_filters.all():
+            if route.is_default:
+                assert route.order == 1
+                assert route.filtering_term is None
+            else:
+                assert route.order == 0
+                assert route.filtering_term == "{{ payload.oncall.important }}"
+                assert route.filtering_term_type == route.FILTERING_TERM_TYPE_JINJA2
+
     # check that direct paging is created for created team
     direct_paging_integration = AlertReceiveChannel.objects.get(
         organization=organization,
         integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
         team=created_team,
     )
-    assert direct_paging_integration.channel_filters.count() == 1
-    assert direct_paging_integration.channel_filters.first().order == 0
-    assert direct_paging_integration.channel_filters.first().is_default
+    _assert_teams_direct_paging_integration_is_configured_properly(direct_paging_integration)
 
     # check that direct paging is created for existing team
     direct_paging_integration = AlertReceiveChannel.objects.get(
-        organization=organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=teams[2]
+        organization=organization,
+        integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        team=teams[2],
     )
-    assert direct_paging_integration.channel_filters.count() == 1
-    assert direct_paging_integration.channel_filters.first().order == 0
-    assert direct_paging_integration.channel_filters.first().is_default
+    _assert_teams_direct_paging_integration_is_configured_properly(direct_paging_integration)
 
 
 @pytest.mark.django_db
