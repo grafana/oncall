@@ -128,6 +128,11 @@ urlpatterns += [
         name="get_update_key",
     ),
     re_path(
+        r"^labels/name/(?P<key_name>[\w\-]+)/?$",
+        LabelsViewSet.as_view({"get": "get_key_by_name"}),
+        name="get_key_by_name",
+    ),
+    re_path(
         r"^labels/id/(?P<key_id>[\w\-]+)/values/?$", LabelsViewSet.as_view({"post": "add_value"}), name="add_value"
     ),
     re_path(
