@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
 
+from apps.alerts.constants import SERVICE_LABEL
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
@@ -24,6 +25,7 @@ from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.labels.client import LabelsRepoAPIException
 from apps.metrics_exporter.helpers import (
     metrics_add_integrations_to_cache,
     metrics_remove_deleted_integration_from_cache,
@@ -760,6 +762,50 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
+
+    def create_service_name_dynamic_label(self):
+        """
+        save_service_name_dynamic_label creates a dynamic label for service_name for Grafana alerting integration.
+        Warning: It might make a request to the labels repo API.
+        That's why it's called in api handlers, not in post_save.
+        Once we will have labels operator & get rid of syncing labels from repo, this method should be moved to post_save.
+        """
+        if not self.organization.is_grafana_labels_enabled:
+            return
+        if self.integration != AlertReceiveChannel.GRAFANA_ALERTING:
+            return
+
+        # validate that service_name label doesn't exist in already
+        if self.alert_group_labels_custom is not None:
+            for k, _, _ in self.alert_group_labels_custom:
+                if k == SERVICE_LABEL:
+                    return
+
+        service_name_dynamic_label = self._build_service_name_label_custom(self.organization)
+        if service_name_dynamic_label is None:
+            # TODO: start async task
+            return
+        self.alert_group_labels_custom = self.service_name_dynamic_label + self.alert_group_labels_custom
+        self.save(update_fields=["alert_group_labels_custom"])
+
+    @staticmethod
+    def _build_service_name_label_custom(organization: "Organization") -> DynamicLabelsEntryDB | None:
+        """
+        _build_service_name_label_custom returns `service_name` label template in dynamic label format: [key_id, None, template]
+        If there is no label key service_name in the cache - it tries to fetch it from the labels repo API.
+        """
+        from apps.labels.models import LabelKeyCache
+
+        SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION = "{{ payload.common_labels.service_name }}"
+
+        try:
+            service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)
+        except LabelsRepoAPIException as e:
+            logger.error(f"Failed to get or create label key {SERVICE_LABEL} for organization {organization}: {e}")
+            return None
+        return (
+            [service_label_key.id, None, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION] if service_label_key else None
+        )
 
 
 @receiver(post_save, sender=AlertReceiveChannel)

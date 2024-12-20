@@ -7,8 +7,6 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
-from apps.labels.utils import get_service_label_custom
-from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
@@ -143,6 +141,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+            # Create default service_name label
+            instance.create_service_name_dynamic_label()
         return instance
 
     def update(self, *args, **kwargs):
@@ -387,14 +387,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter
-
-    def _add_service_label_if_needed(self, organization: "Organization", validated_data: dict) -> dict:
-        if not organization.is_grafana_labels_enabled:
-            return validated_data
-        service_label_custom = get_service_label_custom(organization)
-        if service_label_custom:
-            validated_data["alert_group_labels_custom"] = [service_label_custom]
-        return validated_data
 
 
 class IntegrationUpdateSerializer(IntegrationSerializer):

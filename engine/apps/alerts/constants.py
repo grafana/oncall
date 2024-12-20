@@ -25,3 +25,6 @@ class AlertGroupState(str, Enum):
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
     SILENCED = "silenced"
+
+
+SERVICE_LABEL = "service_name"

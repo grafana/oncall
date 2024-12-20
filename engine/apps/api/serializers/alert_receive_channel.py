@@ -15,7 +15,6 @@ from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.labels.models import LabelKeyCache, LabelValueCache
 from apps.labels.types import LabelKey
-from apps.labels.utils import get_service_label_custom
 from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
@@ -34,7 +33,7 @@ def _additional_settings_serializer_from_type(integration_type: str) -> serializ
     return cls
 
 
-# TODO: refactor this types as w no longer support storing static labels in this field.
+# TODO: refactor this types as we no longer support storing static labels in this field.
 # AlertGroupCustomLabelValue represents custom alert group label value for API requests
 # It handles two types of label's value:
 # 1. Just Label Value from a label repo for a static label
@@ -80,7 +79,10 @@ class AdditionalSettingsField(serializers.DictField):
 
 
 class CustomLabelSerializer(serializers.Serializer):
-    """This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID."""
+    """
+    This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer,
+    but allows null for value ID to support templated labels.
+    """
 
     class CustomLabelKeySerializer(serializers.Serializer):
         id = serializers.CharField()
@@ -98,102 +100,12 @@ class CustomLabelSerializer(serializers.Serializer):
 
 
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
-    """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
-
     # todo: inheritable field is deprecated. Remove in a future release
     inheritable = serializers.DictField(child=serializers.BooleanField(), required=False)
     custom = CustomLabelSerializer(many=True)
     template = serializers.CharField(allow_null=True)
 
-    @staticmethod
-    def pop_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
-        """Get alert group labels from validated data."""
-
-        # the "alert_group_labels" field is optional, so either all 2 fields are present or none
-        # "inheritable" field is deprecated
-        if "custom" not in validated_data:
-            return None
-
-        return {
-            "inheritable": validated_data.pop("inheritable", None),  # deprecated
-            "custom": validated_data.pop("custom"),
-            "template": validated_data.pop("template"),
-        }
-
-    @classmethod
-    def update_validated_data_and_label_cache(
-        cls,
-        integration: str,
-        organization: "Organization",
-        validated_data: dict,
-        alert_group_labels: IntegrationAlertGroupLabels | None,
-        new_integration: bool,
-    ) -> dict:
-        """
-        Update validated data with alert group custom labels and labels template.
-        Update label cache.
-        Add `service_name` dynamic label for new Grafana Alerting integration.
-        """
-
-        is_new_alerting_integration = (
-            new_integration and integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
-        )
-        if not organization.is_grafana_labels_enabled or (
-            alert_group_labels is None and not is_new_alerting_integration
-        ):
-            return validated_data
-
-        custom_labels = cls._custom_labels_to_internal_value(alert_group_labels["custom"]) if alert_group_labels else []
-        # update DB cache for custom labels
-        cls._create_custom_labels(organization, custom_labels)
-
-        # if it's a new alerting integration, add service label to custom labels if it's not there
-        if is_new_alerting_integration:
-            service_label_custom = get_service_label_custom(organization)
-            if service_label_custom:
-                is_service_label_added = False
-                # check if service_name label has already been added to custom labels by user
-                for key in set(label[0] for label in custom_labels):
-                    if key == service_label_custom[0]:
-                        is_service_label_added = True
-                        break
-                if not is_service_label_added:
-                    custom_labels.append(service_label_custom)
-
-        validated_data["alert_group_labels_custom"] = custom_labels or None
-        validated_data["alert_group_labels_template"] = alert_group_labels["template"] if alert_group_labels else None
-        return validated_data
-
-    @staticmethod
-    def _create_custom_labels(organization: Organization, labels: AlertGroupCustomLabelsAPI) -> None:
-        """Create LabelKeyCache and LabelValueCache objects for custom labels."""
-
-        label_keys = [
-            LabelKeyCache(
-                id=label["key"]["id"],
-                name=label["key"]["name"],
-                prescribed=label["key"]["prescribed"],
-                organization=organization,
-            )
-            for label in labels
-        ]
-
-        label_values = [
-            LabelValueCache(
-                id=label["value"]["id"],
-                name=label["value"]["name"],
-                prescribed=label["value"]["prescribed"],
-                key_id=label["key"]["id"],
-            )
-            for label in labels
-            if label["value"]["id"]  # don't create LabelValueCache objects for templated labels
-        ]
-
-        LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
-        LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
-
-    @classmethod
-    def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
+    def to_representation(self, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
         """
         The API representation of alert group labels is very different from the underlying model.
 
@@ -205,20 +117,28 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         return {
             # todo: "inheritable" field is deprecated, remove in a future release.
             "inheritable": {label.key_id: True for label in instance.labels.all()},
-            "custom": cls._custom_labels_to_representation(instance.alert_group_labels_custom),
+            "custom": self._custom_labels_to_representation(instance.alert_group_labels_custom),
             "template": instance.alert_group_labels_template,
         }
 
-    @staticmethod
-    def _custom_labels_to_internal_value(
-        custom_labels: AlertGroupCustomLabelsAPI,
-    ) -> AlertReceiveChannel.DynamicLabelsConfigDB:
-        """Convert custom labels from API representation to the schema used by the JSONField on the model."""
+    def to_internal_value(
+        self,
+        validated_data: dict,
+    ) -> "AlertReceiveChannel.DynamicLabelsEntryDB":
+        """
+        labels_schema_to_internal_value converts dynamic labels from API format to internal format
+        """
+        alert_group_labels = self._pop_alerty_group_labels(validated_data)
+        if alert_group_labels is None:
+            return validated_data
+        custom_labels = (
+            self._custom_labels_to_internal_value(alert_group_labels["custom"]) if alert_group_labels else []
+        )
+        validated_data["alert_group_labels_custom"] = custom_labels or None
+        validated_data["alert_group_labels_template"] = alert_group_labels["template"] if alert_group_labels else None
 
-        return [
-            [label["key"]["id"], label["value"]["id"], None if label["value"]["id"] else label["value"]["name"]]
-            for label in custom_labels
-        ]
+        # TODO: refresh custom labels cache
+        return validated_data
 
     @staticmethod
     def _custom_labels_to_representation(
@@ -266,6 +186,59 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
             for key_id, value_id, template in custom_labels
             if key_id in label_key_index and (value_id in label_value_index or not value_id)
         ]
+
+    @staticmethod
+    def _custom_labels_to_internal_value(
+        custom_labels: AlertGroupCustomLabelsAPI,
+    ) -> AlertReceiveChannel.DynamicLabelsConfigDB:
+        """Convert custom labels from API representation to the schema used by the JSONField on the model."""
+
+        return [
+            [label["key"]["id"], label["value"]["id"], None if label["value"]["id"] else label["value"]["name"]]
+            for label in custom_labels
+        ]
+
+    @staticmethod
+    def _pop_alerty_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
+        # TODO: what does it mean?
+        # the "alert_group_labels" field is optional, so either all 2 fields are present or none
+        # "inheritable" field is deprecated
+        if "custom" not in validated_data:
+            return None
+
+        return {
+            "inheritable": validated_data.pop("inheritable", None),  # deprecated
+            "custom": validated_data.pop("custom"),
+            "template": validated_data.pop("template"),
+        }
+
+    @staticmethod
+    def _create_custom_labels(organization: Organization, labels: AlertGroupCustomLabelsAPI) -> None:
+        """Create LabelKeyCache and LabelValueCache objects for labels used in labelsSchema"""
+
+        label_keys = [
+            LabelKeyCache(
+                id=label["key"]["id"],
+                name=label["key"]["name"],
+                prescribed=label["key"]["prescribed"],
+                organization=organization,
+            )
+            for label in labels
+        ]
+
+        label_values = [
+            LabelValueCache(
+                id=label["value"]["id"],
+                name=label["value"]["name"],
+                prescribed=label["value"]["prescribed"],
+                key_id=label["key"]["id"],
+            )
+            for label in labels
+            if label["value"]["id"]  # don't create LabelValueCache objects for templated labels
+        ]
+
+        LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
+        LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
 
 
 class AlertReceiveChannelSerializer(
@@ -416,17 +389,8 @@ class AlertReceiveChannelSerializer(
             if _integration.slug == integration:
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
-        # pop associated labels and alert group labels, so they are not passed to AlertReceiveChannel.create
+        # pop associated labels, so they are not passed to AlertReceiveChannel.create. They will be created later.
         labels = validated_data.pop("labels", None)
-        alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
-        # update validated data with alert group labels and update label cache if needed
-        validated_data = IntegrationAlertGroupLabelsSerializer.update_validated_data_and_label_cache(
-            integration=integration,
-            organization=organization,
-            validated_data=validated_data,
-            alert_group_labels=alert_group_labels,
-            new_integration=True,
-        )
 
         try:
             instance = AlertReceiveChannel.create(
@@ -445,21 +409,24 @@ class AlertReceiveChannelSerializer(
         if create_default_webhooks and hasattr(instance.config, "create_default_webhooks"):
             instance.config.create_default_webhooks(instance)
 
+        # Create default service_name label
+        instance.create_service_name_dynamic_label()
+
         return instance
 
     def update(self, instance, validated_data):
+        organization = self.context["request"].auth.organization
         # update associated labels
         labels = validated_data.pop("labels", None)
         self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
-        alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
         # update validated data with alert group labels and update label cache if needed
-        validated_data = IntegrationAlertGroupLabelsSerializer.update_validated_data_and_label_cache(
+        validated_data = self.labels_schema_to_internal_value(
             integration=instance.integration,
             organization=instance.organization,
             validated_data=validated_data,
-            alert_group_labels=alert_group_labels,
             new_integration=False,
         )
+        self._create_custom_labels(organization, labels)
 
         try:
             updated_instance = super().update(instance, validated_data)

@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.types import LabelOption, LabelPair
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model, get_service_label_custom
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model
 from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -193,7 +193,7 @@ def add_service_label_per_org(organization_id: int):
     from apps.user_management.models import Organization
 
     organization = Organization.objects.get(id=organization_id)
-    service_label_custom = get_service_label_custom(organization)
+    service_label_custom = AlertReceiveChannel._build_service_name_label_custom(organization)
     if not service_label_custom:
         return
     integrations = AlertReceiveChannel.objects.filter(
