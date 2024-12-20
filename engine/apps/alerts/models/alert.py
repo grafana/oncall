@@ -14,7 +14,7 @@ from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.signals import alert_group_escalation_snapshot_built
 from apps.alerts.tasks.distribute_alert import send_alert_create_signal
-from apps.labels.alert_group_labels import assign_labels, gather_labels_from_alert_receive_channel_and_raw_request_data
+from apps.labels.alert_group_labels import gather_alert_labels, save_alert_group_labels
 from apps.labels.types import AlertLabels
 from common.jinja_templater import apply_jinja_template_to_alert_payload_and_labels
 from common.jinja_templater.apply_jinja_template import (
@@ -106,13 +106,11 @@ class Alert(models.Model):
         # This import is here to avoid circular imports
         from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, ChannelFilter
 
-        parsed_labels = gather_labels_from_alert_receive_channel_and_raw_request_data(
-            alert_receive_channel, raw_request_data
-        )
-        group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, parsed_labels, is_demo)
+        alert_labels = gather_alert_labels(alert_receive_channel, raw_request_data)
+        group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, alert_labels, is_demo)
 
         if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, parsed_labels)
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, alert_labels)
 
         # Get or create group
         group, group_created = AlertGroup.objects.get_or_create_grouping(
@@ -141,7 +139,7 @@ class Alert(models.Model):
         transaction.on_commit(partial(send_alert_create_signal.apply_async, (alert.pk,)))
 
         if group_created:
-            assign_labels(group, alert_receive_channel, parsed_labels)
+            save_alert_group_labels(group, alert_receive_channel, alert_labels)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 

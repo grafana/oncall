@@ -19,9 +19,14 @@ LABEL_VALUE_TYPES = (str, int, float, bool)
 MAX_LABELS_PER_ALERT_GROUP = 15
 
 
-def gather_labels_from_alert_receive_channel_and_raw_request_data(
+def gather_alert_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
 ) -> typing.Optional[types.AlertLabels]:
+    """
+    gather_alert_labels gathers labels for an alert received by the alert receive channel.
+    1. static labels - inherits them from integration.
+    2. dynamic labels and multi-label extraction template – templating the raw_request_data.
+    """
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return None
 
@@ -37,7 +42,7 @@ def gather_labels_from_alert_receive_channel_and_raw_request_data(
     return labels
 
 
-def assign_labels(
+def save_alert_group_labels(
     alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Optional[types.AlertLabels]
 ) -> None:
     from apps.labels.models import AlertGroupAssociatedLabel
