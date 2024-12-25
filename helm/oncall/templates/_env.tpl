@@ -244,7 +244,7 @@
       key: {{ include "snippet.mysql.password.secret.key" . | quote }}
 {{- if not .Values.mariadb.enabled }}
 {{- with .Values.externalMysql.options }}
-- name: MYSQL_OPTIONS
+- name: DATABASE_OPTIONS
   value: {{ . | quote }}
 {{- end }}
 {{- end }}
