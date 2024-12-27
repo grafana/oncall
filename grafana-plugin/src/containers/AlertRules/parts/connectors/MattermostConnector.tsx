@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { ChannelFilter } from "models/channel_filter/channel_filter.types";
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { MattermostChannel } from 'models/mattermost/mattermost.types';
 import { useStore } from 'state/useStore';
 
@@ -27,9 +27,9 @@ export const MattermostConnector = observer((props: MattermostConnectorProps) =>
   const {
     alertReceiveChannelStore,
     mattermostChannelStore,
-
+    // dereferencing items is needed to rerender GSelect
     mattermostChannelStore: { items: mattermostChannelItems },
-  } = store
+  } = store;
 
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -53,9 +53,9 @@ export const MattermostConnector = observer((props: MattermostConnectorProps) =>
         <div>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
-                value={channelFilter.notification_backends?.MATTERMOST?.enabled}
-                onChange={handleChannelFilterNotifyInMattermostChange}
-                transparent
+              value={channelFilter.notification_backends?.MATTERMOST?.enabled}
+              onChange={handleChannelFilterNotifyInMattermostChange}
+              transparent
             />
           </WithPermissionControlTooltip>
         </div>
@@ -78,4 +78,4 @@ export const MattermostConnector = observer((props: MattermostConnectorProps) =>
       </Stack>
     </div>
   );
-})
+});

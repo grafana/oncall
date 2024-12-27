@@ -46,7 +46,7 @@ function getGoogleMessage(googleError: GoogleError) {
 }
 
 function getMattermostErrorMessage(mattermostError: MattermostError) {
-  if (mattermostError == MattermostError.MATTERMOST_AUTH_FETCH_USER_ERROR) {
+  if (mattermostError === MattermostError.MATTERMOST_AUTH_FETCH_USER_ERROR) {
     return (
       <>
         Couldn't connect your Mattermost account. Failed to fetch user information from your mattermost server. Please

@@ -64,7 +64,10 @@ SWAGGER_SETTINGS = {
 if TESTING:
     EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend", 42)]
     TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
+    MATTERMOST_HOST = "http://localhost:8065"
     MATTERMOST_BOT_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
+    MATTERMOST_SIGNING_SECRET = "f0cb4953bec053e6e616febf2c2392ff60bd02c453a52ab53d9a8b0d0d7284a6"
+
     TWILIO_AUTH_TOKEN = "twilio_auth_token"
 
     # charset/collation related tests don't work without this

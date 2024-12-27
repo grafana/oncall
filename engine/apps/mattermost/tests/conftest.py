@@ -1,6 +1,22 @@
 import pytest
+from django.conf import settings
 
-from apps.mattermost.tests.factories import MattermostMessageFactory, MattermostUserFactory
+if not settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+    pytest.skip("Mattermost integration is not enabled", allow_module_level=True)
+else:
+    from apps.mattermost.tests.factories import (
+        MattermostChannelFactory,
+        MattermostMessageFactory,
+        MattermostUserFactory,
+    )
+
+
+@pytest.fixture()
+def make_mattermost_channel():
+    def _make_mattermost_channel(organization, **kwargs):
+        return MattermostChannelFactory(organization=organization, **kwargs)
+
+    return _make_mattermost_channel
 
 
 @pytest.fixture()

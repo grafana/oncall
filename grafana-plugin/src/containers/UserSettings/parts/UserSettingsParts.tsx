@@ -54,8 +54,6 @@ export const Tabs = ({
     [onTabChange]
   );
 
-  const styles = useStyles2(getUserSettingsPartsStyles);
-
   return (
     <TabsBar>
       <Tab

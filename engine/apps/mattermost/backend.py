@@ -10,6 +10,7 @@ class MattermostBackend(BaseMessagingBackend):
     label = "Mattermost"
     short_label = "Mattermost"
     available_for_use = True
+    templater = "apps.mattermost.alert_rendering.AlertMattermostTemplater"
 
     def unlink_user(self, user):
         from apps.mattermost.models import MattermostUser
