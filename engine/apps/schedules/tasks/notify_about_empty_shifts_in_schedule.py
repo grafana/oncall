@@ -11,18 +11,6 @@ from common.utils import trim_if_needed
 task_logger = get_task_logger(__name__)
 
 
-# deprecated # todo: delete this task from here and from task routes after the next release
-@shared_dedicated_queue_retry_task()
-def start_check_empty_shifts_in_schedule():
-    return
-
-
-# deprecated # todo: delete this task from here and from task routes after the next release
-@shared_dedicated_queue_retry_task()
-def check_empty_shifts_in_schedule(schedule_pk):
-    return
-
-
 @shared_dedicated_queue_retry_task()
 def start_notify_about_empty_shifts_in_schedule():
     from apps.schedules.models import OnCallSchedule
