@@ -25,9 +25,9 @@ export const MattermostInfo = () => {
         <Block bordered withBackground className={styles.mattermostInfoblock}>
           <Stack direction="column" alignItems="center" gap={StackSize.lg}>
             <Text>
-              Personal Mattermost connection will allow you to manage alert group in your connected mattermost channel
+              Personal Mattermost connection will allow you to manage alert groups in your connected Mattermost channel
             </Text>
-            <Text>To setup personal mattermost click the button below and login to your mattermost server</Text>
+            <Text>To link your Mattermost account, click the button below and login to your server</Text>
 
             <Text type="secondary">
               More details in{' '}

@@ -25,7 +25,7 @@ export const MattermostConnector = observer((props: MattermostConnectorProps) =>
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.MattermostInfo);
-  }, [onTabChange]);
+  }, []);
 
   const handleUnlinkMattermostAccount = useCallback(() => {
     userStore.unlinkBackend(id, 'MATTERMOST');
@@ -35,24 +35,28 @@ export const MattermostConnector = observer((props: MattermostConnectorProps) =>
 
   return (
     <div>
-      <InlineField label="Mattermost" labelWidth={12} disabled={!isCurrentUser}>
-        {mattermostConfigured ? (
+      {storeUser.messaging_backends.MATTERMOST ? (
+        <InlineField label="Mattermost" labelWidth={12}>
           <Stack gap={StackSize.xs}>
             <Input disabled={true} value={mattermostConfigured?.username ? '@' + mattermostConfigured?.username : ''} />
-            <WithConfirm title="Are you sure to disconnect your mattermost account?" confirmText="Disconnect">
+            <WithConfirm title="Are you sure to disconnect your Mattermost account?" confirmText="Disconnect">
               <Button
-                onClick={handleUnlinkMattermostAccount}
+                disabled={!isCurrentUser}
                 variant="destructive"
                 icon="times"
-                disabled={!isCurrentUser}
+                onClick={handleUnlinkMattermostAccount}
                 tooltip={'Unlink Mattermost Account'}
               />
             </WithConfirm>
           </Stack>
-        ) : (
-          <Button onClick={handleConnectButtonClick}>Connect account</Button>
-        )}
-      </InlineField>
+        </InlineField>
+      ) : (
+        <div>
+          <InlineField label="Mattermost" labelWidth={12} disabled={!isCurrentUser}>
+            <Button onClick={handleConnectButtonClick}>Connect account</Button>
+          </InlineField>
+        </div>
+      )}
     </div>
   );
 });

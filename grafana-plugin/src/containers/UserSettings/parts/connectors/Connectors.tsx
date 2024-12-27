@@ -31,8 +31,8 @@ export const Connectors: FC<ConnectorsProps> = observer((props) => {
       <SlackConnector {...props} />
       {store.hasFeature(AppFeature.Telegram) && <TelegramConnector {...props} />}
       {store.hasFeature(AppFeature.PersonalWebhook) && <PersonalWebhookConnector {...props} />}
-      {store.hasFeature(AppFeature.MsTeams) && <MSTeamsConnector {...props} />}
       {store.hasFeature(AppFeature.Mattermost) && <MattermostConnector {...props} />}
+      {store.hasFeature(AppFeature.MsTeams) && <MSTeamsConnector {...props} />}
       <Legend>Calendar export</Legend>
       <ICalConnector {...props} />
     </>

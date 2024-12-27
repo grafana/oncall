@@ -23,7 +23,6 @@ from apps.alerts.incident_appearance.templaters import (
 )
 from apps.alerts.models import Alert, AlertGroup
 from apps.base.messaging import get_messaging_backends
-from apps.mattermost.alert_rendering import AlertMattermostTemplater
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -239,9 +238,8 @@ WEB = "web"
 PHONE_CALL = "phone_call"
 SMS = "sms"
 TELEGRAM = "telegram"
-MATTERMOST = "mattermost"
 # templates with its own field in db, this concept replaced by messaging_backend_templates field
-NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM, MATTERMOST]
+NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
 
 TITLE = "title"
 MESSAGE = "message"
@@ -260,7 +258,6 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     PHONE_CALL: AlertPhoneCallTemplater,
     SMS: AlertSmsTemplater,
     TELEGRAM: AlertTelegramTemplater,
-    MATTERMOST: AlertMattermostTemplater,
 }
 
 # add additionally supported messaging backends
