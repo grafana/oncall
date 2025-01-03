@@ -1,4 +1,4 @@
-import { action, computed, observable, makeObservable, runInAction } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
 import { makeRequest } from 'network/network';
@@ -9,9 +9,6 @@ import { MattermostChannel } from './mattermost.types';
 export class MattermostChannelStore extends BaseStore {
   @observable.shallow
   items: { [id: string]: MattermostChannel } = {};
-
-  @observable
-  currentTeamToMattermostChannel?: Array<MattermostChannel['id']>;
 
   @observable.shallow
   searchResult: { [key: string]: Array<MattermostChannel['id']> } = {};
@@ -28,7 +25,7 @@ export class MattermostChannelStore extends BaseStore {
 
   @action.bound
   async updateMattermostChannels() {
-    const response = await makeRequest(this.path, {});
+    const response = await makeRequest<MattermostChannel[]>(this.path, {});
 
     const items = response.reduce(
       (acc: any, mattermostChannel: MattermostChannel) => ({
@@ -43,8 +40,6 @@ export class MattermostChannelStore extends BaseStore {
         ...this.items,
         ...items,
       };
-
-      this.currentTeamToMattermostChannel = response.map((mattermostChannel: MattermostChannel) => mattermostChannel.id);
     });
   }
 
@@ -92,21 +87,6 @@ export class MattermostChannelStore extends BaseStore {
     );
   };
 
-  @computed
-  get hasItems() {
-    return Boolean(this.getSearchResult('')?.length);
-  }
-
-  async startAutoUpdate() {
-    this.autoUpdateTimer = setInterval(this.updateMattermostChannels.bind(this), 3000);
-  }
-
-  async stopAutoUpdate() {
-    if (this.autoUpdateTimer) {
-      clearInterval(this.autoUpdateTimer);
-    }
-  }
-
   @action.bound
   async makeMattermostChannelDefault(id: MattermostChannel['id']) {
     return makeRequest(`/mattermost/channels/${id}/set_default`, {
@@ -118,7 +98,4 @@ export class MattermostChannelStore extends BaseStore {
     return super.delete(id);
   }
 
-  async getMattermostChannels() {
-    return super.getAll();
-  }
 }
