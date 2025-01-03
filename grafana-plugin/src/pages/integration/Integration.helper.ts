@@ -68,7 +68,7 @@ export const IntegrationHelper = {
     const hasTelegram =
       store.hasFeature(AppFeature.Telegram) && store.telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
     const isMSTeamsInstalled = Boolean(store.msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0);
-    const isMattermostInstalled = Boolean(store.mattermostChannelStore.currentTeamToMattermostChannel?.length > 0);
+    const isMattermostInstalled = Object.keys(store.mattermostChannelStore.items).length > 0;
 
     return hasSlack || hasTelegram || isMSTeamsInstalled || isMattermostInstalled;
   },

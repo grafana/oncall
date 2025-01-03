@@ -33,7 +33,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   }, []);
 
   const isMSTeamsInstalled = msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0;
-  const isMattermostInstalled = store.hasFeature(AppFeature.Mattermost) && mattermostChannelStore.currentTeamToMattermostChannel?.length > 0;
+  const isMattermostInstalled = store.hasFeature(AppFeature.Mattermost) && Object.keys(mattermostChannelStore.items).length > 0;
 
   if (!isSlackInstalled && !isTelegramInstalled && !isMSTeamsInstalled && !isMattermostInstalled) {
     return null;
