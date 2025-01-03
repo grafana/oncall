@@ -10,7 +10,7 @@ from rest_framework.serializers import BaseSerializer
 
 from apps.api.permissions import AuthenticatedRequest, RBACPermission
 from apps.api.views.shift_swap import BaseShiftSwapViewSet
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.models import ShiftSwapRequest
 from apps.user_management.models import User
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
     # set authentication and permission classes
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

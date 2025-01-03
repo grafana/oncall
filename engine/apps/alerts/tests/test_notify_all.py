@@ -9,10 +9,8 @@ from apps.base.models.user_notification_policy import UserNotificationPolicy
 
 @pytest.mark.django_db
 def test_notify_all(
-    make_organization,
-    make_slack_team_identity,
+    make_organization_and_user_with_slack_identities,
     make_slack_channel,
-    make_user,
     make_user_notification_policy,
     make_escalation_chain,
     make_escalation_policy,
@@ -20,13 +18,9 @@ def test_notify_all(
     make_alert_receive_channel,
     make_alert_group,
 ):
-    organization = make_organization()
-    slack_team_identity = make_slack_team_identity()
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
     slack_channel = make_slack_channel(slack_team_identity)
-    organization.slack_team_identity = slack_team_identity
-    organization.save()
 
-    user = make_user(organization=organization)
     make_user_notification_policy(
         user=user,
         step=UserNotificationPolicy.Step.NOTIFY,

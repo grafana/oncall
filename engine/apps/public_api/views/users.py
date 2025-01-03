@@ -6,7 +6,11 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from apps.api.permissions import LegacyAccessControlRole, RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
+from apps.auth_token.auth import (
+    ApiTokenAuthentication,
+    GrafanaServiceAccountAuthentication,
+    UserScheduleExportAuthentication,
+)
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
 from apps.public_api.tf_sync import is_request_from_terraform, sync_users_on_tf_request
@@ -35,7 +39,7 @@ class UserFilter(filters.FilterSet):
 
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

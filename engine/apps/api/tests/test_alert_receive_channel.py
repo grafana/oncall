@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from apps.base.messaging import load_backend
 from apps.labels.models import LabelKeyCache, LabelValueCache
 from common.exceptions import BacksyncIntegrationRequestError
 
@@ -413,12 +414,7 @@ def test_update_alert_receive_channel(alert_receive_channel_internal_api_setup, 
 
 
 @pytest.mark.django_db
-def test_integration_filter_by_maintenance(
-    alert_receive_channel_internal_api_setup,
-    make_user_auth_headers,
-    mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_post_alert_group_to_slack,
-):
+def test_integration_filter_by_maintenance(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.MAINTENANCE
@@ -436,12 +432,7 @@ def test_integration_filter_by_maintenance(
 
 
 @pytest.mark.django_db
-def test_integration_filter_by_debug(
-    alert_receive_channel_internal_api_setup,
-    make_user_auth_headers,
-    mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_post_alert_group_to_slack,
-):
+def test_integration_filter_by_debug(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.DEBUG_MAINTENANCE
@@ -843,6 +834,55 @@ def test_alert_receive_channel_preview_template_dynamic_payload(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("template_name", ["title", "message"])
+@pytest.mark.parametrize("backend_path", ["apps.mobile_app.backend.MobileAppBackend"])
+def test_alert_receive_channel_preview_template_dynamic_payload_custom_backends(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    template_name,
+    backend_path,
+    make_alert_group,
+    make_alert,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-preview-template", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    # load backend
+    backend = load_backend(backend_path, notification_channel_id=111)
+    notification_channel = backend.backend_id.lower()
+
+    data = {
+        "template_body": "{{ payload.foo }}",
+        "template_name": f"{notification_channel}_{template_name}",
+        "payload": {"foo": "bar" if template_name != "image_url" else "http://example.com/image.jpg"},
+    }
+
+    with patch(
+        "apps.alerts.incident_appearance.templaters.alert_templater.get_messaging_backend_from_id"
+    ) as mock_get_backend:
+        mock_get_backend.return_value = backend
+        from common.api_helpers import mixins
+
+        with patch.object(mixins, "NOTIFICATION_CHANNEL_OPTIONS", new=(notification_channel,)):
+            with patch.dict(
+                mixins.NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP, {notification_channel: backend.get_templater_class()}
+            ):
+                response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["preview"] == data["payload"]["foo"]
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -1091,7 +1131,6 @@ def test_start_maintenance_integration(
 
 @pytest.mark.django_db
 def test_stop_maintenance_integration(
-    mock_start_disable_maintenance_task,
     make_user_auth_headers,
     make_organization_and_user_with_plugin_token,
     make_escalation_chain,
@@ -1447,14 +1486,14 @@ def test_alert_receive_channel_contact_points_wrong_integration(
 def test_integration_filter_by_labels(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_integration_label_association,
+    make_static_label_config,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel_1 = make_alert_receive_channel(organization)
     alert_receive_channel_2 = make_alert_receive_channel(organization)
-    associated_label_1 = make_integration_label_association(organization, alert_receive_channel_1)
-    associated_label_2 = make_integration_label_association(organization, alert_receive_channel_1)
+    associated_label_1 = make_static_label_config(organization, alert_receive_channel_1)
+    associated_label_2 = make_static_label_config(organization, alert_receive_channel_1)
     alert_receive_channel_2.labels.create(
         key=associated_label_1.key, value=associated_label_1.value, organization=organization
     )
@@ -1620,7 +1659,7 @@ def test_alert_group_labels_get(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_label_key_and_value,
-    make_integration_label_association,
+    make_static_label_config,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -1635,7 +1674,7 @@ def test_alert_group_labels_get(
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["alert_group_labels"] == {"inheritable": {}, "custom": [], "template": None}
 
-    label = make_integration_label_association(organization, alert_receive_channel)
+    label = make_static_label_config(organization, alert_receive_channel)
 
     template = "{{ payload.labels | tojson }}"
     alert_receive_channel.alert_group_labels_template = template
@@ -1668,14 +1707,14 @@ def test_alert_group_labels_get(
 def test_alert_group_labels_put(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_integration_label_association,
+    make_static_label_config,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
-    label_1 = make_integration_label_association(organization, alert_receive_channel)
-    label_2 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
-    label_3 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
+    label_1 = make_static_label_config(organization, alert_receive_channel)
+    label_2 = make_static_label_config(organization, alert_receive_channel)
+    label_3 = make_static_label_config(organization, alert_receive_channel)
 
     custom = [
         # plain label
@@ -1712,19 +1751,26 @@ def test_alert_group_labels_put(
     response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+    # check static labels were saved as integration labels
     assert response.json()["alert_group_labels"] == {
-        "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False},
-        "custom": custom,
+        "inheritable": {label_1.key_id: True, label_2.key_id: True, label_3.key_id: True, "hello": True},
+        "custom": [
+            {
+                "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+            }
+        ],
         "template": template,
     }
 
     alert_receive_channel.refresh_from_db()
+    # check static labels are not in the custom labels list
     assert alert_receive_channel.alert_group_labels_custom == [
-        [label_2.key_id, label_2.value_id, None],
-        ["hello", "foo", None],
         [label_3.key_id, None, "{{ payload.foo }}"],
     ]
     assert alert_receive_channel.alert_group_labels_template == template
+    # check static labels were assigned to integration
+    assert alert_receive_channel.labels.filter(key_id__in=[label_2.key_id, "hello"]).count() == 2
 
     # check label keys & values are created
     key = LabelKeyCache.objects.filter(id="hello", name="world", organization=organization).first()
@@ -1766,6 +1812,20 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
             {
                 "key": {"id": "test", "name": "test", "prescribed": False},
                 "value": {"id": "123", "name": "123", "prescribed": False},
+            },
+            {
+                "key": {"id": "test2", "name": "test2", "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+            },
+        ],
+        "template": "{{ payload.labels | tojson }}",
+    }
+    expected_alert_group_labels = {
+        "inheritable": {"test": True},
+        "custom": [
+            {
+                "key": {"id": "test2", "name": "test2", "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
             }
         ],
         "template": "{{ payload.labels | tojson }}",
@@ -1783,10 +1843,10 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["labels"] == labels
-    assert response.json()["alert_group_labels"] == alert_group_labels
+    assert response.json()["alert_group_labels"] == expected_alert_group_labels
 
     alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
-    assert alert_receive_channel.alert_group_labels_custom == [["test", "123", None]]
+    assert alert_receive_channel.alert_group_labels_custom == [["test2", None, "{{ payload.foo }}"]]
     assert alert_receive_channel.alert_group_labels_template == "{{ payload.labels | tojson }}"
 
 
@@ -2006,6 +2066,12 @@ def test_alert_receive_channel_test_connection(
     data = {
         "integration": integration_config.slug,
         "team": None,
+        "create_default_webhooks": True,
+        "alert_group_labels": {
+            "inheritable": {},
+            "custom": [],
+            "template": None,
+        },
     }
 
     # no test connection setup

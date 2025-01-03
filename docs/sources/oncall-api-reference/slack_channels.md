@@ -14,6 +14,8 @@ refs:
 
 ## List Slack Channels
 
+**Required permission**: `grafana-oncall-app.chatops:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/slack_channels/" \
   --request GET \

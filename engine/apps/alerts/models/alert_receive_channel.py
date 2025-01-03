@@ -29,7 +29,7 @@ from apps.metrics_exporter.helpers import (
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
+from apps.slack.constants import SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
@@ -43,7 +43,7 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import AlertGroup, ChannelFilter
     from apps.labels.models import AlertReceiveChannelAssociatedLabel
-    from apps.user_management.models import Organization, Team
+    from apps.user_management.models import Organization, Team, User
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +234,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     author = models.ForeignKey(
         "user_management.User", on_delete=models.SET_NULL, related_name="alert_receive_channels", blank=True, null=True
     )
+    service_account = models.ForeignKey(
+        "user_management.ServiceAccount",
+        on_delete=models.SET_NULL,
+        related_name="alert_receive_channels",
+        blank=True,
+        null=True,
+    )
     team = models.ForeignKey(
         "user_management.Team",
         on_delete=models.SET_NULL,
@@ -294,16 +301,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    AlertGroupCustomLabelsDB = list[tuple[str, str | None, str | None]] | None
-    alert_group_labels_custom: AlertGroupCustomLabelsDB = models.JSONField(null=True, default=None)
+    DynamicLabelsEntryDB = tuple[str, str | None, str | None]
+    DynamicLabelsConfigDB = list[DynamicLabelsEntryDB] | None
+    alert_group_labels_custom: DynamicLabelsConfigDB = models.JSONField(null=True, default=None)
     """
-    Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
-    For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
-    For templated labels, the format is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>]
+    alert_group_labels_custom stores config of dynamic labels. It's stored as a list of tuples.
+    Format of tuple is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>].
+    The second element is deprecated, so it's always None. It was used for static labels.
+    // TODO: refactor to use just regular DB fields for dynamic label config.
     """
 
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
-    """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
+    """
+    alert_group_labels_template is a Jinja2 template for "multi-label extraction template".
+    It extracts multiple labels from incoming alert payload.
+    """
 
     additional_settings: dict | None = models.JSONField(null=True, default=None)
 
@@ -384,7 +396,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
         return super().save(*args, **kwargs)
 
-    def change_team(self, team_id, user):
+    def change_team(self, team_id: int, user: "User") -> None:
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
@@ -402,26 +414,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return GrafanaAlertingSyncManager(self)
 
     @property
-    def is_alerting_integration(self):
+    def is_alerting_integration(self) -> bool:
         return self.integration in {
             AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
             AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
         }
 
     @cached_property
-    def team_name(self):
+    def team_name(self) -> str:
         return self.team.name if self.team else "No team"
 
     @cached_property
-    def team_id_or_no_team(self):
+    def team_id_or_no_team(self) -> str:
         return self.team_id if self.team else "no_team"
 
     @cached_property
-    def emojized_verbal_name(self):
+    def emojized_verbal_name(self) -> str:
         return emoji.emojize(self.verbal_name, language="alias")
 
     @property
-    def new_incidents_web_link(self):
+    def new_incidents_web_link(self) -> str:
         from apps.alerts.models import AlertGroup
 
         return UIURLBuilder(self.organization).alert_groups(
@@ -429,25 +441,27 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         )
 
     @property
-    def is_rate_limited_in_slack(self):
+    def is_rate_limited_in_slack(self) -> bool:
         return (
             self.rate_limited_in_slack_at is not None
             and self.rate_limited_in_slack_at + SLACK_RATE_LIMIT_TIMEOUT > timezone.now()
         )
 
-    def start_send_rate_limit_message_task(self, delay=SLACK_RATE_LIMIT_DELAY):
+    def start_send_rate_limit_message_task(self, error_message_verb: str, delay: int) -> None:
         task_id = celery_uuid()
+
         self.rate_limit_message_task_id = task_id
         self.rate_limited_in_slack_at = timezone.now()
         self.save(update_fields=["rate_limit_message_task_id", "rate_limited_in_slack_at"])
-        post_slack_rate_limit_message.apply_async((self.pk,), countdown=delay, task_id=task_id)
+
+        post_slack_rate_limit_message.apply_async((self.pk, error_message_verb), countdown=delay, task_id=task_id)
 
     @property
-    def alert_groups_count(self):
+    def alert_groups_count(self) -> int:
         return self.alert_groups.count()
 
     @property
-    def alerts_count(self):
+    def alerts_count(self) -> int:
         from apps.alerts.models import Alert
 
         return Alert.objects.filter(group__channel=self).count()
@@ -457,7 +471,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return self.config.is_able_to_autoresolve
 
     @property
-    def is_demo_alert_enabled(self):
+    def is_demo_alert_enabled(self) -> bool:
         return self.config.is_demo_alert_enabled
 
     @property
@@ -506,7 +520,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return alert_receive_channel
 
     @property
-    def short_name(self):
+    def short_name(self) -> str:
         if self.verbal_name is None:
             return self.created_name + "" if self.deleted_at is None else "(Deleted)"
         elif self.verbal_name == self.created_name:
@@ -518,18 +532,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             )
 
     @property
-    def short_name_with_maintenance_status(self):
-        if self.maintenance_mode is not None:
-            return (
-                self.short_name + f" *[ on "
-                f"{AlertReceiveChannel.MAINTENANCE_MODE_CHOICES[self.maintenance_mode][1]}"
-                f" :construction: ]*"
-            )
-        else:
-            return self.short_name
-
-    @property
-    def created_name(self):
+    def created_name(self) -> str:
         return f"{self.get_integration_display()} {self.smile_code}"
 
     @property
@@ -537,10 +540,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return UIURLBuilder(self.organization).integration_detail(self.public_primary_key)
 
     @property
+    def is_maintenace_integration(self) -> bool:
+        return self.integration == AlertReceiveChannel.INTEGRATION_MAINTENANCE
+
+    @property
     def integration_url(self) -> str | None:
         if self.integration in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
-            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
             AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
@@ -549,14 +555,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return create_engine_url(f"integrations/v1/{slug}/{self.token}/")
 
     @property
-    def inbound_email(self):
+    def inbound_email(self) -> typing.Optional[str]:
         if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
             return None
 
         return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
-    def default_channel_filter(self):
+    def default_channel_filter(self) -> typing.Optional["ChannelFilter"]:
         return self.channel_filters.filter(is_default=True).first()
 
     # Templating
@@ -591,7 +597,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         }
 
     @property
-    def is_available_for_custom_templates(self):
+    def is_available_for_custom_templates(self) -> bool:
         return True
 
     # Maintenance
@@ -764,15 +770,16 @@ def listen_for_alertreceivechannel_model_save(
     from apps.heartbeat.models import IntegrationHeartBeat
 
     if created:
-        write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)
+        author = instance.author or instance.service_account
+        write_resource_insight_log(instance=instance, author=author, event=EntityEvent.CREATED)
         default_filter = ChannelFilter(alert_receive_channel=instance, filtering_term=None, is_default=True)
         default_filter.save()
-        write_resource_insight_log(instance=default_filter, author=instance.author, event=EntityEvent.CREATED)
+        write_resource_insight_log(instance=default_filter, author=author, event=EntityEvent.CREATED)
 
         TEN_MINUTES = 600  # this is timeout for cloud heartbeats
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
-            write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
+            write_resource_insight_log(instance=heartbeat, author=author, event=EntityEvent.CREATED)
 
         metrics_add_integrations_to_cache([instance], instance.organization)
 

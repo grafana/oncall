@@ -123,11 +123,13 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
+        user = self.context["request"].user
         with transaction.atomic():
             try:
                 instance = AlertReceiveChannel.create(
                     **validated_data,
-                    author=self.context["request"].user,
+                    author=user if not user.is_service_account else None,
+                    service_account=user.service_account if user.is_service_account else None,
                     organization=organization,
                 )
             except AlertReceiveChannel.DuplicateDirectPagingError:

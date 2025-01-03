@@ -23,7 +23,20 @@ from apps.schedules.models import (
 from apps.slack.models import SlackUserGroup
 from common.api_helpers.utils import create_engine_url, serialize_datetime_as_utc_timestamp
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
+ICAL_URL = "https://example.com"
+
+
+@pytest.fixture(autouse=True)
+def patch_fetch_ical_file():
+    """
+    NOTE: we patch this method for all tests in this file to avoid making actual HTTP requests.. we don't really need
+    to test the actual fetching of the ical file in these tests, so just simply mock out the response as an empty string
+
+    Alternatively, if we really needed to, we could save .ical files locally here, and read/return those as the
+    return_value
+    """
+    with patch("apps.schedules.ical_utils.fetch_ical_file", return_value=""):
+        yield
 
 
 @pytest.fixture()
@@ -64,7 +77,7 @@ def schedule_internal_api_setup(
 def test_get_list_schedules(
     schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
 ):
-    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, web_schedule, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
 
@@ -1442,8 +1455,9 @@ def test_next_shifts_per_user(
         ("B", "UTC"),
         ("C", None),
         ("D", "America/Montevideo"),
+        ("E", None),
     )
-    user_a, user_b, user_c, user_d = (
+    user_a, user_b, user_c, user_d, user_e = (
         make_user_for_organization(organization, username=i, _timezone=tz) for i, tz in users
     )
 
@@ -1469,8 +1483,7 @@ def test_next_shifts_per_user(
         )
         on_call_shift.add_rolling_users([[user]])
 
-    # override in the past: 17-18 / D
-    # won't be listed, but user D will still be included in the response
+    # override in the past, won't be listed: 17-18 / D
     override_data = {
         "start": tomorrow - timezone.timedelta(days=3),
         "rotation_start": tomorrow - timezone.timedelta(days=3),
@@ -1483,6 +1496,7 @@ def test_next_shifts_per_user(
     override.add_rolling_users([[user_d]])
 
     # override: 17-18 / C
+    # this is before C's shift, so it will be listed as upcoming
     override_data = {
         "start": tomorrow + timezone.timedelta(hours=17),
         "rotation_start": tomorrow + timezone.timedelta(hours=17),
@@ -1494,11 +1508,26 @@ def test_next_shifts_per_user(
     )
     override.add_rolling_users([[user_c]])
 
+    # override: 17-18 / E
+    fifteend_days_later = tomorrow + timezone.timedelta(days=15)
+    override_data = {
+        "start": fifteend_days_later + timezone.timedelta(hours=17),
+        "rotation_start": fifteend_days_later + timezone.timedelta(hours=17),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_e]])
+
     # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
     schedule.refresh_ical_final_schedule()
 
     url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    # check for users with shifts in the next week
+    response = client.get(url + "?days=7", format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
 
     expected = {
@@ -1517,8 +1546,22 @@ def test_next_shifts_per_user(
             tomorrow + timezone.timedelta(hours=18),
             user_c.timezone,
         ),
-        user_d.public_primary_key: (None, None, user_d.timezone),
     }
+    returned_data = {
+        u: (ev.get("start"), ev.get("end"), ev.get("user_timezone")) for u, ev in response.data["users"].items()
+    }
+    assert returned_data == expected
+
+    # by default it will check for shifts in the next 45 days
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # include user E with the override
+    expected[user_e.public_primary_key] = (
+        fifteend_days_later + timezone.timedelta(hours=17),
+        fifteend_days_later + timezone.timedelta(hours=18),
+        user_e.timezone,
+    )
     returned_data = {
         u: (ev.get("start"), ev.get("end"), ev.get("user_timezone")) for u, ev in response.data["users"].items()
     }

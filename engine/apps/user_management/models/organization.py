@@ -162,9 +162,6 @@ class Organization(MaintainableObject):
     slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="organizations"
     )
-
-    # TODO: drop this field in a subsequent release, this has been migrated to default_slack_channel field
-    general_log_channel_id = models.CharField(max_length=100, null=True, default=None)
     default_slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,

@@ -9,24 +9,25 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole
+from apps.auth_token.grafana.grafana_auth_token import setup_organization
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
 from apps.user_management.sync import get_or_create_user
+from common.utils import validate_url
 from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
-from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import (
     ApiAuthToken,
     GoogleOAuth2Token,
     IntegrationBacksyncAuthToken,
     PluginAuthToken,
     ScheduleExportAuthToken,
+    ServiceAccountToken,
     SlackAuthToken,
     UserScheduleExportAuthToken,
 )
@@ -134,6 +135,12 @@ class BasePluginAuthentication(BaseAuthentication):
         except KeyError:
             user_id = context["UserID"]
 
+        if context.get("IsServiceAccount", False):
+            service_account_role = context.get("Role", "None")
+            # no user involved in service account requests
+            logger.info(f"serviceaccount request - id={user_id} - role={service_account_role}")
+            return None
+
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
@@ -148,6 +155,9 @@ class PluginAuthentication(BasePluginAuthentication):
             context = dict(json.loads(request.headers.get("X-Grafana-Context")))
         except (ValueError, TypeError):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
+
+        if context.get("IsServiceAccount", False):
+            raise exceptions.AuthenticationFailed("Service accounts requests are not allowed.")
 
         try:
             user_id = context.get("UserId", context.get("UserID"))
@@ -336,8 +346,8 @@ class UserScheduleExportAuthentication(BaseAuthentication):
         return auth_token.user, auth_token
 
 
+X_GRAFANA_URL = "X-Grafana-URL"
 X_GRAFANA_INSTANCE_ID = "X-Grafana-Instance-ID"
-GRAFANA_SA_PREFIX = "glsa_"
 
 
 class GrafanaServiceAccountAuthentication(BaseAuthentication):
@@ -345,12 +355,12 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).decode("utf-8")
         if not auth:
             raise exceptions.AuthenticationFailed("Invalid token.")
-        if not auth.startswith(GRAFANA_SA_PREFIX):
+        if not auth.startswith(ServiceAccountToken.GRAFANA_SA_PREFIX):
             return None
 
-        organization = self.get_organization(request)
+        organization = self.get_organization(request, auth)
         if not organization:
-            raise exceptions.AuthenticationFailed("Invalid organization.")
+            raise exceptions.AuthenticationFailed("Organization not found.")
         if organization.is_moved:
             raise OrganizationMovedException(organization)
         if organization.deleted_at:
@@ -358,7 +368,24 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(organization, auth)
 
-    def get_organization(self, request):
+    def get_organization(self, request, auth):
+        grafana_url = request.headers.get(X_GRAFANA_URL)
+        if grafana_url:
+            url = validate_url(grafana_url)
+            if url is not None:
+                url = url.rstrip("/")
+                organization = Organization.objects.filter(grafana_url=url).first()
+                if not organization:
+                    # trigger a request to sync the organization
+                    # (ignore response since we can get a 400 if sync was already triggered;
+                    # if organization exists, we are good)
+                    setup_organization(url, auth)
+                    organization = Organization.objects.filter(grafana_url=url).first()
+                    if organization is None:
+                        # sync may still be in progress, client should retry
+                        raise exceptions.Throttled(detail="Organization being synced, please retry.")
+                return organization
+
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             instance_id = request.headers.get(X_GRAFANA_INSTANCE_ID)
             if not instance_id:
@@ -370,35 +397,12 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             return Organization.objects.filter(org_slug=org_slug, stack_slug=instance_slug).first()
 
     def authenticate_credentials(self, organization, token):
-        permissions = get_service_account_token_permissions(organization, token)
-        if not permissions:
+        try:
+            user, auth_token = ServiceAccountToken.validate_token(organization, token)
+        except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
-        role = LegacyAccessControlRole.NONE
-        if not organization.is_rbac_permissions_enabled:
-            role = self.determine_role_from_permissions(permissions)
-
-        user = User(
-            organization_id=organization.pk,
-            name="Grafana Service Account",
-            username="grafana_service_account",
-            role=role,
-            permissions=GrafanaAPIPermissions.construct_permissions(permissions.keys()),
-        )
-
-        auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")
-
         return user, auth_token
-
-    # Using default permissions as proxies for roles since we cannot explicitly get role from the service account token
-    def determine_role_from_permissions(self, permissions):
-        if "plugins:write" in permissions:
-            return LegacyAccessControlRole.ADMIN
-        if "dashboards:write" in permissions:
-            return LegacyAccessControlRole.EDITOR
-        if "dashboards:read" in permissions:
-            return LegacyAccessControlRole.VIEWER
-        return LegacyAccessControlRole.NONE
 
 
 class IntegrationBacksyncAuthentication(BaseAuthentication):

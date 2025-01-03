@@ -1,13 +1,16 @@
 from unittest.mock import patch
 
+import httpretty
 import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.alerts.models import ResolutionNote
-from apps.auth_token.auth import GRAFANA_SA_PREFIX, ApiTokenAuthentication, GrafanaServiceAccountAuthentication
-from apps.auth_token.models import ApiAuthToken
+from apps.api import permissions
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
+from apps.auth_token.models import ApiAuthToken, ServiceAccountToken
+from apps.auth_token.tests.helpers import setup_service_account_api_mocks
 
 
 @pytest.mark.django_db
@@ -144,6 +147,50 @@ def test_create_resolution_note(
     assert response.data == result
 
     mock_send_update_resolution_note_signal.assert_called_once()
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+@patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
+def test_create_resolution_note_via_service_account(
+    mock_send_update_resolution_note_signal,
+    make_organization,
+    make_service_account_for_organization,
+    make_token_for_service_account,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization = make_organization(grafana_url="http://grafana.test")
+    service_account = make_service_account_for_organization(organization)
+    token_string = "glsa_token"
+    make_token_for_service_account(service_account, token_string)
+
+    perms = {
+        permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value: ["*"],
+    }
+    setup_service_account_api_mocks(organization.grafana_url, perms)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    data = {
+        "alert_group_id": alert_group.public_primary_key,
+        "text": "Test Resolution Note Message",
+    }
+    url = reverse("api-public:resolution_notes-list")
+    client = APIClient()
+    response = client.post(
+        url,
+        data=data,
+        format="json",
+        HTTP_AUTHORIZATION=f"{token_string}",
+        HTTP_X_GRAFANA_URL=organization.grafana_url,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    mock_send_update_resolution_note_signal.assert_called_once()
+    resolution_note = ResolutionNote.objects.get(public_primary_key=response.data["id"])
+    assert resolution_note.author is None
+    assert resolution_note.text == data["text"]
+    assert resolution_note.alert_group == alert_group
 
 
 @pytest.mark.django_db
@@ -366,7 +413,7 @@ def test_create_resolution_note_grafana_auth(make_organization_and_user, make_al
         mock_api_key_auth.assert_called_once()
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    token = f"{GRAFANA_SA_PREFIX}123"
+    token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}123"
     # GrafanaServiceAccountAuthentication handle invalid token
     with patch(
         "apps.auth_token.auth.ApiTokenAuthentication.authenticate", wraps=api_token_auth.authenticate

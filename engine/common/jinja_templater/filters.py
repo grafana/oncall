@@ -30,6 +30,13 @@ def datetimeformat_as_timezone(value, format="%H:%M / %d-%m-%Y", tz="UTC"):
         return None
 
 
+def timestamp_to_datetime(value):
+    try:
+        return datetime.fromtimestamp(value)
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
 def iso8601_to_time(value):
     try:
         return parse_datetime(value)

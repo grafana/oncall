@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import httpretty
 import pytest
 from django.urls import reverse
 from django.utils import timezone
@@ -9,6 +10,8 @@ from rest_framework.test import APIClient
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
 from apps.alerts.tasks import delete_alert_group, wipe
+from apps.api import permissions
+from apps.auth_token.tests.helpers import setup_service_account_api_mocks
 
 
 def construct_expected_response_from_alert_groups(alert_groups):
@@ -159,9 +162,7 @@ def test_get_alert_group_slack_links(
     organization.slack_team_identity = slack_team_identity
     organization.save()
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, cached_permalink="the-link"
-    )
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group, cached_permalink="the-link")
 
     url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
     response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
@@ -736,3 +737,34 @@ def test_alert_group_unsilence(
         assert alert_group.silenced == silenced
         assert response.status_code == status_code
         assert response_msg == response.json()["detail"]
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_actions_disabled_for_service_accounts(
+    make_organization,
+    make_service_account_for_organization,
+    make_token_for_service_account,
+    make_escalation_chain,
+):
+    organization = make_organization(grafana_url="http://grafana.test")
+    service_account = make_service_account_for_organization(organization)
+    token_string = "glsa_token"
+    make_token_for_service_account(service_account, token_string)
+    make_escalation_chain(organization)
+
+    perms = {
+        permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value: ["*"],
+    }
+    setup_service_account_api_mocks(organization.grafana_url, perms=perms)
+
+    client = APIClient()
+    disabled_actions = ["acknowledge", "unacknowledge", "resolve", "unresolve", "silence", "unsilence"]
+    for action in disabled_actions:
+        url = reverse(f"api-public:alert_groups-{action}", kwargs={"pk": "ABCDEFG"})
+        response = client.post(
+            url,
+            HTTP_AUTHORIZATION=f"{token_string}",
+            HTTP_X_GRAFANA_URL=organization.grafana_url,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN

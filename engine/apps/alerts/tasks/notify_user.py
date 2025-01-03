@@ -17,7 +17,6 @@ from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
-from .compare_escalations import compare_escalations
 from .task_logger import task_logger
 
 if typing.TYPE_CHECKING:
@@ -528,7 +527,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
                 )
                 UserNotificationPolicyLogRecord(
                     author=user,
-                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
                     notification_policy=notification_policy,
                     reason="Prevented from posting in Slack",
                     alert_group=alert_group,
@@ -541,6 +540,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
             if alert_group.slack_message:
                 alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
+
             # check how much time has passed since log record was created
             # to prevent eternal loop of restarting perform_notification task
             elif timezone.now() < log_record.created_at + timezone.timedelta(hours=RETRY_TIMEOUT_HOURS):
@@ -617,7 +617,7 @@ def send_bundled_notification(user_notification_bundle_id: int):
             )
             return
 
-        if not compare_escalations(send_bundled_notification.request.id, user_notification_bundle.notification_task_id):
+        if send_bundled_notification.request.id != user_notification_bundle.notification_task_id:
             task_logger.info(
                 f"send_bundled_notification: notification_task_id mismatch. "
                 f"Duplication or non-active notification triggered. "

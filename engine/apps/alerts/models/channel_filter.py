@@ -69,9 +69,6 @@ class ChannelFilter(OrderedModel):
 
     notify_in_slack = models.BooleanField(null=True, default=True)
     notify_in_telegram = models.BooleanField(null=True, default=False)
-
-    # TODO: remove _slack_channel_id in future release
-    _slack_channel_id = models.CharField(max_length=100, null=True, default=None)
     slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,
@@ -79,7 +76,6 @@ class ChannelFilter(OrderedModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-
     telegram_channel = models.ForeignKey(
         "telegram.TelegramToOrganizationConnector",
         on_delete=models.SET_NULL,
@@ -176,14 +172,8 @@ class ChannelFilter(OrderedModel):
         return self.slack_channel.slack_id if self.slack_channel else None
 
     @property
-    def slack_channel_id_or_org_default_id(self):
-        organization = self.alert_receive_channel.organization
-
-        if organization.slack_team_identity is None:
-            return None
-        elif self.slack_channel_slack_id is None:
-            return organization.default_slack_channel_slack_id
-        return self.slack_channel_slack_id
+    def slack_channel_or_org_default(self) -> typing.Optional["SlackChannel"]:
+        return self.slack_channel or self.alert_receive_channel.organization.default_slack_channel
 
     @property
     def str_for_clients(self):

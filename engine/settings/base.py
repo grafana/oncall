@@ -868,6 +868,9 @@ INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
 INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = os.getenv("INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN")
+INBOUND_EMAIL_AWS_ACCESS_KEY_ID = os.getenv("INBOUND_EMAIL_AWS_ACCESS_KEY_ID")
+INBOUND_EMAIL_AWS_SECRET_ACCESS_KEY = os.getenv("INBOUND_EMAIL_AWS_SECRET_ACCESS_KEY")
+INBOUND_EMAIL_AWS_REGION = os.getenv("INBOUND_EMAIL_AWS_REGION")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     # Featured
@@ -878,11 +881,9 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
-    "config_integrations.heartbeat",
     "config_integrations.inbound_email",
     "config_integrations.maintenance",
     "config_integrations.manual",
-    "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
     # Actually it's Grafana 8 integration.
@@ -988,3 +989,5 @@ CUSTOM_RATELIMITS = getenv_custom_ratelimit("CUSTOM_RATELIMITS", default={})
 SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 6)
 SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 240)
 SYNC_V2_BATCH_SIZE = getenv_integer("SYNC_V2_BATCH_SIZE", 500)
+
+AUDITED_ALERT_GROUP_MAX_RETRIES = getenv_integer("AUDITED_ALERT_GROUP_MAX_RETRIES", 1)

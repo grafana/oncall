@@ -417,6 +417,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     )
 
     prevent_posting_alerts = models.BooleanField(default=False)
+    """
+    TODO: this column is no longer used, drop it in a subsequent PR/release
+    """
+
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
@@ -674,7 +678,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         organization_id = user.organization_id if user else self.channel.organization_id
         logger.debug(f"Started acknowledge_by_user_or_backsync for alert_group {self.pk}")
 
-        # if incident was silenced or resolved, unsilence/unresolve it without starting escalation
+        # if alert group was silenced or resolved, unsilence/unresolve it without starting escalation
         if self.silenced:
             self.un_silence()
             self.log_records.create(
@@ -1980,16 +1984,23 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_channel_id(self) -> str | None:
-        if not self.channel.organization.slack_team_identity:
-            return None
-        elif self.slack_message:
-            return self.slack_message.channel_id
-        elif self.channel_filter:
-            return self.channel_filter.slack_channel_id_or_org_default_id
+        channel_filter = self.channel_filter
+
+        if self.slack_message:
+            return self.slack_message.channel.slack_id
+        elif channel_filter and channel_filter.slack_channel_or_org_default:
+            return channel_filter.slack_channel_or_org_default.slack_id
         return None
 
     @property
     def slack_message(self) -> typing.Optional["SlackMessage"]:
+        """
+        `slack_message` property returns the first `SlackMessage` for the `AlertGroup`. This corresponds to the
+        Slack message representing the main message in Slack (ie. not a message in a thread).
+
+        This should not be confused with `slack_messages`, which is a `RelatedManager` that returns all `SlackMessage`
+        instances for the `AlertGroup`.
+        """
         try:
             # prefetched_slack_messages could be set in apps.api.serializers.alert_group.AlertGroupListSerializer
             return self.prefetched_slack_messages[0] if self.prefetched_slack_messages else None

@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
-from apps.schedules.tasks import notify_about_gaps_in_schedule_task
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
+from apps.schedules.tasks import notify_about_gaps_in_schedule_task, start_notify_about_gaps_in_schedule
 
 
 @pytest.mark.django_db
@@ -286,3 +286,45 @@ def test_gaps_later_than_7_days_no_triggering_notification(
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
     assert schedule.has_gaps is False
+
+
+@pytest.mark.parametrize(
+    "schedule_class",
+    [OnCallScheduleWeb, OnCallScheduleICal, OnCallScheduleCalendar],
+)
+@pytest.mark.parametrize(
+    "report_sent_days_ago,expected_call",
+    [(8, True), (6, False), (None, True)],
+)
+@pytest.mark.django_db
+def test_start_notify_about_gaps(
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_schedule,
+    schedule_class,
+    report_sent_days_ago,
+    expected_call,
+):
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
+
+    sent = timezone.now() - datetime.timedelta(days=report_sent_days_ago) if report_sent_days_ago else None
+    schedule = make_schedule(
+        organization,
+        schedule_class=schedule_class,
+        name="test_schedule",
+        slack_channel=slack_channel,
+        gaps_report_sent_at=sent,
+    )
+
+    with patch(
+        "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule_task.apply_async"
+    ) as mock_notify:
+        start_notify_about_gaps_in_schedule()
+
+    if expected_call:
+        mock_notify.assert_called_once_with((schedule.pk,))
+    else:
+        mock_notify.assert_not_called()

@@ -12,7 +12,6 @@ CELERY_TASK_ROUTES = {
     "common.oncall_gateway.tasks.delete_oncall_connector_async": {"queue": "default"},
     "common.oncall_gateway.tasks.create_slack_connector_async_v2": {"queue": "default"},
     "common.oncall_gateway.tasks.delete_slack_connector_async_v2": {"queue": "default"},
-    "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
     "apps.labels.tasks.update_labels_cache": {"queue": "default"},
     "apps.labels.tasks.update_instances_labels_cache": {"queue": "default"},
@@ -34,13 +33,9 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_final_schedule": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules": {"queue": "default"},
     "apps.schedules.tasks.check_gaps_and_empty_shifts.check_gaps_and_empty_shifts_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_gaps_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.check_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule_task": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.schedule_notify_about_gaps_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_empty_shifts_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
@@ -171,7 +166,7 @@ CELERY_TASK_ROUTES = {
     "apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel": {"queue": "slack"},
     "apps.slack.tasks.start_update_slack_user_group_for_schedules": {"queue": "slack"},
     "apps.slack.tasks.unpopulate_slack_user_identities": {"queue": "slack"},
-    "apps.slack.tasks.update_incident_slack_message": {"queue": "slack"},
+    "apps.slack.tasks.update_alert_group_slack_message": {"queue": "slack"},
     "apps.slack.tasks.update_slack_user_group_for_schedules": {"queue": "slack"},
     "apps.slack.representatives.alert_group_representative.on_create_alert_slack_representative_async": {
         "queue": "slack"
