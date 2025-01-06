@@ -34,7 +34,10 @@ def update_direct_paging_integration_non_default_routes(apps, schema_editor):
         .update(
             escalation_chain_id=Subquery(default_route_subquery.values("escalation_chain_id")[:1]),
             telegram_channel_id=Subquery(default_route_subquery.values("telegram_channel_id")[:1]),
+            notify_in_telegram=Subquery(default_route_subquery.values("notify_in_telegram")[:1]),
             slack_channel_id=Subquery(default_route_subquery.values("slack_channel_id")[:1]),
+            notify_in_slack=Subquery(default_route_subquery.values("notify_in_slack")[:1]),
+            notification_backends=Subquery(default_route_subquery.values("notification_backends")[:1]),
         )
     )
 
