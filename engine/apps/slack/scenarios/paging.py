@@ -37,11 +37,13 @@ if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
     from apps.user_management.models import Organization, Team, User
 
-
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
+DIRECT_PAGING_TEAM_SEVERITY_CHECKBOXES_ID = "paging_team_severity_checkboxes"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
 DIRECT_PAGING_USER_SELECT_ID = "paging_user_select"
 DIRECT_PAGING_MESSAGE_INPUT_ID = "paging_message_input"
+
+DIRECT_PAGING_TEAM_SEVERITY_CHECKBOX_VALUE = "important"
 
 DEFAULT_TEAM_VALUE = "default_team"
 
@@ -248,6 +250,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
                 from_user=user,
                 message=message,
                 team=selected_team,
+                important_team_escalation=_get_team_escalation_severity_from_payload(payload, input_id_prefix),
                 users=selected_users,
             )
         except DirectPagingUserTeamValidationError:
@@ -329,6 +332,14 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
             view=view,
             view_id=payload["view"]["id"],
         )
+
+
+class OnPagingTeamSeverityCheckboxChange(OnPagingTeamChange):
+    """
+    Specify alert severity when escalating to a team.
+
+    NOTE: we simply reuse `OnPagingTeamChange` step, since the behavior is the same.
+    """
 
 
 class OnPagingUserChange(scenario_step.ScenarioStep):
@@ -491,6 +502,7 @@ def render_dialog(
         new_private_metadata["input_id_prefix"] = new_input_id_prefix
         selected_organization = predefined_org if predefined_org else available_organizations.first()
         is_team_selected, selected_team = False, None
+        is_team_escalation_important = False
     else:
         # setup form using data/state
         old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
@@ -502,6 +514,7 @@ def render_dialog(
             else _get_selected_org_from_payload(payload, old_input_id_prefix, slack_team_identity, slack_user_identity)
         )
         is_team_selected, selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
+        is_team_escalation_important = _get_team_escalation_severity_from_payload(payload, old_input_id_prefix)
 
     blocks: Block.AnyBlocks = []
 
@@ -523,9 +536,14 @@ def render_dialog(
         )
         blocks.append(organization_select)
 
-    # Add team select and additional responders blocks
+    # Add team select/severity and additional responders blocks
     blocks += _get_team_select_blocks(
-        slack_user_identity, selected_organization, is_team_selected, selected_team, new_input_id_prefix
+        slack_user_identity,
+        selected_organization,
+        is_team_selected,
+        selected_team,
+        is_team_escalation_important,
+        new_input_id_prefix,
     )
     blocks += _get_user_select_blocks(payload, selected_organization, new_input_id_prefix, error_msg)
 
@@ -629,6 +647,25 @@ def _get_select_field_value(payload: EventPayload, prefix_id: str, routing_uid: 
     return json.loads(field["value"])["id"] if field else None
 
 
+def _get_first_selected_checkbox_option_value(
+    payload: EventPayload,
+    prefix_id: str,
+    routing_uid: str,
+    field_id: str,
+) -> str | None:
+    """
+    NOTE: if reusing this for other logic outside of the team severity checkboxes, note that this function
+    will only return the value of the first checkbox option...
+    """
+    try:
+        selected_options = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_options"]
+        if not selected_options:
+            return None
+        return selected_options[0]["value"]
+    except KeyError:
+        return None
+
+
 def _get_selected_org_from_payload(
     payload: EventPayload,
     input_id_prefix: str,
@@ -676,6 +713,7 @@ def _get_team_select_blocks(
     organization: "Organization",
     is_selected: bool,
     value: typing.Optional["Team"],
+    is_team_escalation_important: bool,
     input_id_prefix: str,
 ) -> Block.AnyBlocks:
     blocks: Block.AnyBlocks = []
@@ -702,7 +740,7 @@ def _get_team_select_blocks(
     if not teams:
         direct_paging_info_msg["elements"][0][
             "text"
-        ] += ". There are currently no teams which have a Direct Paging integration that is configured."
+        ] += ".\n\nThere are currently no teams which have a Direct Paging integration that is configured."
         blocks.append(direct_paging_info_msg)
         return blocks
 
@@ -767,6 +805,62 @@ def _get_team_select_blocks(
                 },
             ],
         }
+    )
+
+    team_severity_important_checkbox_option: CompositionObjectOption = {
+        "text": {
+            "type": "mrkdwn",
+            "text": "Important escalation",
+        },
+        "value": DIRECT_PAGING_TEAM_SEVERITY_CHECKBOX_VALUE,
+    }
+
+    team_severity_checkboxes_element: Block.Section = {
+        "type": "section",
+        "block_id": input_id_prefix + DIRECT_PAGING_TEAM_SEVERITY_CHECKBOXES_ID,
+        "text": {
+            "type": "plain_text",
+            # NOTE: this is a bit of a hack. Slack requires us to specify this text object, and it cannot be empty
+            # hence the empty space. We do this so that we can render the text instead in a context block below
+            # (which allows us to render it in a slightly smaller font size)
+            # https://api.slack.com/reference/block-kit/blocks#section
+            "text": " ",
+        },
+        "accessory": {
+            "type": "checkboxes",
+            "options": [team_severity_important_checkbox_option],
+            "action_id": OnPagingTeamSeverityCheckboxChange.routing_uid(),
+        },
+    }
+
+    if is_team_escalation_important:
+        # From the docs https://api.slack.com/reference/block-kit/block-elements#checkboxes__fields
+        # An array of option objects that EXACTLY matches one or more of the options within options
+        team_severity_checkboxes_element["accessory"]["initial_options"] = [team_severity_important_checkbox_option]
+
+    blocks.extend(
+        [
+            team_severity_checkboxes_element,
+            typing.cast(
+                Block.Context,
+                {
+                    # NOTE: we add this here instead of as a checkbox option description because those can only
+                    # be defined as plain text (ie. not markdown where links are supported)
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": (
+                                "Check the above box if you would like to escalate to this team as an 'important' "
+                                "escalation. Teams can configure their Direct Paging Integration to route to different "
+                                "escalation chains based on this. "
+                                "<https://grafana.com/docs/oncall/latest/integrations/manual/#important-escalations|Learn more>"
+                            ),
+                        },
+                    ],
+                },
+            ),
+        ]
     )
 
     return blocks
@@ -951,6 +1045,16 @@ def _get_selected_team_from_payload(
     return selected_team_id, Team.objects.filter(pk=selected_team_id).first()
 
 
+def _get_team_escalation_severity_from_payload(payload: EventPayload, input_id_prefix: str) -> bool:
+    checkbox_value = _get_first_selected_checkbox_option_value(
+        payload,
+        input_id_prefix,
+        OnPagingTeamSeverityCheckboxChange.routing_uid(),
+        DIRECT_PAGING_TEAM_SEVERITY_CHECKBOXES_ID,
+    )
+    return checkbox_value == DIRECT_PAGING_TEAM_SEVERITY_CHECKBOX_VALUE
+
+
 def _get_selected_user_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["User"]:
     from apps.user_management.models import User
 
@@ -1034,6 +1138,12 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnPagingTeamChange.routing_uid(),
         "step": OnPagingTeamChange,
+    },
+    {
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.CHECKBOXES,
+        "block_action_id": OnPagingTeamSeverityCheckboxChange.routing_uid(),
+        "step": OnPagingTeamSeverityCheckboxChange,
     },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
