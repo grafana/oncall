@@ -96,7 +96,7 @@ curl "{{API_URL}}/api/v1/escalation/" \
     "message": "I need help investigating, can you join the investigation?",
     "source_url": "https://github.com/myorg/myrepo/issues/123",
     "team": "TI73TDU19W48J",
-    "important_team_escalation": True
+    "important_team_escalation": true
   }'
 ```
 
