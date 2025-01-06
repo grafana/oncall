@@ -335,7 +335,6 @@ class AlertGroupView(
             if null_team_lookup:
                 teams_lookup = teams_lookup | null_team_lookup
 
-        # TODO also need to filter on integration as well.
         if not ignore_filtering_by_available_teams:
             queryset = AlertGroup.objects.filter(*self.available_teams_lookup_args)
         else:
