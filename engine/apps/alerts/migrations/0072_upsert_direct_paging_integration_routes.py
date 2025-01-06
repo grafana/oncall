@@ -44,18 +44,17 @@ def upsert_direct_paging_integration_routes(apps, schema_editor):
         is_default=True,
         order=0,
     )
+    route_ids = list(routes.values_list("pk", flat=True))
 
     logger.info(
-        f"Swapping the order=0 value to order=1 for {routes.count()} Direct Paging Integrations default routes"
+        f"Swapping the order=0 value to order=1 for {len(route_ids)} Direct Paging Integrations default routes"
     )
 
-    updated_rows = routes.update(order=1)
+    updated_rows = ChannelFilter.objects.filter(pk__in=route_ids).update(order=1)
     logger.info(f"Swapped order=0 to order=1 for {updated_rows} Direct Paging Integrations default routes")
 
     # Bulk create the new non-default routes
-    logger.info(
-        f"Creating new non-default routes for {len(unedited_direct_paging_integrations)} Direct Paging Integrations"
-    )
+    logger.info(f"Creating new non-default routes for {integration_count} Direct Paging Integrations")
     created_objs = ChannelFilter.objects.bulk_create(
         [
             ChannelFilter(
