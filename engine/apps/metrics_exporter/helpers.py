@@ -241,8 +241,6 @@ def metrics_bulk_update_team_label_cache(teams_updated_data: dict, organization_
 
     metric_alert_groups_total = cache.get(metric_alert_groups_total_key, {})
     metric_alert_groups_response_time = cache.get(metric_alert_groups_response_time_key, {})
-    
-    # TODO need to work out how to handle team changes... or if we need to.
 
     for team_id, team_data in teams_updated_data.items():
         for index in metric_alert_groups_total:
