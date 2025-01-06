@@ -33,13 +33,9 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_final_schedule": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules": {"queue": "default"},
     "apps.schedules.tasks.check_gaps_and_empty_shifts.check_gaps_and_empty_shifts_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_gaps_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.check_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule_task": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.schedule_notify_about_gaps_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_empty_shifts_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },

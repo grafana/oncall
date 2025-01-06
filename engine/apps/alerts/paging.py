@@ -48,6 +48,7 @@ class DirectPagingAlertPayload(typing.TypedDict):
 def _trigger_alert(
     organization: Organization,
     team: Team | None,
+    important_team_escalation: bool,
     message: str,
     title: str,
     permalink: str | None,
@@ -82,6 +83,13 @@ def _trigger_alert(
             "uid": str(uuid4()),  # avoid grouping
             "author_username": from_user.username,
             "permalink": permalink,
+            # NOTE: this field is mostly being added for purposes of escalating to a team
+            # this field is provided via the web UI/API/slack as a checkbox, indicating that the user doing the paging
+            # would like to send an "important" page to the team.
+            #
+            # Teams can configure routing in their Direct Paging Integration to route based on this field to different
+            # escalation chains
+            "important": important_team_escalation,
         },
     }
 
@@ -128,6 +136,7 @@ def direct_paging(
     source_url: str | None = None,
     grafana_incident_id: str | None = None,
     team: Team | None = None,
+    important_team_escalation: bool = False,
     users: UserNotifications | None = None,
     alert_group: AlertGroup | None = None,
 ) -> AlertGroup | None:
@@ -156,7 +165,16 @@ def direct_paging(
     # create alert group if needed
     with transaction.atomic():
         if alert_group is None:
-            alert_group = _trigger_alert(organization, team, message, title, source_url, grafana_incident_id, from_user)
+            alert_group = _trigger_alert(
+                organization,
+                team,
+                important_team_escalation,
+                message,
+                title,
+                source_url,
+                grafana_incident_id,
+                from_user,
+            )
 
         for u, important in users:
             alert_group.log_records.create(

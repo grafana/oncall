@@ -151,7 +151,9 @@ def migrate() -> None:
                 migrate_notification_rules(user)
                 print(TAB + format_user(user))
     else:
-        print("▶ Skipping migrating user notification rules as MIGRATE_USERS is false...")
+        print(
+            "▶ Skipping migrating user notification rules as MIGRATE_USERS is false..."
+        )
 
     print("▶ Migrating schedules...")
     for schedule in schedules:
