@@ -8,7 +8,6 @@ from django.utils import timezone
 from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.types import LabelOption, LabelPair
 from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model
-from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -134,6 +133,7 @@ def _update_labels_cache(values_id_to_pair: typing.Dict[str, LabelPair]):
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def update_instances_labels_cache(organization_id: int, instance_ids: typing.List[int], instance_model_name: str):
     from apps.labels.models import LabelValueCache
+    from apps.user_management.models import Organization
 
     now = timezone.now()
     organization = Organization.objects.get(id=organization_id)
