@@ -166,7 +166,10 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def add_service_label_for_alerting_integrations():
-    """Starts tasks that add `service_name` dynamic label to custom labels for alerting integrations"""
+    """
+    This task should be called manually and only once.
+    Starts tasks that add `service_name` dynamic label for Alerting integrations
+    """
 
     from apps.alerts.models import AlertReceiveChannel
 
@@ -187,7 +190,7 @@ def add_service_label_for_alerting_integrations():
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def add_service_label_per_org(organization_id: int):
-    """Add `service_name` dynamic label to custom labels for alerting integrations"""
+    """Add `service_name` dynamic label for all Alerting integrations per organization"""
 
     from apps.alerts.models import AlertReceiveChannel
     from apps.user_management.models import Organization
@@ -203,15 +206,25 @@ def add_service_label_per_org(organization_id: int):
     integrations_to_update = []
     # add service label to integration custom labels if it's not already there
     for integration in integrations:
-        custom_service_label_exists = False
-        custom_labels = integration.alert_group_labels_custom if integration.alert_group_labels_custom else []
-        for label in custom_labels:
+        dynamic_service_label_exists = False
+        dynamic_labels = integration.alert_group_labels_custom if integration.alert_group_labels_custom else []
+        for label in dynamic_labels:
             if label[0] == service_label_custom[0]:
-                custom_service_label_exists = True
+                dynamic_service_label_exists = True
                 break
-        if custom_service_label_exists:
+        if dynamic_service_label_exists:
             continue
-        integration.alert_group_labels_custom = custom_labels + [service_label_custom]
+        integration.alert_group_labels_custom = dynamic_labels + [service_label_custom]
         integrations_to_update.append(integration)
 
     AlertReceiveChannel.objects.bulk_update(integrations_to_update, fields=["alert_group_labels_custom"])
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def add_service_label_for_integration(alert_receive_channel_id: int):
+    """Add `service_name` dynamic label for Alerting integration"""
+
+    from apps.alerts.models import AlertReceiveChannel
+
+    alert_receive_channel = AlertReceiveChannel.objects.get(id=alert_receive_channel_id)
+    alert_receive_channel.create_service_name_dynamic_label(True)
