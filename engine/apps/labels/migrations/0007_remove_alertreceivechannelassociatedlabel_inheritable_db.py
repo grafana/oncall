@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         common.migrations.remove_field.RemoveFieldDB(
             model_name="AlertReceiveChannelAssociatedLabel",
             name="inheritable",
-            remove_state_migration=("labels", "0007_remove_alertreceivechannelassociatedlabel_inheritable_state"),
+            remove_state_migration=("labels", "0006_remove_alertreceivechannelassociatedlabel_inheritable_state"),
         ),
     ]
