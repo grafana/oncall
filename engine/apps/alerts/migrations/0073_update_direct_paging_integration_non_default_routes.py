@@ -18,30 +18,56 @@ def update_direct_paging_integration_non_default_routes(apps, schema_editor):
 
     logger.info("Starting update_direct_paging_integration_non_default_routes migration...")
 
-    # Subquery that selects the matching "default" channel filter for each non-default filter
-    default_route_subquery = ChannelFilter.objects.filter(
-        alert_receive_channel=OuterRef("alert_receive_channel"),
+    # 1) Gather all default route data in a dictionary keyed by alert_receive_channel_id
+    default_direct_paging_routes = ChannelFilter.objects.filter(
+        alert_receive_channel__integration="direct_paging",
         is_default=True
+    ).values(
+        "alert_receive_channel_id",
+        "escalation_chain_id",
+        "telegram_channel_id",
+        "notify_in_telegram",
+        "slack_channel_id",
+        "notify_in_slack",
+        "notification_backends",
     )
 
-    # Perform a bulk update on all non-default routes in one go
-    updated_count = (
-        ChannelFilter.objects
-        .filter(
-            alert_receive_channel__integration="direct_paging",
-            is_default=False
-        )
-        .update(
-            escalation_chain_id=Subquery(default_route_subquery.values("escalation_chain_id")[:1]),
-            telegram_channel_id=Subquery(default_route_subquery.values("telegram_channel_id")[:1]),
-            notify_in_telegram=Subquery(default_route_subquery.values("notify_in_telegram")[:1]),
-            slack_channel_id=Subquery(default_route_subquery.values("slack_channel_id")[:1]),
-            notify_in_slack=Subquery(default_route_subquery.values("notify_in_slack")[:1]),
-            notification_backends=Subquery(default_route_subquery.values("notification_backends")[:1]),
-        )
+    default_direct_paging_route_map = {
+        route["alert_receive_channel_id"]: route for route in default_direct_paging_routes
+    }
+
+    # 2) Fetch all non-default direct paging routes we want to update
+    non_default_direct_paging_routes = list(ChannelFilter.objects.filter(
+        alert_receive_channel__integration="direct_paging",
+        is_default=False
+    ))
+
+    # 3) Update them in Python memory
+    for non_default_route in non_default_direct_paging_routes:
+        default_route = default_direct_paging_route_map.get(non_default_route.alert_receive_channel_id)
+        if default_route:
+            non_default_route.escalation_chain_id = default_route["escalation_chain_id"]
+            non_default_route.telegram_channel_id = default_route["telegram_channel_id"]
+            non_default_route.notify_in_telegram = default_route["notify_in_telegram"]
+            non_default_route.slack_channel_id = default_route["slack_channel_id"]
+            non_default_route.notify_in_slack = default_route["notify_in_slack"]
+            non_default_route.notification_backends = default_route["notification_backends"]
+
+    # 4) Bulk update all at once
+    ChannelFilter.objects.bulk_update(
+        non_default_direct_paging_routes,
+        [
+            "escalation_chain_id",
+            "telegram_channel_id",
+            "notify_in_telegram",
+            "slack_channel_id",
+            "notify_in_slack",
+            "notification_backends",
+        ],
+        batch_size=5000,
     )
 
-    logger.info(f"Updated {updated_count} non-default direct paging integration routes")
+    logger.info(f"Updated {len(non_default_direct_paging_routes)} non-default direct paging integration routes")
     logger.info("Finished update_direct_paging_integration_non_default_routes migration.")
 
 
