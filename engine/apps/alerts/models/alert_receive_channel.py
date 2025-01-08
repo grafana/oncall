@@ -780,7 +780,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
         if not self.organization.is_grafana_labels_enabled:
             return
-        if self.integration != AlertReceiveChannel.GRAFANA_ALERTING:
+        if self.integration != AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             return
 
         # validate that service_name label doesn't exist in already
