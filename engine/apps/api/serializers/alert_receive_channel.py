@@ -126,18 +126,21 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         validated_data: dict,
     ) -> "AlertReceiveChannel.DynamicLabelsEntryDB":
         """
-        labels_schema_to_internal_value converts dynamic labels from API format to internal format
+        to_internal_value converts dynamic labels from API format to internal format and updates labels cache
         """
-        alert_group_labels = self._pop_alerty_group_labels(validated_data)
+        alert_group_labels = self._pop_alert_group_labels(validated_data)
         if alert_group_labels is None:
             return validated_data
+
+        organization = self.context["request"].auth.organization
+        self._create_custom_labels(organization, alert_group_labels["custom"] if alert_group_labels else [])
+
         custom_labels = (
             self._custom_labels_to_internal_value(alert_group_labels["custom"]) if alert_group_labels else []
         )
         validated_data["alert_group_labels_custom"] = custom_labels or None
         validated_data["alert_group_labels_template"] = alert_group_labels["template"] if alert_group_labels else None
 
-        # TODO: refresh custom labels cache
         return validated_data
 
     @staticmethod
@@ -199,9 +202,8 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         ]
 
     @staticmethod
-    def _pop_alerty_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
-        # TODO: what does it mean?
-        # the "alert_group_labels" field is optional, so either all 2 fields are present or none
+    def _pop_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
+        # the "alert_group_labels" field is optional, so either all 2 fields (custom and template) are present or none
         # "inheritable" field is deprecated
         if "custom" not in validated_data:
             return None
@@ -415,18 +417,9 @@ class AlertReceiveChannelSerializer(
         return instance
 
     def update(self, instance, validated_data):
-        organization = self.context["request"].auth.organization
         # update associated labels
         labels = validated_data.pop("labels", None)
         self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
-        # update validated data with alert group labels and update label cache if needed
-        validated_data = self.labels_schema_to_internal_value(
-            integration=instance.integration,
-            organization=instance.organization,
-            validated_data=validated_data,
-            new_integration=False,
-        )
-        self._create_custom_labels(organization, labels)
 
         try:
             updated_instance = super().update(instance, validated_data)
