@@ -57,7 +57,7 @@ def test_alert_create_custom_channel_filter(make_organization, make_alert_receiv
 
 
 @patch("apps.alerts.models.alert.assign_labels")
-@patch("apps.alerts.models.alert.gather_labels_from_alert_receive_channel_and_raw_request_data")
+@patch("apps.alerts.models.alert.gather_alert_labels")
 @patch("apps.alerts.models.ChannelFilter.select_filter", wraps=ChannelFilter.select_filter)
 @pytest.mark.django_db
 def test_alert_create_labels_are_assigned(
