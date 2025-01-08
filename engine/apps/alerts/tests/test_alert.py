@@ -56,7 +56,7 @@ def test_alert_create_custom_channel_filter(make_organization, make_alert_receiv
     assert alert.group.channel_filter == other_channel_filter
 
 
-@patch("apps.alerts.models.alert.assign_labels")
+@patch("apps.alerts.models.alert.save_alert_group_labels")
 @patch("apps.alerts.models.alert.gather_alert_labels")
 @patch("apps.alerts.models.ChannelFilter.select_filter", wraps=ChannelFilter.select_filter)
 @pytest.mark.django_db

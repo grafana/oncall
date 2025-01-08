@@ -19,6 +19,7 @@ CELERY_TASK_ROUTES = {
     "apps.labels.tasks.update_label_pairs_cache": {"queue": "default"},
     "apps.labels.tasks.add_service_label_for_alerting_integrations": {"queue": "default"},
     "apps.labels.tasks.add_service_label_per_org": {"queue": "default"},
+    "apps.labels.tasks.add_service_label_for_integration": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
     "apps.metrics_exporter.tasks.update_metrics_for_alert_group": {"queue": "default"},
     "apps.metrics_exporter.tasks.update_metrics_for_user": {"queue": "default"},

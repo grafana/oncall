@@ -45,6 +45,7 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         "rename_value": [RBACPermission.Permissions.LABEL_WRITE],
         "get_keys": [RBACPermission.Permissions.LABEL_READ],
         "get_key": [RBACPermission.Permissions.LABEL_READ],
+        "get_key_by_name": [RBACPermission.Permissions.LABEL_READ],
         "get_value": [RBACPermission.Permissions.LABEL_READ],
     }
 
