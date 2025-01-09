@@ -40,7 +40,8 @@ class LabelKeyCache(models.Model):
             name=label["key"]["name"],
             organization=organization,
             prescribed=label["key"]["prescribed"],
-        ).save()
+        )
+        label_key.save()
 
         return label_key
 
