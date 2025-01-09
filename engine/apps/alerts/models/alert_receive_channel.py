@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
 
-from apps.alerts.constants import SERVICE_LABEL
+from apps.alerts.constants import SERVICE_LABEL, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
@@ -809,8 +809,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         If there is no label key service_name in the cache - it tries to fetch it from the labels repo API.
         """
         from apps.labels.models import LabelKeyCache
-
-        SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION = "{{ payload.common_labels.service_name }}"
 
         try:
             service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)

@@ -28,3 +28,4 @@ class AlertGroupState(str, Enum):
 
 
 SERVICE_LABEL = "service_name"
+SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION = "{{ payload.common_labels.service_name }}"

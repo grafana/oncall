@@ -194,11 +194,16 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     def _custom_labels_to_internal_value(
         custom_labels: AlertGroupCustomLabelsAPI,
     ) -> AlertReceiveChannel.DynamicLabelsConfigDB:
-        """Convert custom labels from API representation to the schema used by the JSONField on the model."""
+        """
+        Convert dynamic labels from API representation to the schema used by the JSONField on the model:
+        [[key.id, None, template(stored in value.name here)]].
+        """
 
         return [
-            [label["key"]["id"], label["value"]["id"], None if label["value"]["id"] else label["value"]["name"]]
+            [label["key"]["id"], None, label["value"]["name"]]
             for label in custom_labels
+            if label["value"]["id"] is None
+            # value.id is not None for deprecated static labels, for dynamic labels it's always None
         ]
 
     @staticmethod
