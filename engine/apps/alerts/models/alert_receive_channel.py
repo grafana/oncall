@@ -25,7 +25,6 @@ from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
-from apps.labels.client import LabelsRepoAPIException
 from apps.labels.tasks import add_service_label_for_integration
 from apps.metrics_exporter.helpers import (
     metrics_add_integrations_to_cache,
@@ -805,16 +804,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     @staticmethod
     def _build_service_name_label_custom(organization: "Organization") -> DynamicLabelsEntryDB | None:
         """
-        _build_service_name_label_custom returns `service_name` label template in dynamic label format: [key_id, None, template]
+        _build_service_name_label_custom returns `service_name` label template in dynamic label format:
+        [key_id, None, template].
         If there is no label key service_name in the cache - it tries to fetch it from the labels repo API.
         """
         from apps.labels.models import LabelKeyCache
 
-        try:
-            service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)
-        except LabelsRepoAPIException as e:
-            logger.error(f"Failed to get or create label key {SERVICE_LABEL} for organization {organization}: {e}")
-            return None
+        service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)
         return (
             [service_label_key.id, None, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION] if service_label_key else None
         )
