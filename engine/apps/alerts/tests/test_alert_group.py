@@ -867,3 +867,144 @@ class TestAlertGroupSlackChannelID:
 
         # Assert that slack_channel_id is None
         assert alert_group.slack_channel_id is None
+
+
+@pytest.mark.django_db
+def test_alert_group_dependent_services_failed_api_call(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert_group_label_association,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    # set service name label
+    make_alert_group_label_association(organization, alert_group, key_name="service_name", value_name="service-a")
+
+    with patch(
+        "apps.grafana_plugin.helpers.GrafanaAPIClient.get_services_depending_on"
+    ) as mock_get_services_depending_on:
+        mock_get_services_depending_on.return_value = (None, {"status_code": 500})
+        services = alert_group.get_dependent_services()
+    assert services == []
+
+
+@pytest.mark.django_db
+def test_alert_group_dependent_services_no_service_set(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    # no service name label set
+
+    services = alert_group.get_dependent_services()
+    assert services == []
+
+
+@pytest.mark.django_db
+def test_alert_group_dependent_services_all(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert_group_label_association,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    # set service name label
+    make_alert_group_label_association(organization, alert_group, key_name="service_name", value_name="service-a")
+
+    mock_related_services_response_data = {
+        "apiVersion": "gamma.ext.grafana.com/v1alpha1",
+        "items": [
+            {
+                "apiVersion": "gamma.ext.grafana.com/v1alpha1",
+                "kind": "Relation",
+                "metadata": {},
+                "spec": {
+                    "from": {
+                        "ref": {"kind": "Component", "name": f"service-{i}"},
+                        "type": "depends-on",
+                    },
+                    "relationType": "dependency",
+                    "to": {
+                        "ref": {"kind": "Component", "name": "service-a"},
+                        "type": "dependency-of",
+                    },
+                },
+            }
+            for i in ("b", "c")
+        ],
+        "kind": "RelationList",
+        "metadata": {"continue": "", "resourceVersion": "15552"},
+    }
+
+    with patch(
+        "apps.grafana_plugin.helpers.GrafanaAPIClient.get_services_depending_on"
+    ) as mock_get_services_depending_on:
+        mock_get_services_depending_on.return_value = (mock_related_services_response_data, {"status_code": 200})
+        services = alert_group.get_dependent_services()
+    assert services == ["service-b", "service-c"]
+
+
+@pytest.mark.django_db
+def test_alert_group_dependent_services_filter_affected(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert_group_label_association,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    # set service name label
+    make_alert_group_label_association(organization, alert_group, key_name="service_name", value_name="service-a")
+
+    affected_states = {AlertGroupState.FIRING, AlertGroupState.ACKNOWLEDGED}
+    expected_services = []
+    for i, state in enumerate(AlertGroupState):
+        ag = make_alert_group(alert_receive_channel)
+        if state != AlertGroupState.FIRING:
+            setattr(ag, state.lower(), True)
+            ag.save()
+        # set service name label
+        service_name = f"service-{i}"
+        make_alert_group_label_association(organization, ag, key_name="service_name", value_name=service_name)
+        if state in affected_states:
+            expected_services.append(service_name)
+
+    mock_related_services_response_data = {
+        "apiVersion": "gamma.ext.grafana.com/v1alpha1",
+        "items": [
+            {
+                "apiVersion": "gamma.ext.grafana.com/v1alpha1",
+                "kind": "Relation",
+                "metadata": {},
+                "spec": {
+                    "from": {
+                        "ref": {"kind": "Component", "name": f"service-{i}"},
+                        "type": "depends-on",
+                    },
+                    "relationType": "dependency",
+                    "to": {
+                        "ref": {"kind": "Component", "name": "service-a"},
+                        "type": "dependency-of",
+                    },
+                },
+            }
+            for i in range(len(AlertGroupState))
+        ],
+        "kind": "RelationList",
+        "metadata": {"continue": "", "resourceVersion": "15552"},
+    }
+    with patch(
+        "apps.grafana_plugin.helpers.GrafanaAPIClient.get_services_depending_on"
+    ) as mock_get_services_depending_on:
+        mock_get_services_depending_on.return_value = (mock_related_services_response_data, {"status_code": 200})
+        services = alert_group.get_dependent_services(affected_only=True)
+    assert len(services) == len(affected_states)
+    assert services == expected_services

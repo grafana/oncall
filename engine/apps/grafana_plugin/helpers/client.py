@@ -351,6 +351,17 @@ class GrafanaAPIClient(APIClient):
             return False
         return True
 
+    def get_services_depending_on(self, service_name, stack_id=None):
+        namespace = "default"
+        if settings.LICENSE == settings.CLOUD_LICENSE_NAME and stack_id:
+            namespace = f"stacks-{stack_id}"
+        query_params = {
+            "fieldSelector": f"spec.to.type=dependency-of,spec.to.ref.name={service_name}",
+        }
+        return self.api_get(
+            f"/apis/gamma.ext.grafana.com/v1alpha1/namespaces/{namespace}/relations", params=query_params
+        )
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"

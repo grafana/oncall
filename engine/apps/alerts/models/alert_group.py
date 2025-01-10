@@ -26,6 +26,7 @@ from apps.alerts.tasks import (
     send_alert_group_signal_for_delete,
     unsilence_task,
 )
+from apps.grafana_plugin.helpers import GrafanaAPIClient
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.metrics_exporter.tasks import update_metrics_for_alert_group
 from apps.slack.slack_formatter import SlackFormatter
@@ -572,6 +573,66 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def happened_while_maintenance(self):
         return self.root_alert_group is not None and self.root_alert_group.maintenance_uuid is not None
+
+    def get_dependent_services(self, affected_only: bool = False) -> typing.List[str]:
+        """Return a service name list of current alert group service dependent services.
+
+        Service name is extracted from current alert group labels.
+        If affected_only is True, return only dependent services with active alert groups.
+        """
+        SERVICE_LABEL = "service_name"
+        affected_deps = []
+        organization = self.channel.organization
+        service_label = self.labels.filter(key_name=SERVICE_LABEL).first()
+
+        if not service_label:
+            return affected_deps
+
+        service_name = service_label.value_name
+        # query dependent services via aggregated API server
+        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        response_data, call_status = grafana_api_client.get_services_depending_on(
+            service_name, stack_id=organization.stack_id
+        )
+        if call_status["status_code"] != 200:
+            # check additional logs from Grafana API client
+            logger.info(f"get_dependent_services for alert_group {self.pk} failed")
+            return affected_deps
+        deps = [s["spec"]["from"]["ref"]["name"] for s in response_data.get("items", [])]
+
+        if not affected_only:
+            return deps
+
+        # check for dependent services with active alert groups
+        for dep_service_name in deps:
+            queryset = AlertGroup.objects.filter(
+                channel__organization=organization,
+                labels__organization=organization,
+                labels__key_name=SERVICE_LABEL,
+                labels__value_name=dep_service_name,
+                # check for firing and acknowledged alert groups
+                resolved=False,
+                silenced=False,
+                # TODO: is root?
+                # TODO: review this period? started around this one?
+                # eg. started after? last week? both? tests!
+                # started_at__gte=timezone.now() - timezone.timedelta(days=30),
+                started_at__gte=self.started_at,
+                started_at__gt=timezone.now() - timezone.timedelta(days=7),
+            )
+            # TODO: maybe we don't need this?
+            if settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
+                # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
+                # read more: https://hackmysql.com/infamous-order-by-limit-query-optimizer-bug/
+                from django_mysql.models import add_QuerySetMixin
+
+                queryset = add_QuerySetMixin(queryset)
+                queryset = queryset.force_index("alert_group_list_index")
+
+            if queryset.exists():
+                affected_deps.append(dep_service_name)
+
+        return affected_deps
 
     def get_paged_users(self) -> typing.List[PagedUser]:
         from apps.alerts.models import AlertGroupLogRecord
