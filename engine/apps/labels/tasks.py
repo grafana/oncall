@@ -214,7 +214,7 @@ def add_service_label_per_org(organization_id: int):
                 break
         if dynamic_service_label_exists:
             continue
-        integration.alert_group_labels_custom = dynamic_labels + [service_label_custom]
+        integration.alert_group_labels_custom = [service_label_custom] + dynamic_labels
         integrations_to_update.append(integration)
 
     AlertReceiveChannel.objects.bulk_update(integrations_to_update, fields=["alert_group_labels_custom"])
