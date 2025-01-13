@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Event
 
+from apps.schedules.ical_utils import MissingUser
 from apps.schedules.tasks import (
     check_gaps_and_empty_shifts_in_schedule,
     drop_cached_ical_task,
@@ -645,10 +646,6 @@ class CustomOnCallShift(models.Model):
         all_users_pks = set()
         users_queue = []
         if self.rolling_users is not None:
-            # get all users pks from rolling_users field
-            for users_dict in self.rolling_users:
-                all_users_pks.update(users_dict.keys())
-            users = User.objects.filter(pk__in=all_users_pks)
             # generate users_queue list with user objects
             if self.start_rotation_from_user_index is not None:
                 rolling_users = (
@@ -657,10 +654,22 @@ class CustomOnCallShift(models.Model):
                 )
             else:
                 rolling_users = self.rolling_users
+
+            # get all users pks from rolling_users field
+            for users_dict in self.rolling_users:
+                all_users_pks.update(users_dict.keys())
+            users = User.objects.filter(pk__in=all_users_pks)
+            users_by_id = {user.pk: user for user in users}
             for users_dict in rolling_users:
-                users_list = list(users.filter(pk__in=users_dict.keys()))
-                if users_list:
-                    users_queue.append(users_list)
+                users_list = []
+                for user_pk in users_dict.keys():
+                    try:
+                        user_pk = int(user_pk)
+                        users_list.append(users_by_id.get(user_pk, MissingUser(user_pk)))
+                    except ValueError:
+                        users_list.append(MissingUser(user_pk))
+                users_queue.append(users_list)
+
         return users_queue
 
     def add_rolling_users(self, rolling_users_list):

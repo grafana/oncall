@@ -1,6 +1,7 @@
 import pytz
 from celery.utils.log import get_task_logger
 from django.core.cache import cache
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
@@ -10,28 +11,16 @@ from common.utils import trim_if_needed
 task_logger = get_task_logger(__name__)
 
 
-# deprecated # todo: delete this task from here and from task routes after the next release
-@shared_dedicated_queue_retry_task()
-def start_check_empty_shifts_in_schedule():
-    return
-
-
-# deprecated # todo: delete this task from here and from task routes after the next release
-@shared_dedicated_queue_retry_task()
-def check_empty_shifts_in_schedule(schedule_pk):
-    return
-
-
 @shared_dedicated_queue_retry_task()
 def start_notify_about_empty_shifts_in_schedule():
-    from apps.schedules.models import OnCallScheduleICal
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start start_notify_about_empty_shifts_in_schedule")
 
     today = timezone.now().date()
     week_ago = today - timezone.timedelta(days=7)
-    schedules = OnCallScheduleICal.objects.filter(
-        empty_shifts_report_sent_at__lte=week_ago,
+    schedules = OnCallSchedule.objects.filter(
+        Q(empty_shifts_report_sent_at__lte=week_ago) | Q(empty_shifts_report_sent_at__isnull=True),
         slack_channel__isnull=False,
         organization__deleted_at__isnull=True,
     )

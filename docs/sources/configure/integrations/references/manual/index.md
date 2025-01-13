@@ -89,9 +89,16 @@ to the team's ChatOps channels and start an appropriate escalation chain.
 
 ## Set up direct paging for a team
 
-By default all teams will have a direct paging integration created for them. However, these are not configured by default.
-If a team does not have their direct paging integration configured, such that it is "contactable" (ie. it has an
-escalation chain assigned to it, or has at least one Chatops integration connected to send notifications to), you will
+By default all teams will have a direct paging integration created for them. Each direct paging integration will be
+created with two routes:
+
+- a non-default route which has a Jinja2 filtering term of `{{ payload.oncall.important }}`
+(see [Important Escalations](#important-escalations) below for more details)
+- a default route to capture all other alerts
+
+However, these integrations are not configured by default to be "contactable" (ie. their routes will have no
+escalation chains assigned to them, nor any Chatops integrations connected to send notifications to).
+If a team does not have their direct paging integration configured, such that it is "contactable" , you will
 not be able to direct page this team. If this happens, consider following the following steps for the team (or reach out
 to the relevant team and suggest doing so).
 
@@ -99,3 +106,30 @@ Navigate to the **Integrations** page and find the "Direct paging" integration f
 integration's detail page, you can customize its settings, link it to an escalation chain, and configure associated
 ChatOps channels. To confirm that the integration is functioning as intended, [create a new alert group](#page-a-team)
 and select the same team for a test run.
+
+### Important escalations
+
+Sometimes you really need to get the attention of a particular team. When directly paging a team, it is possible to
+page them using an "important escalation". Practically speaking, this will create an alert, using the specified team's
+direct paging integration as such:
+
+```json
+{
+    "oncall": {
+        "title": "IRM is paging Network team to join escalation",
+        "message": "I really need someone from your team to come take a look! The k8s cluster is down!",
+        "uid": "8a20b8d1-56fd-482e-824e-43fbd1bd7b10",
+        "author_username": "irm",
+        "permalink": null,
+        "important": true
+    }
+}
+```
+
+When you are directly paging a team, either via the web UI, chatops apps, or the API, you can specify that this
+esclation be "important", which will effectively set the value of `oncall.important` to `true`. As mentioned above in
+[Set up direct paging for a team](#set-up-direct-paging-for-a-team), direct paging integrations come pre-configured with
+two routes, with the non-default route having a Jinja2 filtering term of `{{ payload.oncall.important }}`.
+
+This allows teams to be contacted via different escalation chains, depending on whether or not the user paging them
+believes that this is an "important escalation".
