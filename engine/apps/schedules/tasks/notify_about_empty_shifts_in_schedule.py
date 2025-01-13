@@ -54,9 +54,9 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
     if len(empty_shifts) != 0:
         schedule.has_empty_shifts = True
         text = (
-            f'Tried to parse schedule *"{schedule.name}"* and found events without associated users.\n'
-            f"To ensure you don't miss any notifications, use a Grafana username as the event name in the calendar. "
-            f"The user should have Editor or Admin access.\n\n"
+            f"Reviewing *{schedule.slack_url}* on-call schedule found events without valid associated users.\n"
+            f"To ensure you don't miss any notifications, make sure user exists (or you provided a valid Grafana username). "
+            f"The user should have the right permissions, or be an Editor or Admin.\n\n"
         )
         for idx, empty_shift in enumerate(empty_shifts):
             start_timestamp = empty_shift.start.astimezone(pytz.UTC).timestamp()
@@ -80,7 +80,6 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
                 text += '*All-day* event in "UTC" TZ\n'
             else:
                 text += f"From {format_datetime_to_slack_with_time(start_timestamp)} to {format_datetime_to_slack_with_time(end_timestamp)} (your TZ)\n"
-            text += f"_From {OnCallSchedule.CALENDAR_TYPE_VERBAL[empty_shift.calendar_type]} calendar_\n"
             if idx != len(empty_shifts) - 1:
                 text += "\n\n"
         post_message_to_channel(schedule.organization, schedule.slack_channel_slack_id, text)
