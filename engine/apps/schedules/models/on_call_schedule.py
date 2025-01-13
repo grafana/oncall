@@ -33,6 +33,7 @@ from apps.schedules.constants import (
     ICAL_SUMMARY,
     ICAL_UID,
     PREFETCHED_SHIFT_SWAPS,
+    SCHEDULE_CHECK_NEXT_DAYS,
 )
 from apps.schedules.ical_utils import (
     EmptyShifts,
@@ -293,9 +294,9 @@ class OnCallSchedule(PolymorphicModel):
             (self.prev_ical_file_overrides, self.cached_ical_file_overrides),
         ]
 
-    def check_gaps_and_empty_shifts_for_next_week(self) -> None:
+    def check_gaps_and_empty_shifts_for_next_days(self, days=SCHEDULE_CHECK_NEXT_DAYS) -> None:
         datetime_start = timezone.now()
-        datetime_end = datetime_start + datetime.timedelta(days=7)
+        datetime_end = datetime_start + datetime.timedelta(days=days)
 
         # get empty shifts from all events and gaps from final events
         events = self.filter_events(
@@ -313,14 +314,14 @@ class OnCallSchedule(PolymorphicModel):
             self.has_empty_shifts = has_empty_shifts
             self.save(update_fields=["has_gaps", "has_empty_shifts"])
 
-    def get_gaps_for_next_week(self) -> ScheduleEvents:
+    def get_gaps_for_next_days(self, days=SCHEDULE_CHECK_NEXT_DAYS) -> ScheduleEvents:
         today = timezone.now()
-        events = self.final_events(today, today + datetime.timedelta(days=7))
+        events = self.final_events(today, today + datetime.timedelta(days=days))
         return [event for event in events if event["is_gap"]]
 
-    def get_empty_shifts_for_next_week(self) -> EmptyShifts:
+    def get_empty_shifts_for_next_days(self, days=SCHEDULE_CHECK_NEXT_DAYS) -> EmptyShifts:
         today = timezone.now().date()
-        return list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=7))
+        return list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=days))
 
     def drop_cached_ical(self):
         self._drop_primary_ical_file()

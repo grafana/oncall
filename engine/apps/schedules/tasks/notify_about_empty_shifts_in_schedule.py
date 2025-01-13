@@ -48,7 +48,7 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
         task_logger.info(f"Tried to notify_about_empty_shifts_in_schedule_task for non-existing schedule {schedule_pk}")
         return
 
-    empty_shifts = schedule.get_empty_shifts_for_next_week()
+    empty_shifts = schedule.get_empty_shifts_for_next_days()
     schedule.empty_shifts_report_sent_at = timezone.now().date()
 
     if len(empty_shifts) != 0:

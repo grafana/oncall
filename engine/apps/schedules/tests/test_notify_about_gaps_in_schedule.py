@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
+from apps.schedules.constants import SCHEDULE_CHECK_NEXT_DAYS
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.tasks import notify_about_gaps_in_schedule_task, start_notify_about_gaps_in_schedule
 
@@ -236,7 +237,7 @@ def test_gaps_near_future_trigger_notification(
 
 
 @pytest.mark.django_db
-def test_gaps_later_than_7_days_no_triggering_notification(
+def test_gaps_later_than_days_no_triggering_notification(
     make_slack_team_identity,
     make_slack_channel,
     make_organization,
@@ -259,8 +260,8 @@ def test_gaps_later_than_7_days_no_triggering_notification(
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
-    start_date = now - datetime.timedelta(days=7, minutes=1)
-    until_date = now + datetime.timedelta(days=8)
+    start_date = now - datetime.timedelta(days=SCHEDULE_CHECK_NEXT_DAYS, minutes=1)
+    until_date = now + datetime.timedelta(days=SCHEDULE_CHECK_NEXT_DAYS + 1)
     data = {
         "start": start_date,
         "rotation_start": start_date,

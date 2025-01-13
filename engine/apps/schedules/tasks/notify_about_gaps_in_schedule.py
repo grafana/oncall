@@ -48,7 +48,7 @@ def notify_about_gaps_in_schedule_task(schedule_pk):
         task_logger.info(f"Tried to notify_about_gaps_in_schedule_task for non-existing schedule {schedule_pk}")
         return
 
-    gaps = schedule.get_gaps_for_next_week()
+    gaps = schedule.get_gaps_for_next_days()
     schedule.gaps_report_sent_at = timezone.now().date()
 
     if len(gaps) != 0:
