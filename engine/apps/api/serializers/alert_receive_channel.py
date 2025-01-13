@@ -121,10 +121,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
             "template": instance.alert_group_labels_template,
         }
 
-    def to_internal_value(
-        self,
-        validated_data: dict,
-    ) -> "AlertReceiveChannel.DynamicLabelsEntryDB":
+    def to_internal_value(self, validated_data: dict) -> dict:
         """
         to_internal_value converts dynamic labels from API format to internal format and updates labels cache
         """
