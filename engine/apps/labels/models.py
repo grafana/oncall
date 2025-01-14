@@ -1,8 +1,10 @@
+import logging
 import typing
 
 from django.db import models
 from django.utils import timezone
 
+from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.tasks import update_label_pairs_cache
 from apps.labels.types import LabelPair
 from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
@@ -10,6 +12,7 @@ from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
 
+logger = logging.getLogger(__name__)
 
 MAX_KEY_NAME_LENGTH = 200
 MAX_VALUE_NAME_LENGTH = 200
@@ -25,6 +28,36 @@ class LabelKeyCache(models.Model):
     @property
     def is_outdated(self) -> bool:
         return timezone.now() - self.last_synced > timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES)
+
+    @classmethod
+    def get_or_create_by_name(cls, organization: "Organization", key_name: str) -> typing.Optional["LabelKeyCache"]:
+        """
+        `get_or_create_by_name` tries to get label key with provided name from cache.
+        If there is no label key with this name in the cache - it tries to fetch it from the labels repo API.
+        """
+        label_key = cls.objects.filter(organization=organization, name=key_name).first()
+        if label_key:
+            return label_key
+
+        # fetch label key from labels repo
+        try:
+            label, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_label_by_key_name(
+                label_key
+            )
+        except LabelsRepoAPIException as e:
+            logger.error(f"Failed to get or create label key {key_name} for organization {organization.id}: {e}")
+            return None
+
+        # save labels key in cache
+        label_key = LabelKeyCache(
+            id=label["key"]["id"],
+            name=label["key"]["name"],
+            organization=organization,
+            prescribed=label["key"]["prescribed"],
+        )
+        label_key.save()
+
+        return label_key
 
 
 class LabelValueCache(models.Model):

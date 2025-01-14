@@ -312,7 +312,7 @@ class AlertReceiveChannelView(
         if instance is None:
             # pop extra fields so they are not passed to AlertReceiveChannel(**serializer.validated_data)
             serializer.validated_data.pop("create_default_webhooks", None)
-            IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(serializer.validated_data)
+            IntegrationAlertGroupLabelsSerializer._pop_alert_group_labels(serializer.validated_data)
 
             # create in-memory instance to test with the (possible) unsaved data
             instance = AlertReceiveChannel(**serializer.validated_data)

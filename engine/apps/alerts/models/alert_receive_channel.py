@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
 
+from apps.alerts.constants import SERVICE_LABEL, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
@@ -24,6 +25,7 @@ from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.labels.tasks import add_service_label_for_integration
 from apps.metrics_exporter.helpers import (
     metrics_add_integrations_to_cache,
     metrics_remove_deleted_integration_from_cache,
@@ -46,6 +48,10 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, Team, User
 
 logger = logging.getLogger(__name__)
+
+
+class CreatingServiceNameDynamicLabelFailed(Exception):
+    """Raised when failed to create a dynamic service name label"""
 
 
 class MessagingBackendTemplatesItem:
@@ -789,6 +795,54 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
+
+    def create_service_name_dynamic_label(self, is_called_async: bool = False):
+        """
+        create_service_name_dynamic_label creates a dynamic label for service_name for Grafana Alerting integration.
+        Warning: It might make a request to the labels repo API.
+        That's why it's called in api handlers, not in post_save.
+        Once we will have labels operator & get rid of syncing labels from repo, this method should be moved
+        to post_save.
+        """
+        from apps.labels.models import LabelKeyCache
+
+        if not self.organization.is_grafana_labels_enabled:
+            return
+        if self.integration != AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+            return
+
+        # validate that service_name label doesn't exist in already
+        service_name_label = LabelKeyCache.objects.filter(organization=self.organization, name=SERVICE_LABEL).first()
+
+        if service_name_label is not None and self.alert_group_labels_custom is not None:
+            for k, _, _ in self.alert_group_labels_custom:
+                if k == service_name_label.id:
+                    return
+
+        service_name_dynamic_label = self._build_service_name_label_custom(self.organization)
+        if service_name_dynamic_label is None:
+            # if this method was called from a celery task, raise exception to retry it
+            if is_called_async:
+                raise CreatingServiceNameDynamicLabelFailed
+            # otherwise start a celery task to retry the label creation async
+            add_service_label_for_integration.apply_async((self.id,))
+            return
+        self.alert_group_labels_custom = [service_name_dynamic_label] + (self.alert_group_labels_custom or [])
+        self.save(update_fields=["alert_group_labels_custom"])
+
+    @staticmethod
+    def _build_service_name_label_custom(organization: "Organization") -> DynamicLabelsEntryDB | None:
+        """
+        _build_service_name_label_custom returns `service_name` label template in dynamic label format:
+        [key_id, None, template].
+        If there is no label key service_name in the cache - it tries to fetch it from the labels repo API.
+        """
+        from apps.labels.models import LabelKeyCache
+
+        service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)
+        return (
+            [service_label_key.id, None, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION] if service_label_key else None
+        )
 
 
 @receiver(post_save, sender=AlertReceiveChannel)
