@@ -1,3 +1,4 @@
+from json import JSONDecodeError
 from unittest.mock import call, patch
 
 import pytest
@@ -164,6 +165,12 @@ def test_update_instances_labels_cache_error(make_organization, make_alert_recei
 def test_get_or_create_label_key_cache_by_name(make_organization):
     organization = make_organization()
     label_key_data = {"id": "testid", "name": "testname", "prescribed": False}
+
+    # test empty response from label repo (json decode error)
+    with patch.object(LabelsAPIClient, "get_label_by_key_name", side_effect=JSONDecodeError("test", "test", 0)):
+        label = LabelKeyCache.get_or_create_by_name(organization, label_key_data["name"])
+
+    assert label is None
 
     # test label does not exist in labels repo
     with patch.object(LabelsAPIClient, "get_label_by_key_name", side_effect=LabelsRepoAPIException("test", "test")):

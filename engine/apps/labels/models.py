@@ -1,5 +1,6 @@
 import logging
 import typing
+from json import JSONDecodeError
 
 from django.db import models
 from django.utils import timezone
@@ -44,7 +45,7 @@ class LabelKeyCache(models.Model):
             label, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_label_by_key_name(
                 label_key
             )
-        except LabelsRepoAPIException as e:
+        except (LabelsRepoAPIException, JSONDecodeError) as e:
             logger.error(f"Failed to get or create label key {key_name} for organization {organization.id}: {e}")
             return None
 
