@@ -56,3 +56,6 @@ class UIURLBuilder:
 
     def declare_incident(self, path_extra: str = "") -> str:
         return self._build_url("incidents/declare", path_extra, plugin_id=PluginID.INCIDENT)
+
+    def service_page(self, service_name: str, path_extra: str = "") -> str:
+        return self._build_url(f"service/{service_name}", path_extra, plugin_id=PluginID.SLO)

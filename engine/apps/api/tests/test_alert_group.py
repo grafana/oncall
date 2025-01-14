@@ -2413,3 +2413,44 @@ def test_filter_default_started_at(
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["pk"] == old_alert_group.public_primary_key
+
+
+@pytest.mark.django_db
+def test_alert_group_affected_services(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_alert_group_label_association,
+):
+    _, token, alert_groups = alert_group_internal_api_setup
+    resolved_ag, ack_ag, new_ag, silenced_ag = alert_groups
+    organization = new_ag.channel.organization
+    user = make_user_for_organization(organization)
+
+    # set firing alert group service label
+    make_alert_group_label_association(organization, new_ag, key_name="service_name", value_name="service-a")
+    # set other service name labels for other alert groups
+    make_alert_group_label_association(organization, ack_ag, key_name="service_name", value_name="service-2")
+    make_alert_group_label_association(organization, resolved_ag, key_name="service_name", value_name="service-3")
+    make_alert_group_label_association(organization, silenced_ag, key_name="service_name", value_name="service-4")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-filter-affected-services")
+
+    url = f"{url}?service=service-1&service=service-2&service=service-3&service=service-a"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    expected = [
+        {
+            "name": "service-2",
+            "service_url": "a/grafana-slo-app/service/service-2",
+            "alert_groups_url": "a/grafana-oncall-app/alert-groups?status=0&status=1&started_at=now-7d_now&label=service_name:service-2",
+        },
+        {
+            "name": "service-a",
+            "service_url": "a/grafana-slo-app/service/service-a",
+            "alert_groups_url": "a/grafana-oncall-app/alert-groups?status=0&status=1&started_at=now-7d_now&label=service_name:service-a",
+        },
+    ]
+    assert response.json() == expected
