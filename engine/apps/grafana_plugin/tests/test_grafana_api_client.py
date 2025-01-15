@@ -135,3 +135,37 @@ class TestIsRbacEnabledForOrganization:
 
         api_client = GrafanaAPIClient(API_URL, API_TOKEN)
         assert api_client.is_rbac_enabled_for_organization() == expected
+
+
+class TestGetServicesDependingOn:
+    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
+    def test_api_call_cloud(self, mock_grafana_api_client_api_get, settings):
+        settings.LICENSE = settings.CLOUD_LICENSE_NAME
+        api_client = GrafanaAPIClient(API_URL, API_TOKEN)
+
+        service_name = "service-foo"
+        stack_id = 42
+        api_client.get_services_depending_on(service_name, stack_id=stack_id)
+        expected_params = {
+            "fieldSelector": f"spec.to.type=dependency-of,spec.to.ref.name={service_name}",
+        }
+        mock_grafana_api_client_api_get.assert_called_with(
+            f"/apis/gamma.ext.grafana.com/v1alpha1/namespaces/stacks-{stack_id}/relations",
+            params=expected_params,
+        )
+
+    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
+    def test_api_call_oss(self, mock_grafana_api_client_api_get, settings):
+        settings.LICENSE = settings.OPEN_SOURCE_LICENSE_NAME
+        api_client = GrafanaAPIClient(API_URL, API_TOKEN)
+
+        service_name = "service-foo"
+        stack_id = 42
+        api_client.get_services_depending_on(service_name, stack_id=stack_id)
+        expected_params = {
+            "fieldSelector": f"spec.to.type=dependency-of,spec.to.ref.name={service_name}",
+        }
+        mock_grafana_api_client_api_get.assert_called_with(
+            "/apis/gamma.ext.grafana.com/v1alpha1/namespaces/default/relations",
+            params=expected_params,
+        )

@@ -103,3 +103,9 @@ def test_build_url_overriden_base_url(org_setup):
 @pytest.mark.django_db
 def test_build_url_works_for_irm_and_oncall_plugins(org_setup, is_grafana_irm_enabled, expected_url):
     assert UIURLBuilder(org_setup(is_grafana_irm_enabled)).alert_group_detail(ALERT_GROUP_ID) == expected_url
+
+
+@pytest.mark.django_db
+def test_build_url_service_detail_page(org_setup):
+    builder = UIURLBuilder(org_setup())
+    assert builder.service_page("service-a") == f"{GRAFANA_URL}/a/{PluginID.SLO}/service/service-a"

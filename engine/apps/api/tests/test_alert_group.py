@@ -2413,3 +2413,67 @@ def test_filter_default_started_at(
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["pk"] == old_alert_group.public_primary_key
+
+
+@pytest.mark.django_db
+def test_alert_group_affected_services(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_alert_group_label_association,
+):
+    _, token, alert_groups = alert_group_internal_api_setup
+    resolved_ag, ack_ag, new_ag, silenced_ag = alert_groups
+    organization = new_ag.channel.organization
+    user = make_user_for_organization(organization)
+
+    # make sure the firing alert group started before the others
+    new_ag.started_at = timezone.now() - timezone.timedelta(days=1)
+    new_ag.save(update_fields=["started_at"])
+    # set firing alert group service label
+    make_alert_group_label_association(organization, new_ag, key_name="service_name", value_name="service-a")
+    # set other service name labels for other alert groups
+    make_alert_group_label_association(organization, ack_ag, key_name="service_name", value_name="service-2")
+    make_alert_group_label_association(organization, resolved_ag, key_name="service_name", value_name="service-3")
+    make_alert_group_label_association(organization, silenced_ag, key_name="service_name", value_name="service-4")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-related-affected-services", kwargs={"pk": new_ag.public_primary_key})
+
+    mock_related_services_response_data = {
+        "apiVersion": "gamma.ext.grafana.com/v1alpha1",
+        "items": [
+            {
+                "apiVersion": "gamma.ext.grafana.com/v1alpha1",
+                "kind": "Relation",
+                "metadata": {},
+                "spec": {
+                    "from": {
+                        "ref": {"kind": "Component", "name": f"service-{i}"},
+                        "type": "depends-on",
+                    },
+                    "relationType": "dependency",
+                    "to": {
+                        "ref": {"kind": "Component", "name": "service-a"},
+                        "type": "dependency-of",
+                    },
+                },
+            }
+            for i in range(5)
+        ],
+        "kind": "RelationList",
+        "metadata": {"continue": "", "resourceVersion": "15552"},
+    }
+    with patch(
+        "apps.grafana_plugin.helpers.GrafanaAPIClient.get_services_depending_on"
+    ) as mock_get_services_depending_on:
+        mock_get_services_depending_on.return_value = (mock_related_services_response_data, {"status_code": 200})
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    expected = {
+        "name": "service-2",
+        "service_url": "a/grafana-slo-app/service/service-2",
+        "alert_groups_url": "a/grafana-oncall-app/alert-groups?status=0&status=1&started_at=now-30d_now&label=service_name:service-2",
+    }
+    assert response.json() == [expected]

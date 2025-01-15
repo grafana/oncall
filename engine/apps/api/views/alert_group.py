@@ -26,6 +26,7 @@ from apps.api.serializers.alert_group_escalation_snapshot import AlertGroupEscal
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
@@ -283,6 +284,7 @@ class AlertGroupView(
         "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
         "escalation_snapshot": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "related_affected_services": [RBACPermission.Permissions.ALERT_GROUPS_READ],
     }
 
     queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
@@ -880,4 +882,32 @@ class AlertGroupView(
         alert_group = self.get_object()
         escalation_snapshot = alert_group.escalation_snapshot
         result = AlertGroupEscalationSnapshotAPISerializer(escalation_snapshot).data if escalation_snapshot else {}
+        return Response(result)
+
+    @extend_schema(
+        responses=inline_serializer(
+            name="RelatedAffectedServices",
+            fields={
+                "name": serializers.CharField(),
+                "service_url": serializers.CharField(),
+                "alert_groups_url": serializers.CharField(),
+            },
+            many=True,
+        )
+    )
+    @action(methods=["get"], detail=True)
+    def related_affected_services(self, request, pk=None):
+        alert_group = self.get_object()
+        affected_deps = alert_group.get_dependent_services(affected_only=True)
+        url_builder = UIURLBuilder(alert_group.channel.organization)
+        result = [
+            {
+                "name": service_name,
+                "service_url": url_builder.service_page(service_name),
+                "alert_groups_url": url_builder.alert_groups(
+                    f"?status=0&status=1&started_at=now-30d_now&label=service_name:{service_name}"
+                ),
+            }
+            for service_name in affected_deps
+        ]
         return Response(result)
