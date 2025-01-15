@@ -59,6 +59,7 @@ def test_get_route(route_public_api_setup):
         "slack": {"channel_id": channel_filter.slack_channel_slack_id, "enabled": True},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -90,6 +91,7 @@ def test_get_routes_list(route_public_api_setup):
                 "slack": {"channel_id": channel_filter.slack_channel_slack_id, "enabled": True},
                 "telegram": {"id": None, "enabled": False},
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+                "update_team": False,
             }
         ],
         "current_page_number": 1,
@@ -128,6 +130,7 @@ def test_get_routes_filter_by_integration_id(route_public_api_setup):
                 "slack": {"channel_id": channel_filter.slack_channel_slack_id, "enabled": True},
                 "telegram": {"id": None, "enabled": False},
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+                "update_team": False,
             }
         ],
         "current_page_number": 1,
@@ -164,6 +167,7 @@ def test_create_route(route_public_api_setup):
         "slack": {"channel_id": None, "enabled": True},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -195,6 +199,7 @@ def test_create_route_without_escalation_chain(route_public_api_setup):
         "slack": {"channel_id": None, "enabled": True},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -253,6 +258,7 @@ def test_update_route(route_public_api_setup, make_channel_filter):
         "slack": {"channel_id": new_channel_filter.slack_channel_slack_id, "enabled": True},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -427,6 +433,7 @@ def test_create_route_with_messaging_backend(
         "slack": {"channel_id": slack_channel.slack_id, "enabled": True},
         "telegram": {"id": None, "enabled": True},
         TEST_MESSAGING_BACKEND_FIELD: {"id": TEST_MESSAGING_BACKEND_ID, "enabled": True},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -484,6 +491,7 @@ def test_update_route_with_messaging_backend(
         "slack": {"channel_id": slack_channel.slack_id, "enabled": False},
         "telegram": {"id": None, "enabled": True},
         TEST_MESSAGING_BACKEND_FIELD: {"id": TEST_MESSAGING_BACKEND_ID, "enabled": False},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -518,6 +526,7 @@ def test_update_route_with_messaging_backend(
         "slack": {"channel_id": None, "enabled": False},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": True},
+        "update_team": False,
     }
 
     assert response.status_code == status.HTTP_200_OK

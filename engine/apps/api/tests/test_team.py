@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models import AlertReceiveChannel, Alert
 from apps.api.permissions import LegacyAccessControlRole
 from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
@@ -356,7 +356,15 @@ def test_team_permissions_wrong_team(
     user.teams.add(team_with_user)
 
     alert_receive_channel = make_alert_receive_channel(organization, team=team_without_user)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
     escalation_chain = make_escalation_chain(organization, team=team_without_user)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, team=team_without_user)
@@ -402,7 +410,15 @@ def test_team_permissions_not_in_team(
     another_user.save(update_fields=["current_team"])
 
     alert_receive_channel = make_alert_receive_channel(organization, team=team)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
     escalation_chain = make_escalation_chain(organization, team=team)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, team=team)

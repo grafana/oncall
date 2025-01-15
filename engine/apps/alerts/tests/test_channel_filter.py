@@ -1,6 +1,6 @@
 import pytest
 
-from apps.alerts.models import ChannelFilter
+from apps.alerts.models import ChannelFilter, Alert
 
 
 @pytest.mark.django_db
@@ -216,3 +216,98 @@ class TestChannelFilterSlackChannelOrOrgDefault:
 
         # Assert that slack_channel_or_org_default returns None
         assert channel_filter.slack_channel_or_org_default is None
+@pytest.mark.django_db
+def test_channel_filter_team_update(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_escalation_chain,
+    make_alert_receive_channel,
+    make_channel_filter,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    escalation_chain = make_escalation_chain(organization=organization)
+    escalation_chain.team = team
+
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain, is_default=True)
+
+    channel_filter.update_team = True
+
+    alert_group = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+        channel_filter=channel_filter
+    ).group
+    
+    assert list(alert_group.teams.all()) == [team]
+
+@pytest.mark.django_db
+def test_channel_filter_no_team_set(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_escalation_chain,
+    make_alert_receive_channel,
+    make_channel_filter,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization, team=team)
+
+    escalation_chain = make_escalation_chain(organization=organization)
+
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain, is_default=True)
+
+    alert_group = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None
+    ).group
+    
+    assert list(alert_group.teams.all()) == [team]
+
+@pytest.mark.django_db
+def test_channel_filter_no_escalation_chain(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_escalation_chain,
+    make_alert_receive_channel,
+    make_channel_filter,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    escalation_chain = make_escalation_chain(organization=organization)
+    escalation_chain.team = team
+
+    make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain, is_default=True)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    channel_filter.update_team = True
+
+    alert_group = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+        channel_filter=channel_filter
+    ).group
+    
+    assert list(alert_group.teams.all()) == []

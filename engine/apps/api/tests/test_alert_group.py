@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import (
+    Alert,
     AlertGroup,
     AlertGroupExternalID,
     AlertGroupLogRecord,
@@ -887,14 +888,35 @@ def test_get_filter_by_teams(
     alert_receive_channel_1 = make_alert_receive_channel(organization, team=team1)
     alert_receive_channel_2 = make_alert_receive_channel(organization, team=team2)
 
-    alert_group_0 = make_alert_group(alert_receive_channel_0)
-    make_alert(alert_group=alert_group_0, raw_request_data=alert_raw_request_data)
+    alert_group_0 = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel_0,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
-    alert_group_1 = make_alert_group(alert_receive_channel_1)
-    make_alert(alert_group=alert_group_1, raw_request_data=alert_raw_request_data)
+    alert_group_1 = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel_1,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
-    alert_group_2 = make_alert_group(alert_receive_channel_2)
-    make_alert(alert_group=alert_group_2, raw_request_data=alert_raw_request_data)
+    alert_group_2 = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel_2,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    ).group
 
     url = reverse("api-internal:alertgroup-list")
 
@@ -2413,3 +2435,45 @@ def test_filter_default_started_at(
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["pk"] == old_alert_group.public_primary_key
+
+
+
+@pytest.mark.django_db
+def test_update_team(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+    make_escalation_chain,
+    make_team,
+    make_channel_filter
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    escalation_chain = make_escalation_chain(organization=organization, team=team)
+
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain, is_default=True, update_team=True)
+
+
+    alert_group = Alert.create(
+            title="the title",
+            message="the message",
+            alert_receive_channel=alert_receive_channel,
+            raw_request_data={},
+            integration_unique_data={},
+            image_url=None,
+            link_to_upstream_details=None
+    ).group
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['teams'][0]["id"] == team.public_primary_key

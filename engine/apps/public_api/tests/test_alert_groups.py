@@ -13,7 +13,6 @@ from apps.alerts.tasks import delete_alert_group, wipe
 from apps.api import permissions
 from apps.auth_token.tests.helpers import setup_service_account_api_mocks
 
-
 def construct_expected_response_from_alert_groups(alert_groups):
     results = []
     for alert_group in alert_groups:
@@ -57,6 +56,7 @@ def construct_expected_response_from_alert_groups(alert_groups):
                 "id": alert_group.public_primary_key,
                 "integration_id": alert_group.channel.public_primary_key,
                 "team_id": alert_group.channel.team.public_primary_key if alert_group.channel.team else None,
+                "teams": list(alert_group.teams.all().values_list('public_primary_key', flat = True)),
                 "route_id": alert_group.channel_filter.public_primary_key,
                 "alerts_count": alert_group.alerts.count(),
                 "state": alert_group.state,

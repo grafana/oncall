@@ -176,8 +176,8 @@ class TeamFilteringMixin:
 
     TEAM_LOOKUP = "team"
 
-    @property
-    def available_teams_lookup_args(self):
+    
+    def available_teams_lookup_args_with_field(self, field=TEAM_LOOKUP):
         """
         This property returns a list of Q objects that are used to filter instances by teams available to the user.
         NOTE: use .distinct() after filtering by available teams as it may return duplicate instances.
@@ -185,12 +185,16 @@ class TeamFilteringMixin:
         available_teams_lookup_args = []
         if not self.request.user.is_admin:
             available_teams_lookup_args = [
-                Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
-                | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
-                | Q(**{f"{self.TEAM_LOOKUP}__isnull": True})
+                Q(**{f"{field}__users": self.request.user})
+                | Q(**{f"{field}__is_sharing_resources_to_all": True})
+                | Q(**{f"{field}__isnull": True})
             ]
         return available_teams_lookup_args
-
+    
+    @property
+    def available_teams_lookup_args(self):
+        return self.available_teams_lookup_args_with_field(field=self.TEAM_LOOKUP)
+    
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
