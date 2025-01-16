@@ -26,6 +26,7 @@ from apps.api.serializers.alert_group_escalation_snapshot import AlertGroupEscal
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
@@ -283,6 +284,7 @@ class AlertGroupView(
         "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
         "escalation_snapshot": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "filter_affected_services": [RBACPermission.Permissions.ALERT_GROUPS_READ],
     }
 
     queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
@@ -299,9 +301,18 @@ class AlertGroupView(
 
         return super().get_serializer_class()
 
-    def get_queryset(self, ignore_filtering_by_available_teams=False):
-        # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-
+    def _get_queryset(
+        self,
+        action=None,
+        ignore_filtering_by_available_teams=False,
+        team_values=None,
+        started_at=None,
+        label_query=None,
+    ):
+        # make base get_queryset reusable via params
+        if action is None:
+            # assume stats by default
+            action = "stats"
         alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
             organization_id=self.request.auth.organization.id
         )
@@ -310,7 +321,6 @@ class AlertGroupView(
 
         # Filter by team(s). Since we really filter teams from integrations, this is not an AlertGroup model filter.
         # This is based on the common.api_helpers.ByTeamModelFieldFilterMixin implementation
-        team_values = self.request.query_params.getlist("team", [])
         if team_values:
             null_team_lookup = Q(team__isnull=True) if NO_TEAM_VALUE in team_values else None
             teams_lookup = Q(team__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
@@ -321,10 +331,10 @@ class AlertGroupView(
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
-        if self.action in ("list", "stats") and not self.request.query_params.get("started_at"):
+        if action in ("list", "stats") and not started_at:
             queryset = queryset.filter(started_at__gte=timezone.now() - timezone.timedelta(days=30))
 
-        if self.action in ("list", "stats") and settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
+        if action in ("list", "stats") and settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
             # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
             # read more: https://hackmysql.com/infamous-order-by-limit-query-optimizer-bug/
             from django_mysql.models import add_QuerySetMixin
@@ -333,17 +343,27 @@ class AlertGroupView(
             queryset = queryset.force_index("alert_group_list_index")
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
-        label_query = self.request.query_params.getlist("label", [])
-        kv_pairs = parse_label_query(label_query)
-        for key, value in kv_pairs:
-            # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
-            queryset = queryset.filter(
-                labels__organization=self.request.auth.organization,
-                labels__key_name=key,
-                labels__value_name=value,
-            )
+        if label_query:
+            kv_pairs = parse_label_query(label_query)
+            for key, value in kv_pairs:
+                # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
+                queryset = queryset.filter(
+                    labels__organization=self.request.auth.organization,
+                    labels__key_name=key,
+                    labels__value_name=value,
+                )
 
         return queryset
+
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
+        # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        return self._get_queryset(
+            action=self.action,
+            ignore_filtering_by_available_teams=ignore_filtering_by_available_teams,
+            team_values=self.request.query_params.getlist("team", []),
+            started_at=self.request.query_params.get("started_at"),
+            label_query=self.request.query_params.getlist("label", []),
+        )
 
     def get_object(self):
         obj = super().get_object()
@@ -881,3 +901,46 @@ class AlertGroupView(
         escalation_snapshot = alert_group.escalation_snapshot
         result = AlertGroupEscalationSnapshotAPISerializer(escalation_snapshot).data if escalation_snapshot else {}
         return Response(result)
+
+    @extend_schema(
+        responses=inline_serializer(
+            name="AffectedServices",
+            fields={
+                "name": serializers.CharField(),
+                "service_url": serializers.CharField(),
+                "alert_groups_url": serializers.CharField(),
+            },
+            many=True,
+        )
+    )
+    @action(methods=["get"], detail=False)
+    def filter_affected_services(self, request):
+        """Given a list of service names, return the ones that have active alerts."""
+        organization = self.request.auth.organization
+        services = self.request.query_params.getlist("service", [])
+        url_builder = UIURLBuilder(organization)
+        affected_services = []
+        days_to_check = 7
+        for service_name in services:
+            is_affected = (
+                self._get_queryset(
+                    started_at=timezone.now() - timezone.timedelta(days=days_to_check),
+                    label_query=[f"service_name:{service_name}"],
+                )
+                .filter(
+                    resolved=False,
+                    silenced=False,
+                )
+                .exists()
+            )
+            if is_affected:
+                affected_services.append(
+                    {
+                        "name": service_name,
+                        "service_url": url_builder.service_page(service_name),
+                        "alert_groups_url": url_builder.alert_groups(
+                            f"?status=0&status=1&started_at=now-{days_to_check}d_now&label=service_name:{service_name}"
+                        ),
+                    }
+                )
+        return Response(affected_services)
