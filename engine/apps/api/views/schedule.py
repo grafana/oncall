@@ -481,7 +481,7 @@ class ScheduleView(
     def reload_ical(self, request, pk):
         schedule = self.get_object(annotate=False)
         schedule.drop_cached_ical()
-        schedule.check_gaps_and_empty_shifts_for_next_week()
+        schedule.check_gaps_and_empty_shifts_for_next_days()
 
         if schedule.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((schedule.user_group.pk,))
