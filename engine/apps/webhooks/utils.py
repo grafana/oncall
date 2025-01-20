@@ -140,6 +140,12 @@ def _extract_users_from_escalation_snapshot(escalation_snapshot):
                 for user in policy_snapshot.notify_to_users_queue:
                     users.append(_serialize_event_user(user))
             elif policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+                EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+            ]:
+                if policy_snapshot.notify_to_users_queue:
+                    users.append(_serialize_event_user(policy_snapshot.next_user_in_sorted_queue))
+            elif policy_snapshot.step in [
                 EscalationPolicy.STEP_NOTIFY_SCHEDULE,
                 EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT,
             ]:
