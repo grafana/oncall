@@ -252,7 +252,7 @@ def notify_user_task(
                         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                         notification_policy=notification_policy,
                         alert_group=alert_group,
-                        reason="Alert group slack notifications are disabled",
+                        reason="Alert group Slack notifications are disabled",
                         slack_prevent_posting=prevent_posting_to_thread,
                         notification_step=notification_policy.step,
                         notification_channel=notification_policy.notify_by,

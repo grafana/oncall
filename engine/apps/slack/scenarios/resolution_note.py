@@ -558,7 +558,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 user_verbal = resolution_note.author_verbal(mention=True)
                 message_timestamp = datetime.datetime.timestamp(resolution_note.created_at)
                 blocks.append(DIVIDER)
-                source = "web" if resolution_note.source == ResolutionNote.Source.WEB else "slack"
+                source = "web" if resolution_note.source == ResolutionNote.Source.WEB else "Slack"
 
                 blocks.append(
                     typing.cast(
