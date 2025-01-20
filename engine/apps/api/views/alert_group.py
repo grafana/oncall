@@ -916,6 +916,8 @@ class AlertGroupView(
     @action(methods=["get"], detail=False)
     def filter_affected_services(self, request):
         """Given a list of service names, return the ones that have active alerts."""
+        if not settings.FEATURE_SERVICE_DEPENDENCIES_ENABLED:
+            raise NotFound
         organization = self.request.auth.organization
         services = self.request.query_params.getlist("service", [])
         url_builder = UIURLBuilder(organization)
