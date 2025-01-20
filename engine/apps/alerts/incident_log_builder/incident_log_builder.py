@@ -103,6 +103,7 @@ class IncidentLogBuilder:
             EscalationPolicy.STEP_NOTIFY,
             EscalationPolicy.STEP_NOTIFY_IMPORTANT,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
         ]
 
         # exclude logs that we don't want to see in after resolve report
@@ -466,6 +467,7 @@ class IncidentLogBuilder:
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
         ]:
             users_to_notify: UsersToNotify = escalation_policy_snapshot.sorted_users_queue
 
@@ -473,7 +475,10 @@ class IncidentLogBuilder:
                 if users_to_notify:
                     plan_line = f'escalation step "{escalation_policy_snapshot.step_display}"'
 
-                    if escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_USERS_QUEUE:
+                    if escalation_policy_snapshot.step in (
+                        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+                        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+                    ):
                         try:
                             last_user_index = users_to_notify.index(escalation_policy_snapshot.last_notified_user)
                         except ValueError:
@@ -489,7 +494,10 @@ class IncidentLogBuilder:
 
                 escalation_plan.setdefault(timedelta, []).append({"plan_lines": [plan_line]})
 
-            elif escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_USERS_QUEUE:
+            elif escalation_policy_snapshot.step in (
+                EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+                EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+            ):
                 last_notified_user = escalation_policy_snapshot.last_notified_user
                 users_to_notify = [last_notified_user] if last_notified_user else []
 

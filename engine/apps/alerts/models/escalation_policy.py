@@ -48,7 +48,8 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_TEAM_MEMBERS,
         STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
         STEP_DECLARE_INCIDENT,
-    ) = range(20)
+        STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+    ) = range(21)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -72,6 +73,7 @@ class EscalationPolicy(OrderedModel):
         (STEP_NOTIFY_TEAM_MEMBERS, "Notify all users in a Team"),
         (STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT, "Notify all users in a Team (Important)"),
         (STEP_DECLARE_INCIDENT, "Declare Incident"),
+        (STEP_NOTIFY_USERS_QUEUE_IMPORTANT, "Notify User (next each time) (Important)"),
     )
 
     # Ordered step choices available for internal api.
@@ -114,6 +116,7 @@ class EscalationPolicy(OrderedModel):
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_REPEAT_ESCALATION_N_TIMES,
         STEP_DECLARE_INCIDENT,
+        STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
     ]
 
     # Maps internal api's steps choices to their verbal. First string in tuple is display name for existent step.
@@ -142,7 +145,10 @@ class EscalationPolicy(OrderedModel):
         ),
         # Other
         STEP_TRIGGER_CUSTOM_WEBHOOK: ("Trigger webhook {{custom_webhook}}", "Trigger webhook"),
-        STEP_NOTIFY_USERS_QUEUE: ("Round robin notification for {{users}}", "Notify users one by one (round-robin)"),
+        STEP_NOTIFY_USERS_QUEUE: (
+            "Round robin {{importance}} notification for {{users}}",
+            "Notify users one by one (round-robin)",
+        ),
         STEP_NOTIFY_IF_TIME: (
             "Continue escalation if current UTC time is in {{timerange}}",
             "Continue escalation if current UTC time is in range",
@@ -166,7 +172,6 @@ class EscalationPolicy(OrderedModel):
         STEP_FINAL_NOTIFYALL,
         STEP_FINAL_RESOLVE,
         STEP_TRIGGER_CUSTOM_WEBHOOK,
-        STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_REPEAT_ESCALATION_N_TIMES,
         STEP_DECLARE_INCIDENT,
@@ -177,12 +182,14 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_SCHEDULE: STEP_NOTIFY_SCHEDULE_IMPORTANT,
         STEP_NOTIFY_MULTIPLE_USERS: STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_NOTIFY_TEAM_MEMBERS: STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
+        STEP_NOTIFY_USERS_QUEUE: STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
     }
     IMPORTANT_TO_DEFAULT_STEP_MAPPING = {
         STEP_NOTIFY_GROUP_IMPORTANT: STEP_NOTIFY_GROUP,
         STEP_NOTIFY_SCHEDULE_IMPORTANT: STEP_NOTIFY_SCHEDULE,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: STEP_NOTIFY_MULTIPLE_USERS,
         STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT: STEP_NOTIFY_TEAM_MEMBERS,
+        STEP_NOTIFY_USERS_QUEUE_IMPORTANT: STEP_NOTIFY_USERS_QUEUE,
     }
 
     # Default steps are just usual version of important steps. E.g. notify group - notify group important
@@ -191,6 +198,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_SCHEDULE,
         STEP_NOTIFY_MULTIPLE_USERS,
         STEP_NOTIFY_TEAM_MEMBERS,
+        STEP_NOTIFY_USERS_QUEUE,
     }
 
     IMPORTANT_STEPS_SET = {
@@ -198,6 +206,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_SCHEDULE_IMPORTANT,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
+        STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
     }
 
     SLACK_INTEGRATION_REQUIRED_STEPS = [
