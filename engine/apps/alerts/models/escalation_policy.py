@@ -29,13 +29,13 @@ class EscalationPolicy(OrderedModel):
 
     (
         STEP_WAIT,
-        STEP_NOTIFY,
+        _DEPRECATED_STEP_NOTIFY,  # only here to keep range intact
         STEP_FINAL_NOTIFYALL,
         STEP_REPEAT_ESCALATION_N_TIMES,
         STEP_FINAL_RESOLVE,
         STEP_NOTIFY_GROUP,
         STEP_NOTIFY_SCHEDULE,
-        STEP_NOTIFY_IMPORTANT,
+        _DEPRECATED_STEP_NOTIFY_IMPORTANT,  # only here to keep range intact
         STEP_NOTIFY_GROUP_IMPORTANT,
         STEP_NOTIFY_SCHEDULE_IMPORTANT,
         _DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,  # only here to keep range intact
@@ -54,13 +54,13 @@ class EscalationPolicy(OrderedModel):
     # Must be the same order as previous
     STEP_CHOICES = (
         (STEP_WAIT, "Wait"),
-        (STEP_NOTIFY, "Notify User"),
+        (_DEPRECATED_STEP_NOTIFY, "Notify User"),
         (STEP_FINAL_NOTIFYALL, "Notify Whole Channel"),
         (STEP_REPEAT_ESCALATION_N_TIMES, "Repeat Escalation (5 times max)"),
         (STEP_FINAL_RESOLVE, "Resolve"),
         (STEP_NOTIFY_GROUP, "Notify Group"),
         (STEP_NOTIFY_SCHEDULE, "Notify Schedule"),
-        (STEP_NOTIFY_IMPORTANT, "Notify User (Important)"),
+        (_DEPRECATED_STEP_NOTIFY_IMPORTANT, "Notify User (Important)"),
         (STEP_NOTIFY_GROUP_IMPORTANT, "Notify Group (Important)"),
         (STEP_NOTIFY_SCHEDULE_IMPORTANT, "Notify Schedule (Important)"),
         (_DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON, "Trigger Outgoing Webhook"),
@@ -233,12 +233,10 @@ class EscalationPolicy(OrderedModel):
 
     PUBLIC_STEP_CHOICES_MAP = {
         STEP_WAIT: "wait",
-        STEP_NOTIFY: "notify_one_person",
         STEP_FINAL_NOTIFYALL: "notify_whole_channel",
         STEP_FINAL_RESOLVE: "resolve",
         STEP_NOTIFY_GROUP: "notify_user_group",
         STEP_NOTIFY_GROUP_IMPORTANT: "notify_user_group",
-        STEP_NOTIFY_IMPORTANT: "notify_one_person",
         STEP_NOTIFY_SCHEDULE: "notify_on_call_from_schedule",
         STEP_NOTIFY_SCHEDULE_IMPORTANT: "notify_on_call_from_schedule",
         STEP_TRIGGER_CUSTOM_WEBHOOK: "trigger_webhook",

@@ -132,8 +132,6 @@ def _extract_users_from_escalation_snapshot(escalation_snapshot):
     if escalation_snapshot:
         for policy_snapshot in escalation_snapshot.escalation_policies_snapshots:
             if policy_snapshot.step in [
-                EscalationPolicy.STEP_NOTIFY,
-                EscalationPolicy.STEP_NOTIFY_IMPORTANT,
                 EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
                 EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
             ]:

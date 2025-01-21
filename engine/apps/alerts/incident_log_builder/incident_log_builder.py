@@ -100,8 +100,8 @@ class IncidentLogBuilder:
         ]
         excluded_escalation_steps = [EscalationPolicy.STEP_WAIT, EscalationPolicy.STEP_FINAL_RESOLVE]
         not_excluded_steps_with_author = [
-            EscalationPolicy.STEP_NOTIFY,
-            EscalationPolicy.STEP_NOTIFY_IMPORTANT,
+            EscalationPolicy._DEPRECATED_STEP_NOTIFY,
+            EscalationPolicy._DEPRECATED_STEP_NOTIFY_IMPORTANT,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
         ]
@@ -504,7 +504,11 @@ class IncidentLogBuilder:
             for user_to_notify in users_to_notify:
                 notification_plan = self._get_notification_plan_for_user(
                     user_to_notify,
-                    important=escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+                    important=escalation_policy_snapshot.step
+                    in [
+                        EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+                        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+                    ],
                     for_slack=for_slack,
                     future_step=future_step,
                 )
@@ -542,7 +546,6 @@ class IncidentLogBuilder:
             for user_to_notify in final_notify_all_users_to_notify:
                 notification_plan = self._get_notification_plan_for_user(
                     user_to_notify,
-                    important=escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_IMPORTANT,
                     for_slack=for_slack,
                     future_step=future_step,
                 )
