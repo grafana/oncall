@@ -2421,7 +2421,9 @@ def test_alert_group_affected_services(
     make_user_for_organization,
     make_user_auth_headers,
     make_alert_group_label_association,
+    settings,
 ):
+    settings.FEATURE_SERVICE_DEPENDENCIES_ENABLED = True
     _, token, alert_groups = alert_group_internal_api_setup
     resolved_ag, ack_ag, new_ag, silenced_ag = alert_groups
     organization = new_ag.channel.organization
@@ -2454,3 +2456,29 @@ def test_alert_group_affected_services(
         },
     ]
     assert response.json() == expected
+
+
+@pytest.mark.django_db
+def test_alert_group_service_dependencies_feature_not_enabled(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_alert_group_label_association,
+    settings,
+):
+    settings.FEATURE_SERVICE_DEPENDENCIES_ENABLED = False
+    _, token, alert_groups = alert_group_internal_api_setup
+    _, _, new_ag, _ = alert_groups
+    organization = new_ag.channel.organization
+    user = make_user_for_organization(organization)
+
+    # set firing alert group service label
+    make_alert_group_label_association(organization, new_ag, key_name="service_name", value_name="service-a")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-filter-affected-services")
+
+    url = f"{url}?service=service-1"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
