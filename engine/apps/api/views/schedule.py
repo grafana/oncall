@@ -567,7 +567,7 @@ class ScheduleView(
             },
             {
                 "value": True,
-                "display_name": "Mention person in slack",
+                "display_name": "Mention person in Slack",
             },
         ]
         return Response(options)
