@@ -93,9 +93,13 @@ def test_escalation_step_notify_all(
 
 
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.parametrize(
+    "step", [EscalationPolicy.STEP_NOTIFY_USERS_QUEUE, EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT]
+)
 @pytest.mark.django_db
 def test_escalation_step_notify_users_queue(
     mocked_execute_tasks,
+    step,
     make_user_for_organization,
     escalation_step_test_setup,
     make_escalation_policy,
@@ -105,7 +109,7 @@ def test_escalation_step_notify_users_queue(
 
     notify_queue_step = make_escalation_policy(
         escalation_chain=channel_filter.escalation_chain,
-        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+        escalation_policy_step=step,
     )
     notify_queue_step.notify_to_users_queue.set([user, user_2])
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_queue_step)

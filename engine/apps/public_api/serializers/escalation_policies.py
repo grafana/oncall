@@ -191,7 +191,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
         ]:
             fields_to_remove.remove("team_to_notify")
-        elif step == EscalationPolicy.STEP_NOTIFY_USERS_QUEUE:
+        elif step in [
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+        ]:
             fields_to_remove.remove("persons_to_notify_next_each_time")
         elif step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
             fields_to_remove.remove("group_to_notify")
@@ -243,6 +246,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             validated_data_fields_to_remove.remove("wait_delay")
         elif step in [
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         ]:
@@ -298,6 +302,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.wait_delay = None
                 if step not in [
                     EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+                    EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
                     EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
                     EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
                 ]:
