@@ -1,1 +1,1 @@
-from .webhook import Webhook, WebhookResponse  # noqa: F401
+from .webhook import PersonalNotificationWebhook, Webhook, WebhookResponse  # noqa: F401

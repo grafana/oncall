@@ -46,6 +46,7 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_MANUAL: "escalation",
     Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
     Webhook.TRIGGER_STATUS_CHANGE: "status change",
+    Webhook.TRIGGER_PERSONAL_NOTIFICATION: "personal notification",
 }
 
 
@@ -107,8 +108,13 @@ def _build_payload(
     elif payload_trigger_type == Webhook.TRIGGER_SILENCE:
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
-    elif payload_trigger_type == Webhook.TRIGGER_MANUAL:
+    elif payload_trigger_type in (Webhook.TRIGGER_MANUAL, Webhook.TRIGGER_PERSONAL_NOTIFICATION):
         event["time"] = _isoformat_date(timezone.now())
+
+    # if this is a personal notification triggered webhook, event will include additional user data
+    if payload_trigger_type == Webhook.TRIGGER_PERSONAL_NOTIFICATION:
+        user_context_data = user.personal_webhook.context_data if user.personal_webhook else {}
+        event["user"] = user_context_data
 
     # include latest response data per webhook in the event input data
     # exclude past responses from webhook being executed
@@ -179,6 +185,9 @@ def make_request(
                 status["request_data"] = json.dumps(request_kwargs["json"])
             else:
                 status["request_data"] = request_kwargs.get("data")
+            if webhook.trigger_type == Webhook.TRIGGER_PERSONAL_NOTIFICATION:
+                # mask data for personal webhooks
+                status["request_data"] = WEBHOOK_FIELD_PLACEHOLDER
             response = webhook.make_request(status["url"], request_kwargs)
             status["status_code"] = response.status_code
             content_length = len(response.content)
