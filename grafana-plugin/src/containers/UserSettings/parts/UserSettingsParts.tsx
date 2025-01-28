@@ -29,6 +29,7 @@ interface TabsProps {
   showGoogleCalendarTab: boolean;
   showSlackConnectionTab: boolean;
   showTelegramConnectionTab: boolean;
+  showPersonalWebhookConnectionTab: boolean;
   showMsTeamsConnectionTab: boolean;
 }
 
@@ -40,6 +41,7 @@ export const Tabs = ({
   showMobileAppConnectionTab,
   showSlackConnectionTab,
   showTelegramConnectionTab,
+  showPersonalWebhookConnectionTab,
   showMsTeamsConnectionTab,
 }: TabsProps) => {
   const getTabClickHandler = useCallback(
@@ -112,6 +114,15 @@ export const Tabs = ({
           key={UserSettingsTab.TelegramInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.TelegramInfo)}
           data-testid="tab-telegram"
+        />
+      )}
+      {showPersonalWebhookConnectionTab && (
+        <Tab
+          active={activeTab === UserSettingsTab.PersonalWebhookInfo}
+          label="Personal Webhook"
+          key={UserSettingsTab.PersonalWebhookInfo}
+          onChangeTab={getTabClickHandler(UserSettingsTab.PersonalWebhookInfo)}
+          data-testid="tab-personalwebhook"
         />
       )}
       {showMsTeamsConnectionTab && (

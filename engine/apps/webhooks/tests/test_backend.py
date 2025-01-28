@@ -18,7 +18,7 @@ def test_serialize_user(
     backend = PersonalWebhookBackend()
 
     # by default, there is no personal webhook set
-    assert backend.serialize_user(user) == {"name": None}
+    assert backend.serialize_user(user) == {"id": None, "name": None}
 
     # set personal webhook
     webhook = make_custom_webhook(
@@ -27,7 +27,7 @@ def test_serialize_user(
     )
     make_personal_notification_webhook(user=user, webhook=webhook)
 
-    assert backend.serialize_user(user) == {"name": user.personal_webhook.webhook.name}
+    assert backend.serialize_user(user) == {"id": webhook.public_primary_key, "name": webhook.name}
 
 
 @pytest.mark.django_db
