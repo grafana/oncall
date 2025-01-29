@@ -20,8 +20,14 @@ class PersonalWebhookBackend(BaseMessagingBackend):
         try:
             personal_webhook = user.personal_webhook
         except ObjectDoesNotExist:
-            return {"id": None, "name": None}
+            return None
         return {"id": personal_webhook.webhook.public_primary_key, "name": personal_webhook.webhook.name}
+
+    def unlink_user(self, user):
+        try:
+            user.personal_webhook.delete()
+        except ObjectDoesNotExist:
+            pass
 
     def notify_user(
         self, user: "User", alert_group: "AlertGroup", notification_policy: typing.Optional["UserNotificationPolicy"]

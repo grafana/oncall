@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
@@ -1253,3 +1254,65 @@ def test_webhook_trigger_manual(
         )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert mock_execute.apply_async.call_count == 0
+
+
+@pytest.mark.django_db
+def test_setup_personal_notification(
+    make_organization_and_user_with_plugin_token,
+    make_custom_webhook,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    with pytest.raises(ObjectDoesNotExist):
+        user.personal_webhook
+
+    webhook = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_PERSONAL_NOTIFICATION)
+    other_webhook = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_MANUAL)
+
+    client = APIClient()
+    url = reverse("api-internal:webhooks-setup-personal-notification")
+
+    # webhook id is required
+    data = {}
+    response = client.post(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["id"] == "This field is required."
+
+    # invalid webhook type
+    data = {"id": other_webhook.public_primary_key}
+    response = client.post(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["id"] == "Webhook not found."
+
+    # check backend info
+    data = {"id": webhook.public_primary_key}
+    response = client.post(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    user.refresh_from_db()
+    assert user.personal_webhook.webhook == webhook
+    assert user.personal_webhook.context_data == {}
+
+    # update context data
+    data = {"id": webhook.public_primary_key, "context": {"test": "test"}}
+    response = client.post(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    user.refresh_from_db()
+    assert user.personal_webhook.context_data == {"test": "test"}
+
+    # invalid context
+    data = {"id": webhook.public_primary_key, "context": "not-json"}
+    response = client.post(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["context"] == "Invalid context."
+    user.refresh_from_db()
+    assert user.personal_webhook.context_data == {"test": "test"}

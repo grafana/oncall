@@ -19,7 +19,7 @@ from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSeria
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.utils import is_labels_feature_enabled
-from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models import PersonalNotificationWebhook, Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tasks import execute_webhook
 from apps.webhooks.utils import apply_jinja_template_for_json
@@ -89,6 +89,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "trigger_manual": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "setup_personal_notification": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     model = Webhook
@@ -334,5 +335,53 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
 
         execute_webhook.apply_async(
             (webhook.pk, alert_group.pk, user.pk, None), kwargs={"trigger_type": Webhook.TRIGGER_MANUAL}
+        )
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=inline_serializer(
+            name="PersonalNotificationWebhookRequest",
+            fields={
+                "id": serializers.CharField(),
+                "context": serializers.DictField(required=False, allow_null=True),
+            },
+        ),
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(methods=["post"], detail=False)
+    def setup_personal_notification(self, request):
+        """Set up a webhook as personal notification channel for the user."""
+        user = self.request.user
+
+        webhook_id = request.data.get("id")
+        if not webhook_id:
+            raise BadRequest(detail={"id": "This field is required."})
+
+        try:
+            webhook = Webhook.objects.get(
+                organization=user.organization,
+                public_primary_key=webhook_id,
+                trigger_type=Webhook.TRIGGER_PERSONAL_NOTIFICATION,
+            )
+        except Webhook.DoesNotExist:
+            raise BadRequest(detail={"id": "Webhook not found."})
+
+        context = request.data.get("context", None)
+        if context is not None:
+            if not isinstance(context, dict):
+                raise BadRequest(detail={"context": "Invalid context."})
+
+            try:
+                context = json.dumps(context)
+            except TypeError:
+                raise BadRequest(detail={"context": "Invalid context."})
+
+        # set or update personal webhook for user
+        PersonalNotificationWebhook.objects.update_or_create(
+            user=user,
+            defaults={
+                "webhook": webhook,
+                "additional_context_data": context,
+            },
         )
         return Response(status=status.HTTP_200_OK)
