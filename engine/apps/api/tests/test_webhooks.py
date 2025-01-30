@@ -1257,7 +1257,41 @@ def test_webhook_trigger_manual(
 
 
 @pytest.mark.django_db
-def test_setup_personal_notification(
+def test_current_personal_notification(
+    make_organization_and_user_with_plugin_token,
+    make_custom_webhook,
+    make_user_auth_headers,
+    make_personal_notification_webhook,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    with pytest.raises(ObjectDoesNotExist):
+        user.personal_webhook
+
+    webhook = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_PERSONAL_NOTIFICATION)
+
+    client = APIClient()
+    url = reverse("api-internal:webhooks-current-personal-notification")
+
+    # no webhook setup
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"webhook": None, "context": None}
+
+    # setup personal webhook
+    personal_webhook = make_personal_notification_webhook(user, webhook)
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"webhook": webhook.public_primary_key, "context": {}}
+
+    # update context data
+    personal_webhook.context_data = {"test": "test"}
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"webhook": webhook.public_primary_key, "context": {"test": "test"}}
+
+
+@pytest.mark.django_db
+def test_set_personal_notification(
     make_organization_and_user_with_plugin_token,
     make_custom_webhook,
     make_user_auth_headers,
@@ -1270,7 +1304,7 @@ def test_setup_personal_notification(
     other_webhook = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_MANUAL)
 
     client = APIClient()
-    url = reverse("api-internal:webhooks-setup-personal-notification")
+    url = reverse("api-internal:webhooks-set-personal-notification")
 
     # webhook id is required
     data = {}
@@ -1278,18 +1312,18 @@ def test_setup_personal_notification(
         url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["id"] == "This field is required."
+    assert response.json()["webhook"] == "This field is required."
 
     # invalid webhook type
-    data = {"id": other_webhook.public_primary_key}
+    data = {"webhook": other_webhook.public_primary_key}
     response = client.post(
         url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["id"] == "Webhook not found."
+    assert response.json()["webhook"] == "Webhook not found."
 
     # check backend info
-    data = {"id": webhook.public_primary_key}
+    data = {"webhook": webhook.public_primary_key}
     response = client.post(
         url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
     )
@@ -1299,7 +1333,7 @@ def test_setup_personal_notification(
     assert user.personal_webhook.context_data == {}
 
     # update context data
-    data = {"id": webhook.public_primary_key, "context": {"test": "test"}}
+    data = {"webhook": webhook.public_primary_key, "context": {"test": "test"}}
     response = client.post(
         url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
     )
@@ -1308,7 +1342,7 @@ def test_setup_personal_notification(
     assert user.personal_webhook.context_data == {"test": "test"}
 
     # invalid context
-    data = {"id": webhook.public_primary_key, "context": "not-json"}
+    data = {"webhook": webhook.public_primary_key, "context": "not-json"}
     response = client.post(
         url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
     )

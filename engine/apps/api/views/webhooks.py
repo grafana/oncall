@@ -89,7 +89,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "trigger_manual": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "setup_personal_notification": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "current_personal_notification": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "set_personal_notification": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     model = Webhook
@@ -339,23 +340,52 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="PersonalNotificationWebhook",
+                fields={
+                    "webhook": serializers.CharField(),
+                    "context": serializers.DictField(required=False, allow_null=True),
+                },
+            )
+        },
+    )
+    @action(methods=["get"], detail=False)
+    def current_personal_notification(self, request):
+        user = self.request.user
+        notification_channel = {
+            "webhook": None,
+            "context": None,
+        }
+        try:
+            personal_webhook = PersonalNotificationWebhook.objects.get(user=user)
+        except PersonalNotificationWebhook.DoesNotExist:
+            personal_webhook = None
+
+        if personal_webhook is not None:
+            notification_channel["webhook"] = personal_webhook.webhook.public_primary_key
+            notification_channel["context"] = personal_webhook.context_data
+
+        return Response(notification_channel)
+
+    @extend_schema(
         request=inline_serializer(
             name="PersonalNotificationWebhookRequest",
             fields={
-                "id": serializers.CharField(),
+                "webhook": serializers.CharField(),
                 "context": serializers.DictField(required=False, allow_null=True),
             },
         ),
         responses={status.HTTP_200_OK: None},
     )
     @action(methods=["post"], detail=False)
-    def setup_personal_notification(self, request):
+    def set_personal_notification(self, request):
         """Set up a webhook as personal notification channel for the user."""
         user = self.request.user
 
-        webhook_id = request.data.get("id")
+        webhook_id = request.data.get("webhook")
         if not webhook_id:
-            raise BadRequest(detail={"id": "This field is required."})
+            raise BadRequest(detail={"webhook": "This field is required."})
 
         try:
             webhook = Webhook.objects.get(
@@ -364,7 +394,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
                 trigger_type=Webhook.TRIGGER_PERSONAL_NOTIFICATION,
             )
         except Webhook.DoesNotExist:
-            raise BadRequest(detail={"id": "Webhook not found."})
+            raise BadRequest(detail={"webhook": "Webhook not found."})
 
         context = request.data.get("context", None)
         if context is not None:
