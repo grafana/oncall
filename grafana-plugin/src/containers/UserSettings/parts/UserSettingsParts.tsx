@@ -14,6 +14,7 @@ import { CloudPhoneSettings } from 'containers/UserSettings/parts/tabs/CloudPhon
 import { GoogleCalendar } from 'containers/UserSettings/parts/tabs/GoogleCalendar/GoogleCalendar';
 import { MSTeamsInfo } from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
+import { PersonalWebhookInfo } from 'containers/UserSettings/parts/tabs/PersonalWebhookInfo/PersonalWebhookInfo';
 import { PhoneVerification } from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import { TelegramInfo } from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
 import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/UserInfoTab';
@@ -52,8 +53,6 @@ export const Tabs = ({
     },
     [onTabChange]
   );
-
-  const styles = useStyles2(getUserSettingsPartsStyles);
 
   return (
     <TabsBar>
@@ -179,6 +178,7 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
       {activeTab === UserSettingsTab.MobileAppConnection && renderMobileTab()}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
+      {activeTab === UserSettingsTab.PersonalWebhookInfo && <PersonalWebhookInfo />}
       {activeTab === UserSettingsTab.MSTeamsInfo && <MSTeamsInfo />}
     </TabContent>
   );
