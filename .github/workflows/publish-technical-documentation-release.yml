@@ -25,6 +25,4 @@ jobs:
           release_tag_regexp: "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
           release_branch_regexp: "^release-(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
           release_branch_with_patch_regexp: "^release-(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
-          # This repository only releases from the tag reference and not from long-lived release branches.
-          tags_only: true
           website_directory: content/docs/oncall
