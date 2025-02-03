@@ -34,7 +34,7 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery[redis]==5.3.1
+celery==5.3.6
     # via -r requirements.in
 certifi==2024.7.4
     # via
@@ -75,7 +75,7 @@ deprecated==1.2.14
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-semantic-conventions
-django==4.2.17
+django==4.2.18
     # via
     #   -r requirements.in
     #   django-add-default-value
@@ -97,7 +97,7 @@ django==4.2.17
     #   social-auth-app-django
 django-add-default-value==0.10.0
     # via -r requirements.in
-django-anymail[amazon-ses]==12.0
+django-anymail==12.0
     # via -r requirements.in
 django-cors-headers==3.7.0
     # via -r requirements.in
@@ -152,7 +152,7 @@ firebase-admin==5.4.0
     # via fcm-django
 flask==3.0.2
     # via slack-export-viewer
-google-api-core[grpc]==2.17.0
+google-api-core==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -229,8 +229,10 @@ inflection==0.5.1
     # via drf-spectacular
 itsdangerous==2.1.2
     # via flask
-jinja2==3.1.4
-    # via flask
+jinja2==3.1.5
+    # via
+    #   -r requirements.in
+    #   flask
 jmespath==1.0.1
     # via
     #   boto3

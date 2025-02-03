@@ -511,6 +511,7 @@ def test_escalation_policy_move_to_position_permissions(
         (EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT, EscalationPolicy.STEP_NOTIFY_GROUP),
         (EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT, EscalationPolicy.STEP_NOTIFY_SCHEDULE),
         (EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT, EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS),
+        (EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT, EscalationPolicy.STEP_NOTIFY_USERS_QUEUE),
     ],
 )
 def test_escalation_policy_maps_default_to_important(
@@ -545,6 +546,7 @@ def test_escalation_policy_maps_default_to_important(
         EscalationPolicy.STEP_NOTIFY_GROUP,
         EscalationPolicy.STEP_NOTIFY_SCHEDULE,
         EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
     ],
 )
 def test_escalation_policy_default_steps_stay_default(
@@ -578,6 +580,7 @@ def test_escalation_policy_default_steps_stay_default(
         (EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT),
         (EscalationPolicy.STEP_NOTIFY_SCHEDULE, EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT),
         (EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS, EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT),
+        (EscalationPolicy.STEP_NOTIFY_USERS_QUEUE, EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT),
     ],
 )
 def test_create_escalation_policy_important(
@@ -615,6 +618,7 @@ def test_create_escalation_policy_important(
         EscalationPolicy.STEP_NOTIFY_GROUP,
         EscalationPolicy.STEP_NOTIFY_SCHEDULE,
         EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
     ],
 )
 def test_create_escalation_policy_default(

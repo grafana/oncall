@@ -100,9 +100,10 @@ class IncidentLogBuilder:
         ]
         excluded_escalation_steps = [EscalationPolicy.STEP_WAIT, EscalationPolicy.STEP_FINAL_RESOLVE]
         not_excluded_steps_with_author = [
-            EscalationPolicy.STEP_NOTIFY,
-            EscalationPolicy.STEP_NOTIFY_IMPORTANT,
+            EscalationPolicy._DEPRECATED_STEP_NOTIFY,
+            EscalationPolicy._DEPRECATED_STEP_NOTIFY_IMPORTANT,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
         ]
 
         # exclude logs that we don't want to see in after resolve report
@@ -466,6 +467,7 @@ class IncidentLogBuilder:
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
         ]:
             users_to_notify: UsersToNotify = escalation_policy_snapshot.sorted_users_queue
 
@@ -473,7 +475,10 @@ class IncidentLogBuilder:
                 if users_to_notify:
                     plan_line = f'escalation step "{escalation_policy_snapshot.step_display}"'
 
-                    if escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_USERS_QUEUE:
+                    if escalation_policy_snapshot.step in (
+                        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+                        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+                    ):
                         try:
                             last_user_index = users_to_notify.index(escalation_policy_snapshot.last_notified_user)
                         except ValueError:
@@ -489,14 +494,21 @@ class IncidentLogBuilder:
 
                 escalation_plan.setdefault(timedelta, []).append({"plan_lines": [plan_line]})
 
-            elif escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_USERS_QUEUE:
+            elif escalation_policy_snapshot.step in (
+                EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+                EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+            ):
                 last_notified_user = escalation_policy_snapshot.last_notified_user
                 users_to_notify = [last_notified_user] if last_notified_user else []
 
             for user_to_notify in users_to_notify:
                 notification_plan = self._get_notification_plan_for_user(
                     user_to_notify,
-                    important=escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+                    important=escalation_policy_snapshot.step
+                    in [
+                        EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+                        EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
+                    ],
                     for_slack=for_slack,
                     future_step=future_step,
                 )
@@ -524,7 +536,7 @@ class IncidentLogBuilder:
                     )
                 else:
                     plan_line = (
-                        f'escalation step "{escalation_policy_snapshot.step_display}" is slack specific. ' f"Skipping"
+                        f'escalation step "{escalation_policy_snapshot.step_display}" is Slack specific. ' f"Skipping"
                     )
 
                 escalation_plan.setdefault(timedelta, []).append({"plan_lines": [plan_line]})
@@ -534,7 +546,6 @@ class IncidentLogBuilder:
             for user_to_notify in final_notify_all_users_to_notify:
                 notification_plan = self._get_notification_plan_for_user(
                     user_to_notify,
-                    important=escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_IMPORTANT,
                     for_slack=for_slack,
                     future_step=future_step,
                 )
@@ -586,7 +597,7 @@ class IncidentLogBuilder:
                         )
                 else:
                     plan_line = (
-                        f'escalation step "{escalation_policy_snapshot.step_display}" is slack specific. Skipping'
+                        f'escalation step "{escalation_policy_snapshot.step_display}" is Slack specific. Skipping'
                     )
 
                 escalation_plan.setdefault(timedelta, []).append({"plan_lines": [plan_line]})

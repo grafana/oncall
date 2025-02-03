@@ -7,10 +7,12 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.alerts.constants import SERVICE_LABEL, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION
+from apps.alerts.grafana_alerting_sync_manager import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import load_backend
-from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.labels.models import LabelKeyCache
 from common.exceptions import BacksyncIntegrationRequestError
 
 
@@ -1717,24 +1719,20 @@ def test_alert_group_labels_put(
     label_3 = make_static_label_config(organization, alert_receive_channel)
 
     custom = [
-        # plain label
+        # static label (deprecated, will be skipped)
         {
             "key": {"id": label_2.key.id, "name": label_2.key.name, "prescribed": False},
             "value": {"id": label_2.value.id, "name": label_2.value.name, "prescribed": False},
         },
-        # plain label not present in DB cache
-        {
-            "key": {"id": "hello", "name": "world", "prescribed": False},
-            "value": {"id": "foo", "name": "bar", "prescribed": False},
-        },
-        # templated label
+        # dynamic label
         {
             "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
-            "value": {
-                "id": None,
-                "name": "{{ payload.foo }}",
-                "prescribed": False,
-            },
+            "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+        },
+        # dynamic label not present in DB cache
+        {
+            "key": {"id": "hello", "name": "world", "prescribed": False},
+            "value": {"id": None, "name": "{{ payload.bar }}", "prescribed": False},
         },
     ]
     template = "{{ payload.labels | tojson }}"  # advanced template
@@ -1751,31 +1749,31 @@ def test_alert_group_labels_put(
     response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    # check static labels were saved as integration labels
     assert response.json()["alert_group_labels"] == {
-        "inheritable": {label_1.key_id: True, label_2.key_id: True, label_3.key_id: True, "hello": True},
+        "inheritable": {label_1.key_id: True, label_2.key_id: True, label_3.key_id: True},
         "custom": [
             {
                 "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
                 "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
-            }
+            },
+            {
+                "key": {"id": "hello", "name": "world", "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.bar }}", "prescribed": False},
+            },
         ],
         "template": template,
     }
 
     alert_receive_channel.refresh_from_db()
-    # check static labels are not in the custom labels list
+    # check deprecated static label is not in the custom labels list
     assert alert_receive_channel.alert_group_labels_custom == [
         [label_3.key_id, None, "{{ payload.foo }}"],
+        ["hello", None, "{{ payload.bar }}"],
     ]
     assert alert_receive_channel.alert_group_labels_template == template
-    # check static labels were assigned to integration
-    assert alert_receive_channel.labels.filter(key_id__in=[label_2.key_id, "hello"]).count() == 2
 
-    # check label keys & values are created
-    key = LabelKeyCache.objects.filter(id="hello", name="world", organization=organization).first()
-    assert key is not None
-    assert LabelValueCache.objects.filter(key=key, id="foo", name="bar").exists()
+    # check label key is created
+    assert LabelKeyCache.objects.filter(id="hello", name="world", organization=organization).exists()
 
 
 @pytest.mark.django_db
@@ -1848,6 +1846,130 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
     assert alert_receive_channel.alert_group_labels_custom == [["test2", None, "{{ payload.foo }}"]]
     assert alert_receive_channel.alert_group_labels_template == "{{ payload.labels | tojson }}"
+
+
+@patch.object(GrafanaAlertingSyncManager, "check_for_connection_errors", return_value=None)
+@pytest.mark.django_db
+def test_create_service_name_label_for_new_alerting_integration(
+    _,
+    make_organization_and_user_with_plugin_token,
+    make_label_key,
+    make_user_auth_headers,
+):
+    """Test adding default `service_name` dynamic label for new alerting integration."""
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    service_name_label_key = make_label_key(
+        organization=organization, key_id="test", key_name=SERVICE_LABEL, prescribed=True
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        "team": None,
+        "labels": [],
+        "alert_group_labels": {
+            "inheritable": {},
+            "custom": [
+                {
+                    "key": {"id": "testid", "name": "testname", "prescribed": False},
+                    "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+                }
+            ],
+            "template": None,
+        },
+    }
+    expected_alert_group_labels_response = {
+        "inheritable": {},
+        "custom": [
+            {
+                "key": {"id": service_name_label_key.id, "name": SERVICE_LABEL, "prescribed": True},
+                "value": {"id": None, "name": SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION, "prescribed": False},
+            },
+            {
+                "key": {"id": "testid", "name": "testname", "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+            },
+        ],
+        "template": None,
+    }
+    expected_alert_group_labels = [
+        [service_name_label_key.id, None, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION],
+        ["testid", None, "{{ payload.foo }}"],
+    ]
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["alert_group_labels"] == expected_alert_group_labels_response
+
+    alert_receive_channel = organization.alert_receive_channels.filter(public_primary_key=response.json()["id"]).first()
+
+    assert alert_receive_channel is not None
+    assert alert_receive_channel.alert_group_labels_custom == expected_alert_group_labels
+
+
+@patch.object(GrafanaAlertingSyncManager, "check_for_connection_errors", return_value=None)
+@pytest.mark.django_db
+def test_skip_creating_service_name_label_for_new_alerting_integration(
+    _,
+    make_organization_and_user_with_plugin_token,
+    make_label_key,
+    make_user_auth_headers,
+):
+    """
+    Test skipping adding default `service_name` dynamic label for new alerting integration,
+    when this label was already added by user
+    """
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    service_name_label_key = make_label_key(
+        organization=organization, key_id="test", key_name=SERVICE_LABEL, prescribed=True
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        "team": None,
+        "labels": [],
+        "alert_group_labels": {
+            "inheritable": {},
+            "custom": [
+                {
+                    "key": {"id": service_name_label_key.id, "name": SERVICE_LABEL, "prescribed": True},
+                    "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+                }
+            ],
+            "template": None,
+        },
+    }
+    expected_alert_group_labels_response = {
+        "inheritable": {},
+        "custom": [
+            {
+                "key": {"id": service_name_label_key.id, "name": SERVICE_LABEL, "prescribed": True},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+            }
+        ],
+        "template": None,
+    }
+    expected_alert_group_labels = [
+        [service_name_label_key.id, None, "{{ payload.foo }}"],
+    ]
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["alert_group_labels"] == expected_alert_group_labels_response
+
+    alert_receive_channel = organization.alert_receive_channels.filter(public_primary_key=response.json()["id"]).first()
+
+    assert alert_receive_channel is not None
+    assert alert_receive_channel.alert_group_labels_custom == expected_alert_group_labels
 
 
 @pytest.mark.django_db

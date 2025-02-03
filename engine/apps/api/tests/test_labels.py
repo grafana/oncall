@@ -85,6 +85,30 @@ def test_get_update_key_put(
 
 
 @patch(
+    "apps.labels.client.LabelsAPIClient.get_label_by_key_name",
+    return_value=(
+        {"key": {"id": "keyid123", "name": "keyname12"}, "values": [{"id": "valueid123", "name": "yolo"}]},
+        MockResponse(status_code=200),
+    ),
+)
+@pytest.mark.django_db
+def test_get_key_by_name(
+    mocked_get_label_by_key_name,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:get_key_by_name", kwargs={"key_name": "keyname12"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    expected_result = {"key": {"id": "keyid123", "name": "keyname12"}, "values": [{"id": "valueid123", "name": "yolo"}]}
+
+    assert mocked_get_label_by_key_name.called
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_result
+
+
+@patch(
     "apps.labels.client.LabelsAPIClient.add_value",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},

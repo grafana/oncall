@@ -137,6 +137,7 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT: self._escalation_step_notify_on_call_schedule,
             EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: self._escalation_step_trigger_custom_webhook,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE: self._escalation_step_notify_users_queue,
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT: self._escalation_step_notify_users_queue,
             EscalationPolicy.STEP_NOTIFY_IF_TIME: self._escalation_step_notify_if_time,
             EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: self._escalation_step_notify_if_num_alerts_in_time_window,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS: self._escalation_step_notify_multiple_users,
@@ -199,6 +200,7 @@ class EscalationPolicySnapshot:
                 ),
                 {
                     "reason": reason,
+                    "important": self.step == EscalationPolicy.STEP_NOTIFY_USERS_QUEUE_IMPORTANT,
                 },
                 immutable=True,
             )

@@ -1,6 +1,7 @@
 from apps.api.serializers.schedule_base import ScheduleBaseSerializer
 from apps.schedules.models import OnCallScheduleICal
 from apps.schedules.tasks import (
+    check_gaps_and_empty_shifts_in_schedule,
     refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
@@ -87,7 +88,7 @@ class ScheduleICalUpdateSerializer(ScheduleICalCreateSerializer):
 
         if old_ical_url_primary != updated_ical_url_primary or old_ical_url_overrides != updated_ical_url_overrides:
             updated_schedule.drop_cached_ical()
-            updated_schedule.check_gaps_and_empty_shifts_for_next_week()
+            check_gaps_and_empty_shifts_in_schedule.apply_async((instance.pk,))
             schedule_notify_about_empty_shifts_in_schedule.apply_async((instance.pk,))
             schedule_notify_about_gaps_in_schedule.apply_async((instance.pk,))
             # for iCal-based schedules we need to refresh final schedule information

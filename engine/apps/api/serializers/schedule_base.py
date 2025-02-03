@@ -2,8 +2,13 @@ from rest_framework import serializers
 
 from apps.api.serializers.slack_channel import SlackChannelSerializer
 from apps.api.serializers.user_group import UserGroupSerializer
+from apps.schedules.constants import SCHEDULE_CHECK_NEXT_DAYS
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
+from apps.schedules.tasks import (
+    check_gaps_and_empty_shifts_in_schedule,
+    schedule_notify_about_empty_shifts_in_schedule,
+    schedule_notify_about_gaps_in_schedule,
+)
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
@@ -44,8 +49,8 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         "Cannot update the user group, make sure to grant user group modification rights to "
         "non-admin users in Slack workspace settings"
     )
-    SCHEDULE_HAS_GAPS_WARNING = "Schedule has unassigned time periods during next 7 days"
-    SCHEDULE_HAS_EMPTY_SHIFTS_WARNING = "Schedule has empty shifts during next 7 days"
+    SCHEDULE_HAS_GAPS_WARNING = f"Schedule has unassigned time periods during next {SCHEDULE_CHECK_NEXT_DAYS} days"
+    SCHEDULE_HAS_EMPTY_SHIFTS_WARNING = f"Schedule has empty shifts during next {SCHEDULE_CHECK_NEXT_DAYS} days"
 
     def get_warnings(self, obj):
         can_update_user_groups = self.context.get("can_update_user_groups", False)
@@ -81,7 +86,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         created_schedule = super().create(validated_data)
-        created_schedule.check_gaps_and_empty_shifts_for_next_week()
+        check_gaps_and_empty_shifts_in_schedule.apply_async((created_schedule.pk,))
         schedule_notify_about_empty_shifts_in_schedule.apply_async((created_schedule.pk,))
         schedule_notify_about_gaps_in_schedule.apply_async((created_schedule.pk,))
         return created_schedule
