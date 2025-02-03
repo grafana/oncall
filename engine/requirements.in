@@ -1,8 +1,8 @@
 babel==2.12.1
 beautifulsoup4==4.12.2
-celery[redis]==5.3.1
+celery[redis]==5.3.6
 cryptography==43.0.1
-django==4.2.17
+django==4.2.18
 django-add-default-value==0.10.0
 django-anymail[amazon-ses]==12.0
 django-cors-headers==3.7.0
@@ -32,6 +32,7 @@ fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.t
 hiredis==2.2.3
 humanize==4.10.0
 icalendar==5.0.10
+jinja2==3.1.5
 lxml==5.2.2
 markdown2==2.4.10
 opentelemetry-sdk==1.26.0
