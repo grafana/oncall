@@ -475,12 +475,19 @@ ingress:
 # Whether to install ingress controller
 ingress-nginx:
   enabled: true
+  controller:
+    ## Node labels for pod assignment
+    ## ref: https://kubernetes.io/docs/user-guide/node-selection/  
+    nodeSelector: {}    
 
 # Install cert-manager as a part of the release
 cert-manager:
   enabled: true
   # Instal CRD resources
   installCRDs: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/  
+  nodeSelector: {}    
   webhook:
     timeoutSeconds: 30
     # cert-manager tries to use the already used port, changing to another one
@@ -503,6 +510,9 @@ database:
 # Set mariadb.enabled = false and configure externalMysql
 mariadb:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/  
+  nodeSelector: {}    
   auth:
     database: oncall
     existingSecret:
@@ -578,6 +588,9 @@ externalPostgresql:
 # Set rabbitmq.enabled = false and configure externalRabbitmq
 rabbitmq:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/  
+  nodeSelector: {}  
   auth:
     existingPasswordSecret:
 
@@ -585,11 +598,11 @@ broker:
   type: rabbitmq
 
 externalRabbitmq:
-  host:
-  port:
-  user:
-  password:
-  protocol:
+  host: 
+  port: 
+  user: 
+  password: 
+  protocol: 
   vhost:
   # Use an existing secret for the rabbitmq password
   existingSecret:
@@ -602,12 +615,20 @@ externalRabbitmq:
 # It is recommended to host it separately from this release
 redis:
   enabled: true
+  master: 
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/  
+    nodeSelector: {}
+  replica: 
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/  
+    nodeSelector: {}    
   auth:
     existingSecret:
 
 externalRedis:
   protocol:
-  host:
+  host: 
   port:
   database:
   username:
@@ -632,6 +653,9 @@ externalRedis:
 # It is recommended to host it separately from this release
 grafana:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/    
+  nodeSelector: {}  
   grafana.ini:
     server:
       domain: helm-testing-grafana

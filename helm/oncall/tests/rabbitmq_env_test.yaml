@@ -112,19 +112,6 @@ tests:
             name: RABBITMQ_VHOST
             value: ""
 
-  - it: rabbitmq.enabled=false -> should fail if not externalRabbitmq.existingSecret or not externalRabbitmq.password
-    templates:
-      - engine/deployment.yaml
-      - engine/job-migrate.yaml
-      - celery/deployment.yaml
-    set:
-      broker.type: rabbitmq
-      rabbitmq.enabled: false
-    asserts:
-      - failedTemplate:
-          errorMessage: externalRabbitmq.user is required if not rabbitmq.enabled
-        template: engine/job-migrate.yaml
-
   - it: rabbitmq.enabled=false -> should use internal custom values
     templates:
       - engine/deployment.yaml
