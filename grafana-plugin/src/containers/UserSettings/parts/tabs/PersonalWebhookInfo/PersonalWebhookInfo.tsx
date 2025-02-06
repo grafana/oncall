@@ -70,8 +70,8 @@ export const PersonalWebhookInfo = observer(() => {
 
   return (
     <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
-      <form onSubmit={handleSubmit(onFormSubmit)}>
-        <Field label="Webhook" className={styles.field} >
+      <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
+        <Field label="Webhook"  >
           <Controller
             name="webhook"
             control={control}
@@ -88,7 +88,6 @@ export const PersonalWebhookInfo = observer(() => {
         </Field>
         {webhook !== '' ? (
           <Field
-            className={styles.field}
             label="Context"
             invalid={!!errors.context}
             error={errors.context?.message}
@@ -128,7 +127,7 @@ export const PersonalWebhookInfo = observer(() => {
 });
 
 const styles = {
-  field: css`
+  form: css`
     width: 100%;
   `,
 }
