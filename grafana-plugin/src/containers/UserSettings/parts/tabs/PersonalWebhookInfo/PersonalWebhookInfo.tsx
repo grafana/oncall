@@ -13,19 +13,21 @@ import { ActionKey } from 'models/loader/action-keys';
 import { WebhookTriggerType } from 'models/outgoing_webhook/outgoing_webhook.types'
 import { useStore } from 'state/useStore';
 
-interface FormFields {
-  webhook: string;
-  context: string;
-}
-
-function useLoadingWebhooks() {
-  const { loaderStore } = useStore();
-  const [isLoading, setIsLoading] = React.useState(true)
+function useWebhooksOptions(): [boolean, { label: string, value: string }[]] {
+  const { outgoingWebhookStore, loaderStore } = useStore();
+  const [isLoading, setIsLoading] = useState(true)
   const isLoadingWebhooks = loaderStore.isLoading(ActionKey.FETCH_WEBHOOKS)
   const [hasRegisteredLoadingWebhooks, setHasRegisteredLoadingWebhooks] = useState(false);
 
+  const webhookOptions = useMemo(() =>
+    Object.values(outgoingWebhookStore.items).map((item) => ({
+      label: item.name,
+      value: item.id,
+    })), [outgoingWebhookStore.items]);
+
+
   useEffect(() => {
-    if (isLoadingWebhooks === true) {
+    if (isLoadingWebhooks) {
       setHasRegisteredLoadingWebhooks(true);
     }
   }, [isLoadingWebhooks]);
@@ -36,7 +38,27 @@ function useLoadingWebhooks() {
     }
   }, [isLoadingWebhooks])
 
-  return isLoading;
+  return [isLoading, webhookOptions];
+}
+
+const contextRules = {
+  validate(value: string) {
+    let context: object;
+    try {
+      context = JSON.parse(value);
+    } catch (_) {
+      return 'Invalid JSON';
+    }
+    if (typeof context !== 'object' || context === null || Array.isArray(context)) {
+      return 'JSON must be an object';
+    }
+    return true;
+  }
+}
+
+interface FormFields {
+  webhook: string;
+  context: string;
 }
 
 const defaultValues = { webhook: null, context: '{}' }
@@ -63,7 +85,7 @@ export const PersonalWebhookInfo = observer(() => {
   const user = userStore.items[userStore.currentUserPk];
   const selectedWebhook = watch('webhook');
   const hasConnectedWebhook = user.messaging_backends.WEBHOOK != null;
-  const isLoadingWebhooks = useLoadingWebhooks()
+  const [isLoadingOptions, webhookOptions] = useWebhooksOptions()
 
   useEffect(() => {
     (async () => {
@@ -85,12 +107,6 @@ export const PersonalWebhookInfo = observer(() => {
     })
   }, [userStore.personalWebhook]);
 
-  const options = useMemo(() =>
-    Object.values(outgoingWebhookStore.items).map((item) => ({
-      label: item.name,
-      value: item.id,
-    })), [outgoingWebhookStore.items]);
-
   async function onFormSubmit() {
     const values = getValues();
     const webhook = values.webhook === '' ? null : values.webhook;
@@ -103,7 +119,7 @@ export const PersonalWebhookInfo = observer(() => {
     reset(defaultValues);
   };
 
-  if (isLoadingWebhooks) {
+  if (isLoadingOptions) {
     return (
       <Stack justifyContent="center" >
         <LoadingPlaceholder text="Loading..." />
@@ -111,7 +127,7 @@ export const PersonalWebhookInfo = observer(() => {
     )
   }
 
-  if (!isLoadingWebhooks && !hasConnectedWebhook && options.length === 0) {
+  if (!isLoadingOptions && !hasConnectedWebhook && webhookOptions.length === 0) {
     return (
       <Stack direction="column" alignItems="center" gap={StackSize.lg}>
         <Text type="secondary">
@@ -136,11 +152,10 @@ export const PersonalWebhookInfo = observer(() => {
             render={({ field }) =>
               <Select
                 {...field}
-                placeholder={(user.messaging_backends?.WEBHOOK?.name as string) ?? 'Select a webhook'}
                 menuShouldPortal
+                placeholder={(user.messaging_backends?.WEBHOOK?.name as string) ?? 'Select a webhook'}
                 onChange={({ value }) => field.onChange(value)}
-                isLoading={isLoadingWebhooks}
-                options={options}
+                options={webhookOptions}
               />
             }
           />
@@ -154,26 +169,8 @@ export const PersonalWebhookInfo = observer(() => {
             <Controller
               name="context"
               control={control}
-              rules={{
-                validate(value) {
-                  let context: object;
-                  try {
-                    context = JSON.parse(value);
-                  } catch (_) {
-                    return 'Invalid JSON';
-                  }
-                  if (typeof context !== 'object' || context === null || Array.isArray(context)) {
-                    return 'JSON must be an object';
-                  }
-                  return true;
-                }
-              }}
-              render={({ field }) =>
-                <TextArea
-                  {...field}
-                  rows={8}
-                />
-              }
+              rules={contextRules}
+              render={({ field }) => <TextArea {...field} rows={8} />}
             />
           </Field>
         ) : null}

@@ -315,18 +315,16 @@ export class UserStore {
     await this.updatePersonalWebhook();
   }
 
+  async removePersonalWebhook() {
+    await this.unlinkBackend(this.currentUserPk, 'WEBHOOK');
+    await this.updatePersonalWebhook();
+  }
+
   async updatePersonalWebhook() {
     const response = await makeRequest('/webhooks/current_personal_notification');
 
     runInAction(() => {
       this.personalWebhook = response;
-    });
-  }
- 
-  async removePersonalWebhook() {
-    this.unlinkBackend(this.currentUserPk, 'WEBHOOK');
-    runInAction(() => {
-      this.personalWebhook = { webhook: null, context: null };
     });
   }
 }
