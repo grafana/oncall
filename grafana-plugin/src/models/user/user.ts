@@ -311,7 +311,8 @@ export class UserStore {
       method: 'POST',
       data,
     });
-    this.updatePersonalWebhook();
+    await this.loadCurrentUser();
+    await this.updatePersonalWebhook();
   }
 
   async updatePersonalWebhook() {
@@ -319,6 +320,13 @@ export class UserStore {
 
     runInAction(() => {
       this.personalWebhook = response;
+    });
+  }
+ 
+  async removePersonalWebhook() {
+    this.unlinkBackend(this.currentUserPk, 'WEBHOOK');
+    runInAction(() => {
+      this.personalWebhook = { webhook: null, context: null };
     });
   }
 }

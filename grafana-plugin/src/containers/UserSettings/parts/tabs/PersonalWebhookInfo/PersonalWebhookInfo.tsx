@@ -1,11 +1,14 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { Button, Select, Stack, Field, TextArea } from '@grafana/ui';
+import { LoadingPlaceholder, Button, Select, Stack, Field, TextArea } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { ActionKey } from 'models/loader/action-keys';
 import { WebhookTriggerType } from 'models/outgoing_webhook/outgoing_webhook.types'
 import { useStore } from 'state/useStore';
@@ -15,8 +18,31 @@ interface FormFields {
   context: string;
 }
 
+function useLoadingWebhooks() {
+  const { loaderStore } = useStore();
+  const [isLoading, setIsLoading] = React.useState(true)
+  const isLoadingWebhooks = loaderStore.isLoading(ActionKey.FETCH_WEBHOOKS)
+  const [hasRegisteredLoadingWebhooks, setHasRegisteredLoadingWebhooks] = useState(false);
+
+  useEffect(() => {
+    if (isLoadingWebhooks === true) {
+      setHasRegisteredLoadingWebhooks(true);
+    }
+  }, [isLoadingWebhooks]);
+
+  useEffect(() => {
+    if (!isLoadingWebhooks && hasRegisteredLoadingWebhooks) {
+      setIsLoading(false);
+    }
+  }, [isLoadingWebhooks])
+
+  return isLoading;
+}
+
+const defaultValues = { webhook: null, context: '{}' }
+
 export const PersonalWebhookInfo = observer(() => {
-  const { userStore, outgoingWebhookStore, loaderStore } = useStore();
+  const { userStore, outgoingWebhookStore } = useStore();
 
   const {
     formState: {
@@ -27,14 +53,17 @@ export const PersonalWebhookInfo = observer(() => {
     watch,
     control,
     getValues,
-    setValue,
     handleSubmit,
+    reset,
   } = useForm<FormFields>({
     mode: 'onBlur',
-    defaultValues: { webhook: '', context: '{}' }
+    defaultValues
   });
 
-  const webhook = watch('webhook');
+  const user = userStore.items[userStore.currentUserPk];
+  const selectedWebhook = watch('webhook');
+  const hasConnectedWebhook = user.messaging_backends.WEBHOOK != null;
+  const isLoadingWebhooks = useLoadingWebhooks()
 
   useEffect(() => {
     (async () => {
@@ -46,31 +75,60 @@ export const PersonalWebhookInfo = observer(() => {
         true
       );
     })();
-  }, [userStore.updatePersonalWebhook, outgoingWebhookStore.updateItems]);
+  }, []);
 
   useEffect(() => {
     const { webhook, context } = userStore.personalWebhook ?? {};
-    setValue('webhook', webhook ?? '');
-    setValue('context', context ? JSON.stringify(context, null, 2) : '{}');
+    reset({
+      webhook: webhook ?? null,
+      context: context ? JSON.stringify(context, null, 2) : '{}',
+    })
   }, [userStore.personalWebhook]);
 
-  const options = useMemo(() => [
-    { label: 'None', value: '' },
-    ...Object.values(outgoingWebhookStore.items).map((item) => ({
+  const options = useMemo(() =>
+    Object.values(outgoingWebhookStore.items).map((item) => ({
       label: item.name,
       value: item.id,
-    }))], [outgoingWebhookStore.items]);
+    })), [outgoingWebhookStore.items]);
 
-  function onFormSubmit() {
+  async function onFormSubmit() {
     const values = getValues();
     const webhook = values.webhook === '' ? null : values.webhook;
     const context = JSON.parse(values.context);
     userStore.addPersonalWebook({ webhook, context });
   }
 
+  async function handleDisconnectPersonalWebhook() {
+    await userStore.removePersonalWebhook();
+    reset(defaultValues);
+  };
+
+  if (isLoadingWebhooks) {
+    return (
+      <Stack justifyContent="center" >
+        <LoadingPlaceholder text="Loading..." />
+      </Stack>
+    )
+  }
+
+  if (!isLoadingWebhooks && !hasConnectedWebhook && options.length === 0) {
+    return (
+      <Stack direction="column" alignItems="center" gap={StackSize.lg}>
+        <Text type="secondary">
+          No webhooks found. Make sure you have added at least one webhook with the Trigger Type set to "Personal Notification".
+        </Text>
+        <PluginLink query={{ page: 'outgoing_webhooks' }}>
+          <Button variant="primary">
+            Go to Outgoing Webhooks
+          </Button>
+        </PluginLink>
+      </Stack>
+    )
+  }
+
   return (
     <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
-      <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
+      <form className={styles.form}>
         <Field label="Webhook"  >
           <Controller
             name="webhook"
@@ -78,15 +136,16 @@ export const PersonalWebhookInfo = observer(() => {
             render={({ field }) =>
               <Select
                 {...field}
+                placeholder={(user.messaging_backends?.WEBHOOK?.name as string) ?? 'Select a webhook'}
                 menuShouldPortal
                 onChange={({ value }) => field.onChange(value)}
-                isLoading={loaderStore.isLoading(ActionKey.FETCH_WEBHOOKS)}
+                isLoading={isLoadingWebhooks}
                 options={options}
               />
             }
           />
         </Field>
-        {webhook !== '' ? (
+        {selectedWebhook != null ? (
           <Field
             label="Context"
             invalid={!!errors.context}
@@ -118,9 +177,19 @@ export const PersonalWebhookInfo = observer(() => {
             />
           </Field>
         ) : null}
-        <Button type="submit" variant={'primary'} disabled={!isDirty || !isValid}>
-          Save
-        </Button>
+        <Stack direction="row" gap={2} justifyContent="flex-end">
+          {hasConnectedWebhook ? (
+            <WithConfirm title={`Are you sure you want to disconnect the webhook named "${user.messaging_backends.WEBHOOK?.name}"?`} confirmText="Disconnect">
+              <Button
+                variant="destructive"
+                onClick={handleDisconnectPersonalWebhook}
+              >Disconnect</Button>
+            </WithConfirm>
+          ) : null}
+          <Button type="submit" variant="primary" disabled={!isDirty || !isValid} onClick={handleSubmit(onFormSubmit)}>
+            {hasConnectedWebhook ? 'Update' : 'Connect'}
+          </Button>
+        </Stack>
       </form>
     </Stack>
   );

@@ -28,16 +28,17 @@ export const PersonalWebhookConnector = observer((props: PersonalWebhookConnecto
   }, []);
 
   const handleUnlinkPersonalWebhook = useCallback(() => {
-    userStore.unlinkBackend(id, 'WEBHOOK');
+    userStore.removePersonalWebhook();
   }, []);
 
+  console.log(storeUser.messaging_backends.WEBHOOK?.name)
   return (
     <div>
-        {storeUser.messaging_backends.WEBHOOK ? (
+      {storeUser.messaging_backends.WEBHOOK ? (
         <InlineField label="Webhook" labelWidth={12} disabled={!isCurrentUser}>
           <Stack gap={StackSize.xs}>
             <Input disabled={true} value={(storeUser.messaging_backends.WEBHOOK?.name as string) || '—'} />
-            <WithConfirm title="Are you sure to disconnect your personal webhook?" confirmText="Disconnect">
+            <WithConfirm title="Are you sure you want to disconnect your personal webhook?" confirmText="Disconnect">
               <Button
                 disabled={!isCurrentUser}
                 variant="destructive"
@@ -48,13 +49,13 @@ export const PersonalWebhookConnector = observer((props: PersonalWebhookConnecto
             </WithConfirm>
           </Stack>
         </InlineField>
-        ) : (
-            <div>
-                <InlineField label="Webhook" labelWidth={12} disabled={!isCurrentUser}>
-                    <Button onClick={handleConnectButtonClick}>Connect</Button>
-                </InlineField>
-            </div>
-        )}
+      ) : (
+        <div>
+          <InlineField label="Webhook" labelWidth={12} disabled={!isCurrentUser}>
+            <Button onClick={handleConnectButtonClick}>Connect</Button>
+          </InlineField>
+        </div>
+      )}
     </div>
   );
 });
