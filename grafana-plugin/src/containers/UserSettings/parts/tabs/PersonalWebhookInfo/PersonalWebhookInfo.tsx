@@ -84,8 +84,10 @@ export const PersonalWebhookInfo = observer(() => {
 
   const user = userStore.items[userStore.currentUserPk];
   const selectedWebhook = watch('webhook');
-  const hasConnectedWebhook = user.messaging_backends.WEBHOOK != null;
   const [isLoadingOptions, webhookOptions] = useWebhooksOptions()
+
+  const hasConnectedWebhook = user.messaging_backends?.WEBHOOK != null;
+  const hasSelectedValidWebhook = webhookOptions.some(option => option.value === selectedWebhook)
 
   useEffect(() => {
     (async () => {
@@ -176,14 +178,21 @@ export const PersonalWebhookInfo = observer(() => {
         ) : null}
         <Stack direction="row" gap={2} justifyContent="flex-end">
           {hasConnectedWebhook ? (
-            <WithConfirm title={`Are you sure you want to disconnect the webhook named "${user.messaging_backends.WEBHOOK?.name}"?`} confirmText="Disconnect">
+            <WithConfirm
+              title={`Are you sure you want to disconnect the webhook named "${user.messaging_backends.WEBHOOK?.name}"?`}
+              confirmText="Disconnect"
+            >
               <Button
                 variant="destructive"
                 onClick={handleDisconnectPersonalWebhook}
               >Disconnect</Button>
             </WithConfirm>
           ) : null}
-          <Button type="submit" variant="primary" disabled={!isDirty || !isValid} onClick={handleSubmit(onFormSubmit)}>
+          <Button
+            type="submit"
+            variant="primary" disabled={!isDirty || !isValid || !hasSelectedValidWebhook}
+            onClick={handleSubmit(onFormSubmit)}
+          >
             {hasConnectedWebhook ? 'Update' : 'Connect'}
           </Button>
         </Stack>
