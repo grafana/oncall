@@ -926,7 +926,7 @@ if IS_OPEN_SOURCE:
     }  # noqa
 
 # RECAPTCHA_V3 settings
-RECAPTCHA_V3_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default="6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1")
+RECAPTCHA_V3_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default=None)
 RECAPTCHA_V3_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", default=None)
 RECAPTCHA_V3_ENABLED = os.environ.get("RECAPTCHA_ENABLED", default=False)
 RECAPTCHA_V3_HOSTNAME_VALIDATION = os.environ.get("RECAPTCHA_HOSTNAME_VALIDATION", default=False)
