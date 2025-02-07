@@ -13,7 +13,7 @@ import { ActionKey } from 'models/loader/action-keys';
 import { WebhookTriggerType } from 'models/outgoing_webhook/outgoing_webhook.types'
 import { useStore } from 'state/useStore';
 
-function useWebhooksOptions(): [boolean, { label: string, value: string }[]] {
+function useWebhooksOptions(): [boolean, Array<{ label: string, value: string }>] {
   const { outgoingWebhookStore, loaderStore } = useStore();
   const [isLoading, setIsLoading] = useState(true)
   const isLoadingWebhooks = loaderStore.isLoading(ActionKey.FETCH_WEBHOOKS)
