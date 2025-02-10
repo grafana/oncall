@@ -78,7 +78,7 @@ export const PersonalWebhookInfo = observer(() => {
     handleSubmit,
     reset,
   } = useForm<FormFields>({
-    mode: 'onBlur',
+    mode: 'onChange',
     defaultValues
   });
 
@@ -146,6 +146,7 @@ export const PersonalWebhookInfo = observer(() => {
 
   return (
     <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
+      <Text.Title level={2}>Connect personal webhook</Text.Title>
       <form className={styles.form}>
         <Field label="Webhook"  >
           <Controller
@@ -155,7 +156,7 @@ export const PersonalWebhookInfo = observer(() => {
               <Select
                 {...field}
                 menuShouldPortal
-                placeholder={(user.messaging_backends?.WEBHOOK?.name as string) ?? 'Select a webhook'}
+                placeholder={(user.messaging_backends?.WEBHOOK?.name as string) ?? 'Select personal webhook to trigger'}
                 onChange={({ value }) => field.onChange(value)}
                 options={webhookOptions}
               />

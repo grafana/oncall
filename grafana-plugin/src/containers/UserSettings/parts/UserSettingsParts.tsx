@@ -118,7 +118,7 @@ export const Tabs = ({
       {showPersonalWebhookConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.PersonalWebhookInfo}
-          label="Personal Webhook"
+          label="Webhook Connection"
           key={UserSettingsTab.PersonalWebhookInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.PersonalWebhookInfo)}
           data-testid="tab-personalwebhook"

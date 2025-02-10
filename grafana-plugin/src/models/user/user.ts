@@ -30,7 +30,10 @@ export class UserStore {
   notifyByOptions: any = [];
   currentUserPk?: ApiSchemas['User']['pk'];
   usersCurrentlyBeingFetched: { [pk: string]: boolean } = {};
-  personalWebhook: { webhook: string, context: object };
+  personalWebhook: { webhook: string, context: object } = {
+    webhook: null,
+    context: null,
+  };
 
   constructor(rootStore: RootStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
