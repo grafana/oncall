@@ -146,9 +146,12 @@ export const PersonalWebhookInfo = observer(() => {
 
   return (
     <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
-      <Text.Title level={2}>Connect personal webhook</Text.Title>
+      <Text.Title level={2}>Connect a personal webhook</Text.Title>
       <form className={styles.form}>
-        <Field label="Webhook"  >
+        <Field
+          label="Webhook"
+          description="Select a webhook to trigger as your personal notification channel."
+        >
           <Controller
             name="webhook"
             control={control}
@@ -166,6 +169,7 @@ export const PersonalWebhookInfo = observer(() => {
         {selectedWebhook != null ? (
           <Field
             label="Context"
+            description="Optional. Set additional context (as a JSON dict) to make it available in the webhook payload and/or templates."
             invalid={!!errors.context}
             error={errors.context?.message}
           >
