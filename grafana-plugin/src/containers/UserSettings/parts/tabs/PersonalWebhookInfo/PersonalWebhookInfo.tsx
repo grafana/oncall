@@ -6,7 +6,6 @@ import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { PluginLink } from 'components/PluginLink/PluginLink';
 import { PLUGIN_ROOT } from 'helpers/consts';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -130,20 +129,6 @@ export const PersonalWebhookInfo = observer(() => {
     )
   }
 
-  // if (!isLoadingOptions && !hasConnectedWebhook && webhookOptions.length === 0) {
-  //   return (
-  //     <Stack direction="column" alignItems="center" gap={StackSize.lg}>
-  //       <Text type="secondary">
-  //         No webhooks found. Make sure you have added at least one webhook with the Trigger Type set to "Personal Notification".
-  //       </Text>
-  //       <PluginLink query={{ page: 'outgoing_webhooks' }}>
-  //         <Button variant="primary">
-  //           Go to Outgoing Webhooks
-  //         </Button>
-  //       </PluginLink>
-  //     </Stack>
-  //   )
-  // }
   return (
     <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
       <form className={styles.form}>
@@ -177,14 +162,6 @@ export const PersonalWebhookInfo = observer(() => {
             }
           />
         </Field>
-<<<<<<< HEAD
-        {selectedWebhook != null ? (
-          <Field
-            label="Context"
-            description="Optional. Set additional context (as a JSON dict) to make it available in the webhook payload and/or templates."
-            invalid={!!errors.context}
-            error={errors.context?.message}
-=======
         {
           selectedWebhook != null ? (
             <Field
@@ -219,7 +196,6 @@ export const PersonalWebhookInfo = observer(() => {
             type="submit"
             variant="primary" disabled={!isDirty || !isValid || !hasSelectedValidWebhook}
             onClick={handleSubmit(onFormSubmit)}
->>>>>>> 7d4667f0 (restyled UI to match Figma)
           >
             {hasConnectedWebhook ? 'Save' : 'Connect'}
           </Button>
