@@ -58,7 +58,7 @@ export const Tabs = ({
     <TabsBar>
       <Tab
         active={activeTab === UserSettingsTab.UserInfo}
-        label="User Info"
+        label="User info"
         key={UserSettingsTab.UserInfo}
         onChangeTab={getTabClickHandler(UserSettingsTab.UserInfo)}
         data-testid="tab-user-info"
@@ -66,7 +66,7 @@ export const Tabs = ({
       {showNotificationSettingsTab && (
         <Tab
           active={activeTab === UserSettingsTab.NotificationSettings}
-          label="Notification Settings"
+          label="Notification settings"
           key={UserSettingsTab.NotificationSettings}
           onChangeTab={getTabClickHandler(UserSettingsTab.NotificationSettings)}
           data-testid="tab-notification-settings"
@@ -75,7 +75,7 @@ export const Tabs = ({
       {showGoogleCalendarTab && (
         <Tab
           active={activeTab === UserSettingsTab.GoogleCalendar}
-          label="Google Calendar"
+          label="Google calendar"
           key={UserSettingsTab.GoogleCalendar}
           onChangeTab={getTabClickHandler(UserSettingsTab.GoogleCalendar)}
           data-testid="google-calendar-tab"
@@ -83,7 +83,7 @@ export const Tabs = ({
       )}
       <Tab
         active={activeTab === UserSettingsTab.PhoneVerification}
-        label="Phone Verification"
+        label="Phone verification"
         key={UserSettingsTab.PhoneVerification}
         onChangeTab={getTabClickHandler(UserSettingsTab.PhoneVerification)}
         data-testid="tab-phone-verification"
@@ -91,7 +91,7 @@ export const Tabs = ({
       {showMobileAppConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.MobileAppConnection}
-          label="Mobile App Connection"
+          label="Mobile app connection"
           key={UserSettingsTab.MobileAppConnection}
           onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppConnection)}
           data-testid="tab-mobile-app"
@@ -100,7 +100,7 @@ export const Tabs = ({
       {showSlackConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.SlackInfo}
-          label="Slack Connection"
+          label="Slack connection"
           key={UserSettingsTab.SlackInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.SlackInfo)}
           data-testid="tab-slack"
@@ -109,7 +109,7 @@ export const Tabs = ({
       {showTelegramConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.TelegramInfo}
-          label="Telegram Connection"
+          label="Telegram connection"
           key={UserSettingsTab.TelegramInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.TelegramInfo)}
           data-testid="tab-telegram"
@@ -118,7 +118,7 @@ export const Tabs = ({
       {showPersonalWebhookConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.PersonalWebhookInfo}
-          label="Webhook Connection"
+          label="Webhook connection"
           key={UserSettingsTab.PersonalWebhookInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.PersonalWebhookInfo)}
           data-testid="tab-personalwebhook"
@@ -127,7 +127,7 @@ export const Tabs = ({
       {showMsTeamsConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.MSTeamsInfo}
-          label="Ms Teams Connection"
+          label="Ms Teams connection"
           key={UserSettingsTab.MSTeamsInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.MSTeamsInfo)}
           data-testid="tab-msteams"
