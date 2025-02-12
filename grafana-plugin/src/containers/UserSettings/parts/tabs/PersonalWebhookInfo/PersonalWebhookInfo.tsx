@@ -2,11 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { LoadingPlaceholder, Button, Select, Stack, Field, TextArea, Icon } from '@grafana/ui';
-import { StackSize } from 'helpers/consts';
+import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { PLUGIN_ROOT } from 'helpers/consts';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { ActionKey } from 'models/loader/action-keys';
