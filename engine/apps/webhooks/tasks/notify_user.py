@@ -52,7 +52,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
 
     # trigger webhook via task
     execute_webhook.apply_async(
-        (personal_webhook.pk, alert_group.pk, user.pk, notification_policy.pk),
+        (personal_webhook.webhook.pk, alert_group.pk, user.pk, notification_policy.pk),
         kwargs={"trigger_type": Webhook.TRIGGER_PERSONAL_NOTIFICATION},
     )
 

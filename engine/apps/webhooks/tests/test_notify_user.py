@@ -143,7 +143,7 @@ def test_notify_user_ok(
         notify_user_async(user.pk, alert_group.pk, notification_policy.pk)
 
     mock_execute_webhook.apply_async.assert_called_once_with(
-        (user.personal_webhook.pk, alert_group.pk, user.pk, notification_policy.pk),
+        (user.personal_webhook.webhook.pk, alert_group.pk, user.pk, notification_policy.pk),
         kwargs={"trigger_type": Webhook.TRIGGER_PERSONAL_NOTIFICATION},
     )
 
