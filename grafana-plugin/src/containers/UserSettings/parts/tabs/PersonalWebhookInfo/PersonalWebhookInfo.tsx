@@ -167,8 +167,8 @@ export const PersonalWebhookInfo = observer(() => {
             <Field
               label="Context"
               description={
-                <p>You can add additional JSON template to use the same webhook for multiple users events.
-                  <a href={"https://grafana.com/docs/oncall/latest/configure/integrations/outgoing-webhooks"} target="_blank" rel="noreferrer" className={styles.link}>
+                <p>You can add additional JSON context to be used by the webhook templates allowing for webhook reusability between different users.
+                  <a href={"https://grafana.com/docs/oncall/latest/manage/notify/webhook/"} target="_blank" rel="noreferrer" className={styles.link}>
                     <Text type="link">
                       <span>Learn more in docs</span>
                       <Icon
