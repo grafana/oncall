@@ -33,9 +33,9 @@ class TestNotificationRulesMigration:
         }
         self.pd_user["oncall_user"] = self.oncall_user
 
-    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_NOTIFICATION_POLICIES", True)
+    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_USER_NOTIFICATION_RULES", True)
     @patch("lib.pagerduty.resources.notification_rules.OnCallAPIClient")
-    def test_existing_notification_policies_are_preserved(self, MockOnCallAPIClient):
+    def test_existing_notification_rules_are_preserved(self, MockOnCallAPIClient):
         # Setup user with existing notification rules
         self.oncall_user["notification_rules"] = [{"id": "NR1"}]
 
@@ -44,10 +44,11 @@ class TestNotificationRulesMigration:
 
         # Verify no notification rules were migrated
         MockOnCallAPIClient.create.assert_not_called()
+        MockOnCallAPIClient.delete.assert_not_called()
 
-    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_NOTIFICATION_POLICIES", True)
+    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_USER_NOTIFICATION_RULES", True)
     @patch("lib.pagerduty.resources.notification_rules.OnCallAPIClient")
-    def test_notification_policies_migrated_when_none_exist(self, MockOnCallAPIClient):
+    def test_notification_rules_migrated_when_none_exist(self, MockOnCallAPIClient):
         # Run migration
         migrate_notification_rules(self.pd_user)
 
@@ -65,10 +66,11 @@ class TestNotificationRulesMigration:
             })
         ]
         MockOnCallAPIClient.create.assert_has_calls(expected_calls)
+        MockOnCallAPIClient.delete.assert_not_called()
 
-    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_NOTIFICATION_POLICIES", False)
+    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_USER_NOTIFICATION_RULES", False)
     @patch("lib.pagerduty.resources.notification_rules.OnCallAPIClient")
-    def test_existing_notification_policies_are_replaced_when_preserve_is_false(self, MockOnCallAPIClient):
+    def test_existing_notification_rules_are_replaced_when_preserve_is_false(self, MockOnCallAPIClient):
         # Setup user with existing notification rules
         self.oncall_user["notification_rules"] = [
             {"id": "NR1", "important": False},
@@ -100,9 +102,9 @@ class TestNotificationRulesMigration:
         ]
         MockOnCallAPIClient.create.assert_has_calls(expected_create_calls)
 
-    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_NOTIFICATION_POLICIES", False)
+    @patch("lib.pagerduty.resources.notification_rules.PRESERVE_EXISTING_USER_NOTIFICATION_RULES", False)
     @patch("lib.pagerduty.resources.notification_rules.OnCallAPIClient")
-    def test_notification_policies_migrated_when_none_exist_and_preserve_is_false(self, MockOnCallAPIClient):
+    def test_notification_rules_migrated_when_none_exist_and_preserve_is_false(self, MockOnCallAPIClient):
         # Run migration
         migrate_notification_rules(self.pd_user)
 

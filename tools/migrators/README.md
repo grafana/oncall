@@ -13,8 +13,8 @@ Currently the migration tool supports migrating from:
 2. Build the docker image: `docker build -t oncall-migrator .`
 3. Obtain a Grafana OnCall API token and API URL on the "Settings" page of your Grafana OnCall instance
 4. Depending on which tool you are migrating from, see more specific instructions there:
-    - [PagerDuty](#prerequisites)
-    - [Splunk OnCall](#prerequisites-1)
+   - [PagerDuty](#prerequisites)
+   - [Splunk OnCall](#prerequisites-1)
 5. Run a [migration plan](#migration-plan)
 6. If you are pleased with the results of the migration plan, run the tool in [migrate mode](#migration)
 
@@ -47,12 +47,12 @@ docker run --rm \
 oncall-migrator
 ```
 
-Please read the generated report carefully since depending on the content of the report, some  resources
+Please read the generated report carefully since depending on the content of the report, some resources
 could be not migrated and some existing Grafana OnCall resources could be deleted.
 
 ```text
 User notification rules report:
-    ✅ John Doe (john.doe@example.com) (existing notification rules will be deleted)
+    ✅ John Doe (john.doe@example.com) (existing notification rules will be preserved)
     ❌ Ben Thompson (ben@example.com) — no Grafana OnCall user found with this email
 
 Schedule report:
@@ -223,18 +223,24 @@ oncall-migrator
 
 Configuration is done via environment variables passed to the docker container.
 
-| Name                                          | Description                                                                                                                                                                                            | Type                                | Default |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------- |
-| `MIGRATING_FROM`                         | Set to `pagerduty`                                     | String                              | N/A     |
-| `PAGERDUTY_API_TOKEN`                         | PagerDuty API **user token**. To create a token, refer to [PagerDuty docs](https://support.pagerduty.com/docs/api-access-keys#generate-a-user-token-rest-api-key).                                     | String                              | N/A     |
-| `ONCALL_API_URL`                              | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                      | String                              | N/A     |
-| `ONCALL_API_TOKEN`                            | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                          | String                              | N/A     |
-| `MODE`                                        | Migration mode (plan vs actual migration).                                                                                                                                                             | String (choices: `plan`, `migrate`) | `plan`  |
-| `SCHEDULE_MIGRATION_MODE`                     | Determines how on-call schedules are migrated.                                                                                                                                                         | String (choices: `ical`, `web`)     | `ical`  |
-| `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS`         | When set to `true`, integrations with unsupported type will be migrated to Grafana OnCall integrations with type "webhook". When set to `false`, integrations with unsupported type won't be migrated. | Boolean                             | `false` |
-| `EXPERIMENTAL_MIGRATE_EVENT_RULES`            | Migrate global event rulesets to Grafana OnCall integrations.                                                                                                                                          | Boolean                             | `false` |
-| `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` | Include service & integrations names from PD in migrated integrations (only effective when `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`).                                                              | Boolean                             | `false` |
-| `MIGRATE_USERS` | If `false`, will allow you to important all objects, while ignoring user references in schedules and escalation policies. In addition, if `false`, will also skip importing User notification rules. This may be helpful in cases where you are unable to import your list of Grafana users, but would like to experiment with OnCall using your existing PagerDuty setup as a starting point for experimentation. | Boolean                             | `true` |
+| Name                                          | Description                                                                                                                                                                                                                                                                                                                                                                                                        | Type                                | Default |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------- |
+| `MIGRATING_FROM`                              | Set to `pagerduty`                                                                                                                                                                                                                                                                                                                                                                                                 | String                              | N/A     |
+| `PAGERDUTY_API_TOKEN`                         | PagerDuty API **user token**. To create a token, refer to [PagerDuty docs](https://support.pagerduty.com/docs/api-access-keys#generate-a-user-token-rest-api-key).                                                                                                                                                                                                                                                 | String                              | N/A     |
+| `ONCALL_API_URL`                              | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                                                                                                                                                                                                                                  | String                              | N/A     |
+| `ONCALL_API_TOKEN`                            | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                                                                                                                                                                                                                                      | String                              | N/A     |
+| `MODE`                                        | Migration mode (plan vs actual migration).                                                                                                                                                                                                                                                                                                                                                                         | String (choices: `plan`, `migrate`) | `plan`  |
+| `SCHEDULE_MIGRATION_MODE`                     | Determines how on-call schedules are migrated.                                                                                                                                                                                                                                                                                                                                                                     | String (choices: `ical`, `web`)     | `ical`  |
+| `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS`         | When set to `true`, integrations with unsupported type will be migrated to Grafana OnCall integrations with type "webhook". When set to `false`, integrations with unsupported type won't be migrated.                                                                                                                                                                                                             | Boolean                             | `false` |
+| `EXPERIMENTAL_MIGRATE_EVENT_RULES`            | Migrate global event rulesets to Grafana OnCall integrations.                                                                                                                                                                                                                                                                                                                                                      | Boolean                             | `false` |
+| `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` | Include service & integrations names from PD in migrated integrations (only effective when `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`).                                                                                                                                                                                                                                                                          | Boolean                             | `false` |
+| `MIGRATE_USERS`                               | If `false`, will allow you to important all objects, while ignoring user references in schedules and escalation policies. In addition, if `false`, will also skip importing User notification rules. This may be helpful in cases where you are unable to import your list of Grafana users, but would like to experiment with OnCall using your existing PagerDuty setup as a starting point for experimentation. | Boolean                             | `true`  |
+| `PAGERDUTY_FILTER_TEAM`                       | Filter resources by team name. Only resources associated with this team will be migrated.                                                                                                                                                                                                                                                                                                                          | String                              | N/A     |
+| `PAGERDUTY_FILTER_USERS`                      | Filter resources by PagerDuty user IDs (comma-separated). Only resources associated with these users will be migrated.                                                                                                                                                                                                                                                                                             | String                              | N/A     |
+| `PAGERDUTY_FILTER_SCHEDULE_REGEX`             | Filter schedules by name using a regex pattern. Only schedules whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                                    | String                              | N/A     |
+| `PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX`    | Filter escalation policies by name using a regex pattern. Only policies whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                           | String                              | N/A     |
+| `PAGERDUTY_FILTER_INTEGRATION_REGEX`          | Filter integrations by name using a regex pattern. Only integrations whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                              | String                              | N/A     |
+| `PRESERVE_EXISTING_USER_NOTIFICATION_RULES`   | Whether to preserve existing notification rules when migrating users                                                                                                                                                                                                                                                                                                                                               | Boolean                             | `true`  |
 
 ### Resources
 
@@ -246,7 +252,11 @@ taken into account and will be migrated to both default and important notificati
 for each user. Note that delays between notification rules may be slightly different in Grafana OnCall,
 see [Limitations](#limitations) for more info.
 
-When running the migration, existing notification rules in Grafana OnCall will be deleted for every affected user.
+By default (when `PRESERVE_EXISTING_USER_NOTIFICATION_RULES` is `true`), existing notification rules in Grafana OnCall will
+be preserved and PagerDuty rules won't be imported for users who already have notification rules configured in Grafana OnCall.
+
+If you want to replace existing notification rules with ones from PagerDuty, set `PRESERVE_EXISTING_USER_NOTIFICATION_RULES`
+to `false`.
 
 See [Migrating Users](#migrating-users) for some more information on how users are migrated.
 
@@ -289,6 +299,20 @@ For every service in PD, the tool will migrate all integrations to Grafana OnCal
 
 Any services that reference escalation policies that cannot be migrated won't be migrated as well.
 Any integrations with unsupported type won't be migrated unless `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS` is set to `true`.
+
+The following integration types are supported:
+
+- Datadog
+- Pingdom
+- Prometheus
+- PRTG
+- Stackdriver
+- UptimeRobot
+- New Relic
+- Zabbix Webhook (for 5.0 and 5.2)
+- Elastic Alerts
+- Firebase
+- Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
 
 #### Event rules (global event rulesets)
 
@@ -337,14 +361,14 @@ Resources that can be migrated using this tool:
 
 Configuration is done via environment variables passed to the docker container.
 
-| Name                                          | Description                                                                                                                                                                                            | Type                                | Default |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------- |
-| `MIGRATING_FROM`                         | Set to `splunk`                                     | String                              | N/A     |
-| `SPLUNK_API_KEY`                         | Splunk API **key**. To create an API Key, refer to [Splunk OnCall docs](https://help.victorops.com/knowledge-base/api/#:~:text=currently%20in%20place.-,API%20Configuration%20in%20Splunk%20On%2DCall,-To%20access%20the).                                     | String                              | N/A     |
-| `SPLUNK_API_ID`                         | Splunk API **ID**. To retrieve this ID, refer to [Splunk OnCall docs](https://help.victorops.com/knowledge-base/api/#:~:text=currently%20in%20place.-,API%20Configuration%20in%20Splunk%20On%2DCall,-To%20access%20the).                                     | String                              | N/A     |
-| `ONCALL_API_URL`                              | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                      | String                              | N/A     |
-| `ONCALL_API_TOKEN`                            | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                          | String                              | N/A     |
-| `MODE`                                        | Migration mode (plan vs actual migration).                                                                                                                                                             | String (choices: `plan`, `migrate`) | `plan`  |
+| Name               | Description                                                                                                                                                                                                                | Type                                | Default |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------- |
+| `MIGRATING_FROM`   | Set to `splunk`                                                                                                                                                                                                            | String                              | N/A     |
+| `SPLUNK_API_KEY`   | Splunk API **key**. To create an API Key, refer to [Splunk OnCall docs](https://help.victorops.com/knowledge-base/api/#:~:text=currently%20in%20place.-,API%20Configuration%20in%20Splunk%20On%2DCall,-To%20access%20the). | String                              | N/A     |
+| `SPLUNK_API_ID`    | Splunk API **ID**. To retrieve this ID, refer to [Splunk OnCall docs](https://help.victorops.com/knowledge-base/api/#:~:text=currently%20in%20place.-,API%20Configuration%20in%20Splunk%20On%2DCall,-To%20access%20the).   | String                              | N/A     |
+| `ONCALL_API_URL`   | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                                          | String                              | N/A     |
+| `ONCALL_API_TOKEN` | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                                              | String                              | N/A     |
+| `MODE`             | Migration mode (plan vs actual migration).                                                                                                                                                                                 | String (choices: `plan`, `migrate`) | `plan`  |
 
 ### Resources
 
@@ -359,7 +383,7 @@ unmatched users or schedules that cannot be migrated won't be migrated as well.
 ##### Caveats
 
 - delays between escalation steps may be slightly different in Grafana OnCall, see [Limitations](#limitations-1) for
-more info.
+  more info.
 - the following Splunk OnCall escalation step types are not supported and will not be migrated:
   - "Notify the next user(s) in the current on-duty shift"
   - "Notify the previous user(s) in the current on-duty shift"
@@ -391,9 +415,9 @@ See [Migrating Users](#migrating-users) for some more information on how users a
 ##### Caveats
 
 - The WhatsApp escalation type is not supported and will not be migrated to the Grafana OnCall
-user's personal notification policy
+  user's personal notification policy
 - Note that delays between escalation steps may be slightly different in Grafana OnCall,
-see [Limitations](#limitations-1) for more info.
+  see [Limitations](#limitations-1) for more info.
 
 ## Migrating Users
 
