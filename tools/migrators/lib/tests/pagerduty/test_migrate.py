@@ -1,5 +1,11 @@
 from unittest.mock import call, patch
-from lib.pagerduty.migrate import migrate, filter_schedules, filter_escalation_policies, filter_integrations
+
+from lib.pagerduty.migrate import (
+    filter_escalation_policies,
+    filter_integrations,
+    filter_schedules,
+    migrate,
+)
 
 
 @patch("lib.pagerduty.migrate.MIGRATE_USERS", False)
@@ -16,7 +22,10 @@ def test_users_are_skipped_when_migrate_users_is_false(
 
     # Assert no user-related fetching or migration occurs
     assert mock_session.list_all.call_args_list == [
-        call("schedules", params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"}),
+        call(
+            "schedules",
+            params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"},
+        ),
         call("escalation_policies", params={"include[]": "teams"}),
         call("services", params={"include[]": ["integrations", "teams"]}),
         call("vendors"),
@@ -114,9 +123,7 @@ class TestPagerDutyFiltering:
             self.mock_policy,
             {
                 **self.mock_policy,
-                "escalation_rules": [
-                    {"targets": [{"type": "user", "id": "USER3"}]}
-                ],
+                "escalation_rules": [{"targets": [{"type": "user", "id": "USER3"}]}],
             },
         ]
         filtered = filter_escalation_policies(policies)
@@ -146,7 +153,9 @@ class TestPagerDutyFiltering:
         assert len(filtered) == 1
         assert filtered[0]["id"] == "INTEGRATION1"
 
-    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 1 - Test")
+    @patch(
+        "lib.pagerduty.migrate.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 1 - Test"
+    )
     def test_filter_integrations_by_regex(self):
         integrations = [
             self.mock_integration,
@@ -216,7 +225,9 @@ class TestPagerDutyMigrationFiltering:
             [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
             [{"id": "S1", "teams": [{"summary": "Team 1"}]}],  # schedules
             [{"id": "P1", "teams": [{"summary": "Team 1"}]}],  # policies
-            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services
+            [
+                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
+            ],  # services
             [{"id": "V1"}],  # vendors
         ]
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
@@ -234,7 +245,10 @@ class TestPagerDutyMigrationFiltering:
         # Verify team parameter was included in API calls
         assert mock_session.list_all.call_args_list == [
             call("users", params={"include[]": "notification_rules"}),
-            call("schedules", params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"}),
+            call(
+                "schedules",
+                params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"},
+            ),
             call("escalation_policies", params={"include[]": "teams"}),
             call("services", params={"include[]": ["integrations", "teams"]}),
             call("vendors"),
@@ -258,8 +272,20 @@ class TestPagerDutyMigrationFiltering:
         mock_session = MockAPISession.return_value
         mock_session.list_all.side_effect = [
             [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
-            [{"id": "S1", "schedule_layers": [{"users": [{"user": {"id": "USER1"}}]}]}],  # schedules
-            [{"id": "P1", "escalation_rules": [{"targets": [{"type": "user", "id": "USER1"}]}]}],  # policies
+            [
+                {
+                    "id": "S1",
+                    "schedule_layers": [{"users": [{"user": {"id": "USER1"}}]}],
+                }
+            ],  # schedules
+            [
+                {
+                    "id": "P1",
+                    "escalation_rules": [
+                        {"targets": [{"type": "user", "id": "USER1"}]}
+                    ],
+                }
+            ],  # policies
             [{"id": "SVC1", "integrations": []}],  # services
             [{"id": "V1"}],  # vendors
         ]

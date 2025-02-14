@@ -12,11 +12,11 @@ from lib.pagerduty.config import (
     MODE,
     MODE_PLAN,
     PAGERDUTY_API_TOKEN,
-    PAGERDUTY_FILTER_TEAM,
-    PAGERDUTY_FILTER_USERS,
-    PAGERDUTY_FILTER_SCHEDULE_REGEX,
     PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX,
     PAGERDUTY_FILTER_INTEGRATION_REGEX,
+    PAGERDUTY_FILTER_SCHEDULE_REGEX,
+    PAGERDUTY_FILTER_TEAM,
+    PAGERDUTY_FILTER_USERS,
 )
 from lib.pagerduty.report import (
     escalation_policy_report,
@@ -47,6 +47,7 @@ from lib.pagerduty.resources.users import (
     match_users_and_schedules_for_escalation_policy,
     match_users_for_schedule,
 )
+
 
 def filter_schedules(schedules):
     """Filter schedules based on configured filters"""
@@ -91,6 +92,7 @@ def filter_schedules(schedules):
         print(f"Filtered out {filtered_out} schedules")
 
     return filtered_schedules
+
 
 def filter_escalation_policies(policies):
     """Filter escalation policies based on configured filters"""
@@ -137,6 +139,7 @@ def filter_escalation_policies(policies):
 
     return filtered_policies
 
+
 def filter_integrations(integrations):
     """Filter integrations based on configured filters"""
     filtered_integrations = []
@@ -155,10 +158,14 @@ def filter_integrations(integrations):
 
         # Filter by name regex
         if should_include and PAGERDUTY_FILTER_INTEGRATION_REGEX:
-            integration_name = f"{integration['service']['name']} - {integration['name']}"
+            integration_name = (
+                f"{integration['service']['name']} - {integration['name']}"
+            )
             if not re.match(PAGERDUTY_FILTER_INTEGRATION_REGEX, integration_name):
                 should_include = False
-                reason = f"Integration regex filter: {PAGERDUTY_FILTER_INTEGRATION_REGEX}"
+                reason = (
+                    f"Integration regex filter: {PAGERDUTY_FILTER_INTEGRATION_REGEX}"
+                )
 
         if should_include:
             filtered_integrations.append(integration)
@@ -170,6 +177,7 @@ def filter_integrations(integrations):
         print(f"Filtered out {filtered_out} integrations")
 
     return filtered_integrations
+
 
 def migrate() -> None:
     session = APISession(PAGERDUTY_API_TOKEN)
@@ -187,7 +195,8 @@ def migrate() -> None:
     print("▶ Fetching schedules...")
     # Fetch schedules from PagerDuty
     schedules = session.list_all(
-        "schedules", params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"}
+        "schedules",
+        params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"},
     )
 
     # Apply filters to schedules
@@ -209,7 +218,9 @@ def migrate() -> None:
     oncall_schedules = OnCallAPIClient.list_all("schedules")
 
     print("▶ Fetching escalation policies...")
-    escalation_policies = session.list_all("escalation_policies", params={"include[]": "teams"})
+    escalation_policies = session.list_all(
+        "escalation_policies", params={"include[]": "teams"}
+    )
 
     # Apply filters to escalation policies
     escalation_policies = filter_escalation_policies(escalation_policies)
@@ -217,7 +228,9 @@ def migrate() -> None:
     oncall_escalation_chains = OnCallAPIClient.list_all("escalation_chains")
 
     print("▶ Fetching integrations...")
-    services = session.list_all("services", params={"include[]": ["integrations", "teams"]})
+    services = session.list_all(
+        "services", params={"include[]": ["integrations", "teams"]}
+    )
     vendors = session.list_all("vendors")
 
     integrations = []
