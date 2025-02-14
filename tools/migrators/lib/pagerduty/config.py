@@ -20,6 +20,7 @@ PAGERDUTY_TO_ONCALL_VENDOR_MAP = {
     "Zabbix Webhook (for 5.0 and 5.2)": "zabbix",
     "Elastic Alerts": "elastalert",
     "Firebase": "fabric",
+    "Amazon CloudWatch": "amazon_sns",
 }
 
 # Experimental feature to migrate PD rulesets to OnCall integrations
@@ -38,3 +39,21 @@ UNSUPPORTED_INTEGRATION_TO_WEBHOOKS = (
 )
 
 MIGRATE_USERS = os.getenv("MIGRATE_USERS", "true").lower() == "true"
+
+# Filter resources by team
+PAGERDUTY_FILTER_TEAM = os.getenv("PAGERDUTY_FILTER_TEAM")
+
+# Filter resources by users (comma-separated list of PagerDuty user IDs)
+PAGERDUTY_FILTER_USERS = [
+    user_id.strip()
+    for user_id in os.getenv("PAGERDUTY_FILTER_USERS", "").split(",")
+    if user_id.strip()
+]
+
+# Filter resources by name regex patterns
+PAGERDUTY_FILTER_SCHEDULE_REGEX = os.getenv("PAGERDUTY_FILTER_SCHEDULE_REGEX")
+PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX = os.getenv("PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX")
+PAGERDUTY_FILTER_INTEGRATION_REGEX = os.getenv("PAGERDUTY_FILTER_INTEGRATION_REGEX")
+
+# Whether to preserve existing notification policies when migrating users
+PRESERVE_EXISTING_NOTIFICATION_POLICIES = os.getenv("PRESERVE_EXISTING_NOTIFICATION_POLICIES", "true").lower() == "true"
