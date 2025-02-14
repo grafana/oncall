@@ -403,19 +403,23 @@
 
 {{- define "snippet.rabbitmq.env" }}
 - name: RABBITMQ_USERNAME
-{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey }}
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.rabbitmq.password.secret.name" . }}
       key: {{ .Values.externalRabbitmq.usernameKey | quote }}
-{{- else }}
-  value: {{ include "snippet.rabbitmq.user" . | quote }}
+{{- else if .Values.externalRabbitmq.user }}
+  value: {{ .Values.externalRabbitmq.user | quote }}
 {{- end }}
 - name: RABBITMQ_PASSWORD
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.passwordKey }}
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.rabbitmq.password.secret.name" . }}
       key: {{ include "snippet.rabbitmq.password.secret.key" . | quote }}
+{{- else if .Values.externalRabbitmq.password }}
+  value: {{ .Values.externalRabbitmq.password | quote }}
+{{- end }}
 - name: RABBITMQ_HOST
   value: {{ include "snippet.rabbitmq.host" . | quote }}
 - name: RABBITMQ_PORT
@@ -424,14 +428,6 @@
   value: {{ include "snippet.rabbitmq.protocol" . | quote }}
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . | quote }}
-{{- end }}
-
-{{- define "snippet.rabbitmq.user" -}}
-{{ if not .Values.rabbitmq.enabled -}}
-  {{ required "externalRabbitmq.user is required if not rabbitmq.enabled" .Values.externalRabbitmq.user }}
-{{- else -}}
-  user
-{{- end }}
 {{- end }}
 
 {{- define "snippet.rabbitmq.host" -}}
