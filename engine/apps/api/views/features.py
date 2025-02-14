@@ -27,6 +27,7 @@ class Feature(enum.StrEnum):
     LABELS = "labels"
     GOOGLE_OAUTH2 = "google_oauth2"
     SERVICE_DEPENDENCIES = "service_dependencies"
+    MATTERMOST = "mattermost"
 
 
 class FeaturesAPIView(APIView):
@@ -75,5 +76,8 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_SERVICE_DEPENDENCIES_ENABLED:
             enabled_features.append(Feature.SERVICE_DEPENDENCIES)
+
+        if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+            enabled_features.append(Feature.MATTERMOST)
 
         return enabled_features

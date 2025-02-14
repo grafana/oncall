@@ -80,6 +80,12 @@ class LiveSetting(models.Model):
         "EXOTEL_SMS_SENDER_ID",
         "EXOTEL_SMS_VERIFICATION_TEMPLATE",
         "EXOTEL_SMS_DLT_ENTITY_ID",
+        "MATTERMOST_CLIENT_OAUTH_ID",
+        "MATTERMOST_CLIENT_OAUTH_SECRET",
+        "MATTERMOST_HOST",
+        "MATTERMOST_BOT_TOKEN",
+        "MATTERMOST_LOGIN_RETURN_REDIRECT_HOST",
+        "MATTERMOST_SIGNING_SECRET",
     )
 
     DESCRIPTIONS = {
@@ -187,6 +193,36 @@ class LiveSetting(models.Model):
         "EXOTEL_SMS_SENDER_ID": "Exotel SMS Sender ID to use for verification SMS",
         "EXOTEL_SMS_VERIFICATION_TEMPLATE": "SMS text template to be used for sending SMS, add $verification_code as a placeholder for the verification code",
         "EXOTEL_SMS_DLT_ENTITY_ID": "DLT Entity ID registered with TRAI.",
+        "MATTERMOST_CLIENT_OAUTH_ID": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
+        "MATTERMOST_CLIENT_OAUTH_SECRET": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
+        "MATTERMOST_HOST": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
+        "MATTERMOST_BOT_TOKEN": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
+        "MATTERMOST_LOGIN_RETURN_REDIRECT_HOST": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
+        "MATTERMOST_SIGNING_SECRET": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
     }
 
     SECRET_SETTING_NAMES = (
@@ -205,6 +241,9 @@ class LiveSetting(models.Model):
         "ZVONOK_API_KEY",
         "EXOTEL_ACCOUNT_SID",
         "EXOTEL_API_TOKEN",
+        "MATTERMOST_CLIENT_OAUTH_ID",
+        "MATTERMOST_CLIENT_OAUTH_SECRET",
+        "MATTERMOST_BOT_TOKEN",
     )
 
     def __str__(self):
