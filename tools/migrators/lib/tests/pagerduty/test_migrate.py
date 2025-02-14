@@ -1,14 +1,4 @@
-import os
 from unittest.mock import call, patch
-
-
-# Mock environment variables before importing any modules that use them
-os.environ["MIGRATING_FROM"] = "pagerduty"
-os.environ["ONCALL_API_TOKEN"] = "test-token"
-os.environ["ONCALL_API_URL"] = "http://test"
-os.environ["PAGERDUTY_API_TOKEN"] = "test-pd-token"
-os.environ["MODE"] = "plan"
-
 from lib.pagerduty.migrate import migrate, filter_schedules, filter_escalation_policies, filter_integrations
 
 
