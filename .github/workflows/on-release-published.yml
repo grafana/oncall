@@ -36,7 +36,7 @@ jobs:
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
           repo_secrets: |
-            GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
+            GRAFANA_ACCESS_POLICY_TOKEN=grafana_cloud_access_policy_token:value
             GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON=github_actions:gcs-plugin-publisher
       - name: Build, sign, and package plugin
         id: build-sign-and-package-plugin
