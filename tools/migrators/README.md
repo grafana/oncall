@@ -343,7 +343,7 @@ Resources that can be migrated using this tool:
 
 - Escalation Policies
 - On-Call Schedules (including Rotations + Scheduled Overrides)
-- Teams + team memberships
+<!-- - Teams + team memberships TODO: uncomment out once we support teams-->
 - User Paging Policies
 
 ### Limitations
