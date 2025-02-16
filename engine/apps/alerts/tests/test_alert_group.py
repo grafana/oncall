@@ -790,7 +790,7 @@ def test_alert_group_created_if_resolve_condition_but_auto_resolving_disabled(
     resolved_alert_group = make_alert_group(
         alert_receive_channel,
         resolved=True,
-        distinction=hashlib.md5(grouping_distinction.encode()).hexdigest(),
+        distinction=hashlib.sha256(grouping_distinction.encode()).hexdigest(),
     )
 
     # an alert for the same integration is received

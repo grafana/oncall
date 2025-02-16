@@ -58,7 +58,7 @@ class AlertForAlertManager(Alert):  # type: ignore[django-manager-missing]
 
                 _hash = dict(alert.raw_request_data.get("labels", {}))
                 _hash = json.dumps(_hash, sort_keys=True)
-                _hash = hashlib.md5(str(_hash).encode()).hexdigest()
+                _hash = hashlib.sha256(str(_hash).encode()).hexdigest()
                 alert.integration_optimization_hash = _hash
 
                 if self.id is not None:
