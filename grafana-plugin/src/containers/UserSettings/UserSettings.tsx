@@ -106,6 +106,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     showNotificationSettingsTab,
     showSlackConnectionTab,
     showTelegramConnectionTab,
+    showPersonalWebhookConnectionTab,
     showMobileAppConnectionTab,
     showMsTeamsConnectionTab,
     showGoogleCalendarTab,
@@ -113,6 +114,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     !isDesktopOrLaptop,
     isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
     isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
+    isCurrent && store.hasFeature(AppFeature.PersonalWebhook),
     isCurrent,
     store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
     isCurrent && store.hasFeature(AppFeature.GoogleOauth2),
@@ -141,6 +143,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
             showNotificationSettingsTab={showNotificationSettingsTab}
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
+            showPersonalWebhookConnectionTab={showPersonalWebhookConnectionTab}
             showMobileAppConnectionTab={showMobileAppConnectionTab}
             showMsTeamsConnectionTab={showMsTeamsConnectionTab}
             showGoogleCalendarTab={showGoogleCalendarTab}

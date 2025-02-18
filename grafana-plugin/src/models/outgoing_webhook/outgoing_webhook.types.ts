@@ -29,12 +29,17 @@ export const WebhookTriggerType = {
   Unresolved: new KeyValuePair('6', 'Unresolved'),
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
   AlertGroupStatusChange: new KeyValuePair('8', 'Alert Group Status Change'),
+  PersonalNotification: new KeyValuePair('9', 'Personal Notification'),
 };
 
 export const WEBHOOK_TRIGGGER_TYPE_OPTIONS = [
   {
     value: WebhookTriggerType.EscalationStep.key,
     label: WebhookTriggerType.EscalationStep.value,
+  },
+  {
+    value: WebhookTriggerType.PersonalNotification.key,
+    label: WebhookTriggerType.PersonalNotification.value,
   },
   {
     value: WebhookTriggerType.AlertGroupCreated.key,

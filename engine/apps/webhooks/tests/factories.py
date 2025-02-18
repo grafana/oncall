@@ -1,7 +1,7 @@
 import factory
 import pytz
 
-from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models import PersonalNotificationWebhook, Webhook, WebhookResponse
 from common.utils import UniqueFaker
 
 
@@ -11,6 +11,11 @@ class CustomWebhookFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Webhook
+
+
+class PersonalNotificationWebhookFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = PersonalNotificationWebhook
 
 
 class WebhookResponseFactory(factory.DjangoModelFactory):
