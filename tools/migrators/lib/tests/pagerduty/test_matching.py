@@ -1330,7 +1330,7 @@ expected_integrations_result = [
             "scheduled_actions": [],
         },
         "oncall_integration": None,
-        "oncall_type": None,
+        "oncall_type": "amazon_sns",
         "is_escalation_policy_flawed": False,
     },
     {
@@ -1420,7 +1420,7 @@ expected_integrations_result = [
             "scheduled_actions": [],
         },
         "oncall_integration": None,
-        "oncall_type": None,
+        "oncall_type": "amazon_sns",
         "is_escalation_policy_flawed": True,
     },
     {
@@ -1510,7 +1510,7 @@ expected_integrations_result = [
             "scheduled_actions": [],
         },
         "oncall_integration": None,
-        "oncall_type": None,
+        "oncall_type": "amazon_sns",
         "is_escalation_policy_flawed": True,
     },
     {
