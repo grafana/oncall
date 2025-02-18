@@ -1,8 +1,8 @@
 import { test, expect } from '../fixtures';
-import { goToOnCallPage } from '../utils/navigation';
-import { clickButton, generateRandomValue } from '../utils/forms';
-import { checkWebhookPresenceInTable } from '../utils/outgoingWebhooks';
 import grafanaApiClient from '../utils/clients/grafana';
+import { clickButton, generateRandomValue } from '../utils/forms';
+import { goToOnCallPage } from '../utils/navigation';
+import { checkWebhookPresenceInTable } from '../utils/outgoingWebhooks';
 
 const WEBHOOK_NAME = generateRandomValue();
 const TRIGGER_TYPE = 'Personal Notification';
