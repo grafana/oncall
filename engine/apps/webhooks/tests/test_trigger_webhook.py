@@ -11,7 +11,7 @@ from apps.alerts.models import AlertGroupExternalID, AlertGroupLogRecord, Escala
 from apps.base.models import UserNotificationPolicyLogRecord
 from apps.public_api.serializers import AlertGroupSerializer
 from apps.webhooks.models import Webhook
-from apps.webhooks.models.webhook import WebhookSession
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER, WebhookSession
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
 from apps.webhooks.tasks.trigger_webhook import NOT_FROM_SELECTED_INTEGRATION
 from settings.base import WEBHOOK_RESPONSE_LIMIT
@@ -949,3 +949,64 @@ def test_execute_webhook_integration_config(
 
     # check on_webhook_response_created is called
     mock_on_webhook_response_created.assert_called_once_with(webhook.responses.all()[0], source_alert_receive_channel)
+
+
+@pytest.mark.django_db
+def test_execute_webhook_via_personal_notification(
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    make_personal_notification_webhook,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://something/{{ alert_group_id }}/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_PERSONAL_NOTIFICATION,
+        data='{"id": "{{ event.user.id }}"}',
+        forward_all=False,
+    )
+    # setup personal webhook configuration
+    user_data = {"id": "some-specific-user-id"}
+    make_personal_notification_webhook(user=user, webhook=webhook, additional_context_data=json.dumps(user_data))
+
+    mock_response = MockResponse()
+    with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
+        mock_gethostbyname.return_value = "8.8.8.8"
+        with patch("apps.webhooks.models.webhook.WebhookSession.request", return_value=mock_response) as mock_request:
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None)
+
+    assert mock_request.called
+    expected_call = call(
+        "POST",
+        f"https://something/{alert_group.public_primary_key}/",
+        timeout=TIMEOUT,
+        headers={},
+        # user data is available in the context
+        json={"id": user_data["id"]},
+    )
+    assert mock_request.call_args == expected_call
+    response = webhook.responses.all()[0]
+    # check log record
+    log_record = alert_group.log_records.last()
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
+    expected_info = {
+        "trigger": "personal notification",
+        "webhook_id": webhook.public_primary_key,
+        "webhook_name": webhook.name,
+        "response_id": response.id,
+    }
+    assert log_record.step_specific_info == expected_info
+    assert log_record.escalation_policy is None
+    assert log_record.escalation_policy_step is None
+    assert (
+        log_record.rendered_log_line_action() == f"outgoing webhook `{webhook.name}` triggered by personal notification"
+    )
+    # check response masked the data (which may contain user personal data)
+    response.request_data = WEBHOOK_FIELD_PLACEHOLDER

@@ -132,6 +132,7 @@ curl "{{API_URL}}/api/v1/webhooks/" \
 For more detail, refer to [Event types](ref:event-types).
 
 - `escalation`
+- `personal notification`
 - `alert group created`
 - `acknowledge`
 - `resolve`

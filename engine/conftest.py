@@ -113,7 +113,11 @@ from apps.user_management.tests.factories import (
     UserFactory,
 )
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
-from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
+from apps.webhooks.tests.factories import (
+    CustomWebhookFactory,
+    PersonalNotificationWebhookFactory,
+    WebhookResponseFactory,
+)
 from apps.webhooks.tests.test_webhook_presets import (
     ADVANCED_WEBHOOK_PRESET_ID,
     TEST_WEBHOOK_PRESET_ID,
@@ -792,6 +796,15 @@ def make_custom_webhook():
         return custom_webhook
 
     return _make_custom_webhook
+
+
+@pytest.fixture
+def make_personal_notification_webhook():
+    def _make_personal_notification_webhook(user, webhook, **kwargs):
+        personal_webhook = PersonalNotificationWebhookFactory(user=user, webhook=webhook, **kwargs)
+        return personal_webhook
+
+    return _make_personal_notification_webhook
 
 
 @pytest.fixture
