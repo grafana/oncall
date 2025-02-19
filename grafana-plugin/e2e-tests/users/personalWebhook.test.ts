@@ -33,7 +33,7 @@ test('Connects a personal notification webhook', async ({ adminRolePage: { page 
 
   // Choose a trigger type
   await page.getByTestId('triggerType-selector').locator('div').nth(1).click();
-  await page.getByRole('option', { name: 'Personal Notification' }).click();
+  await page.getByLabel('Select options menu').getByText(TRIGGER_TYPE).click();
 
   // Set a URL
   await page.locator('#OutgoingWebhook div').locator('.monaco-editor').first().click();
@@ -54,7 +54,7 @@ test('Connects a personal notification webhook', async ({ adminRolePage: { page 
 
   // Select webhook
   await page.getByRole('dialog').locator('svg').nth(2).click();
-  await page.getByRole('option', { name: WEBHOOK_NAME }).click();
+  await page.getByLabel('Select options menu').getByText(WEBHOOK_NAME).click();
 
   // Add some context
   await page.getByRole('textbox').fill('{ "test": true }');
