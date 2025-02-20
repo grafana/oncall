@@ -23,14 +23,14 @@ class IntegrationHeartBeatView(
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "timeout_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "reset": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "metadata": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "list": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "timeout_options": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "create": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "reset": [RBACPermission.permissions.INTEGRATIONS_WRITE],
     }
 
     model = IntegrationHeartBeat
