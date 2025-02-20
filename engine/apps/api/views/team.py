@@ -27,9 +27,9 @@ class TeamViewSet(
     )
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        "list": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
-        "retrieve": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
-        "update": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "list": [RBACPermission.permissions.OTHER_SETTINGS_READ],
+        "retrieve": [RBACPermission.permissions.OTHER_SETTINGS_READ],
+        "update": [RBACPermission.permissions.OTHER_SETTINGS_WRITE],
     }
 
     serializer_class = TeamSerializer

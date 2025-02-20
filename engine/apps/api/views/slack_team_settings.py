@@ -14,8 +14,8 @@ class SlackTeamSettingsAPIView(views.APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.CHATOPS_READ],
-        "put": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+        "get": [RBACPermission.permissions.CHATOPS_READ],
+        "put": [RBACPermission.permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     serializer_class = OrganizationSlackSettingsSerializer
@@ -47,7 +47,7 @@ class AcknowledgeReminderOptionsAPIView(views.APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.CHATOPS_READ],
+        "get": [RBACPermission.permissions.CHATOPS_READ],
     }
 
     def get(self, request):
@@ -64,7 +64,7 @@ class UnAcknowledgeTimeoutOptionsAPIView(views.APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.CHATOPS_READ],
+        "get": [RBACPermission.permissions.CHATOPS_READ],
     }
 
     def get(self, request):

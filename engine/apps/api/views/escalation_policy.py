@@ -65,18 +65,18 @@ class EscalationPolicyView(
     )
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "list": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "retrieve": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "escalation_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "delay_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "num_minutes_in_window_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "severity_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "partial_update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "move_to_position": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "metadata": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "list": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "retrieve": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "escalation_options": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "delay_options": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "num_minutes_in_window_options": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "severity_options": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "create": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "update": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "partial_update": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "destroy": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "move_to_position": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
     }
 
     queryset = EscalationPolicy.objects.none()  # needed for drf-spectacular introspection

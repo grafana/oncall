@@ -23,11 +23,11 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin[LiveSetting], viewsets.ModelViewS
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        "list": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
-        "retrieve": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
-        "create": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
-        "update": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
-        "destroy": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "list": [RBACPermission.permissions.OTHER_SETTINGS_READ],
+        "retrieve": [RBACPermission.permissions.OTHER_SETTINGS_READ],
+        "create": [RBACPermission.permissions.OTHER_SETTINGS_WRITE],
+        "update": [RBACPermission.permissions.OTHER_SETTINGS_WRITE],
+        "destroy": [RBACPermission.permissions.OTHER_SETTINGS_WRITE],
     }
 
     def dispatch(self, request, *args, **kwargs):

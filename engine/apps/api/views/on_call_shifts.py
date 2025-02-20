@@ -26,17 +26,17 @@ class OnCallShiftView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
-        "list": [RBACPermission.Permissions.SCHEDULES_READ],
-        "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
-        "details": [RBACPermission.Permissions.SCHEDULES_READ],
-        "frequency_options": [RBACPermission.Permissions.SCHEDULES_READ],
-        "days_options": [RBACPermission.Permissions.SCHEDULES_READ],
-        "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
-        "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
-        "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
-        "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
-        "preview": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "metadata": [RBACPermission.permissions.SCHEDULES_READ],
+        "list": [RBACPermission.permissions.SCHEDULES_READ],
+        "retrieve": [RBACPermission.permissions.SCHEDULES_READ],
+        "details": [RBACPermission.permissions.SCHEDULES_READ],
+        "frequency_options": [RBACPermission.permissions.SCHEDULES_READ],
+        "days_options": [RBACPermission.permissions.SCHEDULES_READ],
+        "create": [RBACPermission.permissions.SCHEDULES_WRITE],
+        "update": [RBACPermission.permissions.SCHEDULES_WRITE],
+        "partial_update": [RBACPermission.permissions.SCHEDULES_WRITE],
+        "destroy": [RBACPermission.permissions.SCHEDULES_WRITE],
+        "preview": [RBACPermission.permissions.SCHEDULES_WRITE],
     }
 
     model = CustomOnCallShift

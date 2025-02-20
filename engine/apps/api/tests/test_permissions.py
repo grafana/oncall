@@ -58,14 +58,14 @@ class TestLegacyAccessControlCompatiblePermission:
         [
             # rbac enabled - is_grafana_irm_enabled disabled
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
                 permissions.LegacyAccessControlRole.VIEWER,
                 True,
                 False,
                 True,
             ),
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
                 permissions.LegacyAccessControlRole.VIEWER,
                 True,
                 False,
@@ -73,14 +73,14 @@ class TestLegacyAccessControlCompatiblePermission:
             ),
             # rbac enabled - is_grafana_irm_enabled enabled
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
                 permissions.LegacyAccessControlRole.VIEWER,
                 True,
                 True,
                 True,
             ),
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
                 permissions.LegacyAccessControlRole.VIEWER,
                 True,
                 True,
@@ -88,28 +88,28 @@ class TestLegacyAccessControlCompatiblePermission:
             ),
             # rbac disabled (and hence is_grafana_irm_enabled is irrelevant)
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
                 permissions.LegacyAccessControlRole.VIEWER,
                 False,
                 False,
                 True,
             ),
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
                 permissions.LegacyAccessControlRole.VIEWER,
                 False,
                 True,
                 True,
             ),
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
                 permissions.LegacyAccessControlRole.VIEWER,
                 False,
                 False,
                 False,
             ),
             (
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
                 permissions.LegacyAccessControlRole.VIEWER,
                 False,
                 True,
@@ -128,7 +128,7 @@ class TestLegacyAccessControlCompatiblePermission:
         is_grafana_irm_enabled,
         expected_result,
     ):
-        user_permission = permissions.RBACPermission.Permissions.ALERT_GROUPS_READ
+        user_permission = permissions.RBACPermission.permissions.ALERT_GROUPS_READ
 
         org = make_organization(
             is_rbac_permissions_enabled=is_rbac_permissions_enabled, is_grafana_irm_enabled=is_grafana_irm_enabled
@@ -138,9 +138,11 @@ class TestLegacyAccessControlCompatiblePermission:
             role=user_basic_role,
             permissions=permissions.GrafanaAPIPermissions.construct_permissions(
                 [
-                    permissions.convert_oncall_permission_to_irm(user_permission)
-                    if is_grafana_irm_enabled
-                    else user_permission.value
+                    (
+                        permissions.convert_oncall_permission_to_irm(user_permission)
+                        if is_grafana_irm_enabled
+                        else user_permission.value
+                    )
                 ]
             ),
         )
@@ -187,67 +189,67 @@ def test_user_has_minimum_required_basic_role(
     "user_permissions,required_permissions,is_rbac_permissions_enabled,expected_result",
     [
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             True,
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             False,
             True,
         ),
         (
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             True,
             True,
         ),
         (
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             False,
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             True,
             False,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             False,
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             False,
             False,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             True,
             False,
@@ -287,23 +289,23 @@ def test_user_is_authorized(
     "user_permissions,expected_role",
     [
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.fallback_role,
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
+            permissions.RBACPermission.permissions.ALERT_GROUPS_READ.fallback_role,
         ),
         (
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.fallback_role,
+            permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE.fallback_role,
         ),
         (
             [
-                permissions.RBACPermission.Permissions.USER_SETTINGS_READ,
-                permissions.RBACPermission.Permissions.USER_SETTINGS_WRITE,
-                permissions.RBACPermission.Permissions.USER_SETTINGS_ADMIN,
+                permissions.RBACPermission.permissions.USER_SETTINGS_READ,
+                permissions.RBACPermission.permissions.USER_SETTINGS_WRITE,
+                permissions.RBACPermission.permissions.USER_SETTINGS_ADMIN,
             ],
-            permissions.RBACPermission.Permissions.USER_SETTINGS_ADMIN.fallback_role,
+            permissions.RBACPermission.permissions.USER_SETTINGS_ADMIN.fallback_role,
         ),
     ],
 )
@@ -331,7 +333,7 @@ class TestRBACPermission:
         make_organization,
         make_user_for_organization,
     ) -> None:
-        required_permission = permissions.RBACPermission.Permissions.ALERT_GROUPS_READ
+        required_permission = permissions.RBACPermission.permissions.ALERT_GROUPS_READ
 
         action = "hello"
         viewset = MockedViewSet(
@@ -358,7 +360,7 @@ class TestRBACPermission:
             org,
             role=permissions.LegacyAccessControlRole.NONE,
             permissions=permissions.GrafanaAPIPermissions.construct_permissions(
-                [permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value]
+                [permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE.value]
             ),
         )
 
@@ -383,7 +385,7 @@ class TestRBACPermission:
         make_organization,
         make_user_for_organization,
     ) -> None:
-        required_permission = permissions.RBACPermission.Permissions.ALERT_GROUPS_READ
+        required_permission = permissions.RBACPermission.permissions.ALERT_GROUPS_READ
 
         method = "hello"
         apiview = MockedAPIView(
@@ -407,7 +409,7 @@ class TestRBACPermission:
             org,
             role=permissions.LegacyAccessControlRole.NONE,
             permissions=permissions.GrafanaAPIPermissions.construct_permissions(
-                [permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value]
+                [permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE.value]
             ),
         )
 
@@ -573,31 +575,31 @@ class TestIsOwner:
     "user_permissions,required_permissions,expected_result",
     [
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             True,
         ),
         (
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             False,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            [permissions.RBACPermission.permissions.ALERT_GROUPS_READ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             False,
         ),
@@ -626,7 +628,7 @@ def test_HasRBACPermission(
 
 
 class TestIsOwnerOrHasRBACPermissions:
-    required_permission = permissions.RBACPermission.Permissions.SCHEDULES_READ
+    required_permission = permissions.RBACPermission.permissions.SCHEDULES_READ
     required_permissions = [required_permission]
     user_permissions = permissions.GrafanaAPIPermissions.construct_permissions(
         [perm.value for perm in required_permissions]
@@ -724,12 +726,12 @@ class TestIsOwnerOrHasRBACPermissions:
     "permission,expected",
     [
         (
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+            permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
             f"{PluginID.IRM}.alert-groups:read",
         ),
         (
-            permissions.RBACPermission.Permissions.LABEL_READ,
-            permissions.RBACPermission.Permissions.LABEL_READ.value,
+            permissions.RBACPermission.permissions.LABEL_READ,
+            permissions.RBACPermission.permissions.LABEL_READ.value,
         ),
     ],
 )
@@ -743,36 +745,36 @@ def test_convert_oncall_permission_to_irm(permission, expected) -> None:
         (
             False,
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value,
-            ],
-        ),
-        (
-            True,
-            [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
-            ],
-            [
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value.replace(PluginID.ONCALL, PluginID.IRM),
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ.value,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE.value,
             ],
         ),
         (
             True,
             [
-                permissions.RBACPermission.Permissions.LABEL_CREATE,
-                permissions.RBACPermission.Permissions.LABEL_WRITE,
-                permissions.RBACPermission.Permissions.LABEL_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE,
             ],
             [
-                permissions.RBACPermission.Permissions.LABEL_CREATE.value,
-                permissions.RBACPermission.Permissions.LABEL_WRITE.value,
-                permissions.RBACPermission.Permissions.LABEL_READ.value,
+                permissions.RBACPermission.permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
+                permissions.RBACPermission.permissions.ALERT_GROUPS_WRITE.value.replace(PluginID.ONCALL, PluginID.IRM),
+            ],
+        ),
+        (
+            True,
+            [
+                permissions.RBACPermission.permissions.LABEL_CREATE,
+                permissions.RBACPermission.permissions.LABEL_WRITE,
+                permissions.RBACPermission.permissions.LABEL_READ,
+            ],
+            [
+                permissions.RBACPermission.permissions.LABEL_CREATE.value,
+                permissions.RBACPermission.permissions.LABEL_WRITE.value,
+                permissions.RBACPermission.permissions.LABEL_READ.value,
             ],
         ),
     ],
@@ -792,16 +794,16 @@ def test_get_required_permission_values(
     "perm,expected_permission",
     [
         (
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value,
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+            permissions.RBACPermission.permissions.ALERT_GROUPS_READ.value,
+            permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
         ),
         (
             "non.existent.permission",
             None,
         ),
         (
-            permissions.convert_oncall_permission_to_irm(permissions.RBACPermission.Permissions.ALERT_GROUPS_READ),
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+            permissions.convert_oncall_permission_to_irm(permissions.RBACPermission.permissions.ALERT_GROUPS_READ),
+            permissions.RBACPermission.permissions.ALERT_GROUPS_READ,
         ),
     ],
 )

@@ -47,20 +47,20 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "delay_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "notify_by_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "create": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "destroy": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "move_to_position": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "metadata": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "list": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "delay_options": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "notify_by_options": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "create": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "update": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "partial_update": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "destroy": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "move_to_position": [RBACPermission.permissions.USER_SETTINGS_WRITE],
     }
 
     IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions(
-        required_permissions=[RBACPermission.Permissions.USER_SETTINGS_ADMIN], ownership_field="user"
+        required_permissions=[RBACPermission.permissions.USER_SETTINGS_ADMIN], ownership_field="user"
     )
 
     rbac_object_permissions = {

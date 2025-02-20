@@ -21,10 +21,10 @@ class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get_columns": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "update_user_columns": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "reset_user_columns": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "update_organization_columns": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "get_columns": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "update_user_columns": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "reset_user_columns": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "update_organization_columns": [RBACPermission.permissions.OTHER_SETTINGS_WRITE],
     }
 
     def get_columns(self, request: Request) -> Response:

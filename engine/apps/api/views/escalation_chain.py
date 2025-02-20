@@ -67,15 +67,15 @@ class EscalationChainViewSet(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "list": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "retrieve": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "details": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
-        "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "copy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
-        "filters": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "metadata": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "list": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "retrieve": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "details": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
+        "create": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "update": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "destroy": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "copy": [RBACPermission.permissions.ESCALATION_CHAINS_WRITE],
+        "filters": [RBACPermission.permissions.ESCALATION_CHAINS_READ],
     }
 
     queryset = EscalationChain.objects.none()  # needed for drf-spectacular introspection

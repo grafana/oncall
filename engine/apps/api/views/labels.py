@@ -39,14 +39,14 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
     permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = (PluginAuthentication,)
     rbac_permissions = {
-        "create_label": [RBACPermission.Permissions.LABEL_CREATE],
-        "rename_key": [RBACPermission.Permissions.LABEL_WRITE],
-        "add_value": [RBACPermission.Permissions.LABEL_WRITE],
-        "rename_value": [RBACPermission.Permissions.LABEL_WRITE],
-        "get_keys": [RBACPermission.Permissions.LABEL_READ],
-        "get_key": [RBACPermission.Permissions.LABEL_READ],
-        "get_key_by_name": [RBACPermission.Permissions.LABEL_READ],
-        "get_value": [RBACPermission.Permissions.LABEL_READ],
+        "create_label": [RBACPermission.permissions.LABEL_CREATE],
+        "rename_key": [RBACPermission.permissions.LABEL_WRITE],
+        "add_value": [RBACPermission.permissions.LABEL_WRITE],
+        "rename_value": [RBACPermission.permissions.LABEL_WRITE],
+        "get_keys": [RBACPermission.permissions.LABEL_READ],
+        "get_key": [RBACPermission.permissions.LABEL_READ],
+        "get_key_by_name": [RBACPermission.permissions.LABEL_READ],
+        "get_value": [RBACPermission.permissions.LABEL_READ],
     }
 
     @extend_schema(responses=LabelKeySerializer(many=True))
@@ -177,8 +177,8 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
     permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = (PluginAuthentication,)
     rbac_permissions = {
-        "get_keys": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "get_key": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "get_keys": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "get_key": [RBACPermission.permissions.ALERT_GROUPS_READ],
     }
 
     @extend_schema(responses=LabelKeySerializer(many=True))

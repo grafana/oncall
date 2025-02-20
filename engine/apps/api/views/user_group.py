@@ -17,8 +17,8 @@ class UserGroupViewSet(
     serializer_class = UserGroupSerializer
 
     rbac_permissions = {
-        "list": [RBACPermission.Permissions.CHATOPS_READ],
-        "retrieve": [RBACPermission.Permissions.CHATOPS_READ],
+        "list": [RBACPermission.permissions.CHATOPS_READ],
+        "retrieve": [RBACPermission.permissions.CHATOPS_READ],
     }
 
     filter_backends = (SearchFilter,)

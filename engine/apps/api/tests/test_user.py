@@ -325,8 +325,8 @@ def test_list_users_filtered_by_granted_permission(
     make_token_for_organization,
     make_user_auth_headers,
 ):
-    permission = permissions.RBACPermission.Permissions.NOTIFICATIONS_READ
-    admin_perm_required_to_call_endpoint = permissions.RBACPermission.Permissions.USER_SETTINGS_READ
+    permission = permissions.RBACPermission.permissions.NOTIFICATIONS_READ
+    admin_perm_required_to_call_endpoint = permissions.RBACPermission.permissions.USER_SETTINGS_READ
     perm_to_filter_on = (
         permissions.convert_oncall_permission_to_irm(permission) if is_grafana_irm_enabled else permission.value
     )
@@ -340,9 +340,11 @@ def test_list_users_filtered_by_granted_permission(
         # make_user_for_organization fixture will only grant the oncall flavour of the permission
         permissions=permissions.GrafanaAPIPermissions.construct_permissions(
             [
-                permissions.convert_oncall_permission_to_irm(admin_perm_required_to_call_endpoint)
-                if is_grafana_irm_enabled
-                else admin_perm_required_to_call_endpoint.value
+                (
+                    permissions.convert_oncall_permission_to_irm(admin_perm_required_to_call_endpoint)
+                    if is_grafana_irm_enabled
+                    else admin_perm_required_to_call_endpoint.value
+                )
             ]
         ),
     )

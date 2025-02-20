@@ -261,13 +261,7 @@ class RBACPermission(permissions.BasePermission):
         )
 
         NOTIFICATIONS_READ = LegacyAccessControlCompatiblePermission(
-            Resources.NOTIFICATIONS,
-            Actions.READ,
-            (
-                LegacyAccessControlRole.VIEWER
-                if settings.FEATURE_ALLOW_VIEWERS_ON_CALL
-                else LegacyAccessControlRole.EDITOR
-            ),
+            Resources.NOTIFICATIONS, Actions.READ, LegacyAccessControlRole.EDITOR
         )
 
         NOTIFICATION_SETTINGS_READ = LegacyAccessControlCompatiblePermission(
@@ -304,6 +298,29 @@ class RBACPermission(permissions.BasePermission):
         LABEL_WRITE = LegacyAccessControlCompatiblePermission(
             Resources.LABEL, Actions.WRITE, LegacyAccessControlRole.EDITOR, prefix=PluginID.LABELS
         )
+
+    class ViewerOnCallPermissions(Permissions):
+        """
+        This class is used to define permissions for the "Viewer on Call" role. This role is used in the context of
+        the "Viewer on Call" feature flag.
+        The role is a subset of the "Viewer" role, and is used to define permissions for users who
+        are allowed be OnCall having only READ role in grafana.
+        """
+
+        ALERT_GROUPS_WRITE = LegacyAccessControlCompatiblePermission(
+            Resources.ALERT_GROUPS, Actions.WRITE, LegacyAccessControlRole.VIEWER
+        )
+        ALERT_GROUPS_DIRECT_PAGING = LegacyAccessControlCompatiblePermission(
+            Resources.ALERT_GROUPS, Actions.DIRECT_PAGING, LegacyAccessControlRole.VIEWER
+        )
+        SCHEDULES_WRITE = LegacyAccessControlCompatiblePermission(
+            Resources.SCHEDULES, Actions.WRITE, LegacyAccessControlRole.VIEWER
+        )
+        NOTIFICATIONS_READ = LegacyAccessControlCompatiblePermission(
+            Resources.NOTIFICATIONS, Actions.READ, LegacyAccessControlRole.VIEWER
+        )
+
+    permissions: Permissions = Permissions if not settings.FEATURE_ALLOW_VIEWERS_ON_CALL else ViewerOnCallPermissions
 
     # mypy complains about "Liskov substitution principle" here because request is `AuthenticatedRequest` object
     # and not rest_framework.request.Request
@@ -356,9 +373,9 @@ class RBACPermission(permissions.BasePermission):
         return True
 
 
-ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]
+ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.permissions) if not perm.startswith("_")]
 ALL_PERMISSION_CLASSES: LegacyAccessControlCompatiblePermissions = [
-    getattr(RBACPermission.Permissions, permission_name) for permission_name in ALL_PERMISSION_NAMES
+    getattr(RBACPermission.permissions, permission_name) for permission_name in ALL_PERMISSION_NAMES
 ]
 ALL_PERMISSION_CHOICES: typing.List[typing.Tuple[str, str]] = []
 for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES):
