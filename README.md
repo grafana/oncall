@@ -31,7 +31,7 @@ Developer-friendly incident response with brilliant Slack integration.
 > [!IMPORTANT]  
 > These instructions are for using Grafana 11 or newer. You must enable the feature toggle for
 > `externalServiceAccounts`. This is already done for the docker files and helm charts.  If you are running Grafana
-> separately see the Grafana documentation on how to enable this.
+> separately see the Grafana documentation on how to enable this. For Grafana 11.3+ you also need to enable `managed_service_accounts_enabled`.
 
 We prepared multiple environments:
 
