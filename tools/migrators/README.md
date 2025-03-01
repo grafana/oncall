@@ -189,6 +189,8 @@ oncall-migrator
 # For more information on our script, see "Migrating Users" section below for some more information on
 # how users are migrated.
 #
+# You can use PAGERDUTY_FILTER_USERS to only import specific users if you want to test with a small set.
+#
 # Alternatively this can be done with other Grafana IAM methods.
 # See Grafana's "Plan your IAM integration strategy" docs for more information on this.
 # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/planning-iam-strategy/
@@ -198,6 +200,7 @@ docker run --rm \
 -e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
 -e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+# Optionally add: -e PAGERDUTY_FILTER_USERS="USER1,USER2,USER3" \
 oncall-migrator python /app/add_users_to_grafana.py
 
 # Step 4: When ready, run a plan of what will be migrated, including users this time
@@ -486,6 +489,23 @@ docker run --rm \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
 oncall-migrator python /app/add_users_to_grafana.py
 ```
+
+You can also filter which PagerDuty users are added to Grafana by using the `PAGERDUTY_FILTER_USERS` environment variable:
+
+```bash
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e GRAFANA_URL="<GRAFANA_API_URL>" \
+-e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
+-e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+-e PAGERDUTY_FILTER_USERS="PD_USER_ID_1,PD_USER_ID_2,PD_USER_ID_3" \
+oncall-migrator python /app/add_users_to_grafana.py
+```
+
+This is useful when you want to selectively add users to Grafana, such as when testing the migration process
+or when you only need to add specific users from a large PagerDuty organization.
+The `PAGERDUTY_FILTER_USERS` variable should contain a comma-separated list of PagerDuty user IDs.
 
 ### Splunk OnCall (VictorOps)
 
