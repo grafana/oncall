@@ -48,10 +48,30 @@ def test_only_specified_users_are_processed_when_filter_users_is_set(
 
     # Create test users with required fields
     users = [
-        {"id": "USER1", "name": "User 1", "oncall_user": None, "email": "user1@example.com"},
-        {"id": "USER2", "name": "User 2", "oncall_user": None, "email": "user2@example.com"},
-        {"id": "USER3", "name": "User 3", "oncall_user": None, "email": "user3@example.com"},
-        {"id": "USER4", "name": "User 4", "oncall_user": None, "email": "user4@example.com"}
+        {
+            "id": "USER1",
+            "name": "User 1",
+            "oncall_user": None,
+            "email": "user1@example.com",
+        },
+        {
+            "id": "USER2",
+            "name": "User 2",
+            "oncall_user": None,
+            "email": "user2@example.com",
+        },
+        {
+            "id": "USER3",
+            "name": "User 3",
+            "oncall_user": None,
+            "email": "user3@example.com",
+        },
+        {
+            "id": "USER4",
+            "name": "User 4",
+            "oncall_user": None,
+            "email": "user4@example.com",
+        },
     ]
 
     # Configure mock to return test users for first call, empty lists for other calls
@@ -66,6 +86,7 @@ def test_only_specified_users_are_processed_when_filter_users_is_set(
 
     # Mock the user matching function to set oncall_user
     with patch("lib.pagerduty.migrate.match_user") as mock_match_user:
+
         def set_oncall_user(user, _):
             # Just leave oncall_user as it is (None)
             pass
@@ -77,7 +98,9 @@ def test_only_specified_users_are_processed_when_filter_users_is_set(
 
         # Check that match_user was only called for USER1 and USER3
         assert mock_match_user.call_count == 2
-        user_ids = [call_args[0][0]["id"] for call_args in mock_match_user.call_args_list]
+        user_ids = [
+            call_args[0][0]["id"] for call_args in mock_match_user.call_args_list
+        ]
         assert set(user_ids) == {"USER1", "USER3"}
 
 
@@ -183,13 +206,17 @@ class TestPagerDutyFiltering:
                 "id": "SCHEDULE2",
                 "name": "Test Schedule 2",
                 "teams": [{"summary": "Team 2"}],  # Not Team 1
-                "schedule_layers": [{"users": [{"user": {"id": "USER3"}}]}],  # Has USER3
+                "schedule_layers": [
+                    {"users": [{"user": {"id": "USER3"}}]}
+                ],  # Has USER3
             },
             {
                 "id": "SCHEDULE3",
                 "name": "Test Schedule 3",
                 "teams": [{"summary": "Team 3"}],  # Not Team 1
-                "schedule_layers": [{"users": [{"user": {"id": "USER4"}}]}],  # Not USER3
+                "schedule_layers": [
+                    {"users": [{"user": {"id": "USER4"}}]}
+                ],  # Not USER3
             },
         ]
         filtered = filter_schedules(schedules)
@@ -305,7 +332,9 @@ class TestPagerDutyFiltering:
         assert filtered[0]["id"] == "INTEGRATION1"
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
-    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 2 - Test")
+    @patch(
+        "lib.pagerduty.migrate.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 2 - Test"
+    )
     def test_filter_integrations_with_multiple_filters_or_logic(self):
         """Test that OR logic is applied between filters - an integration matching any filter is included"""
         integrations = [
@@ -387,7 +416,9 @@ class TestPagerDutyMigrationFiltering:
         mock_session.list_all.side_effect = [
             [],  # users
             [{"id": "SCHEDULE1", "teams": [{"summary": "Team 1"}]}],  # schedules
-            [{"id": "POLICY1", "teams": [{"summary": "Team 1"}]}],  # escalation_policies
+            [
+                {"id": "POLICY1", "teams": [{"summary": "Team 1"}]}
+            ],  # escalation_policies
             [],  # services
             [],  # vendors
         ]
@@ -424,9 +455,7 @@ class TestPagerDutyMigrationFiltering:
             [
                 {
                     "id": "SCHEDULE1",
-                    "schedule_layers": [
-                        {"users": [{"user": {"id": "USER1"}}]}
-                    ],
+                    "schedule_layers": [{"users": [{"user": {"id": "USER1"}}]}],
                 }
             ],  # schedules
             [

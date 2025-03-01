@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from pdpyras import APISession
 
@@ -75,7 +75,9 @@ def filter_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
         # Only print detailed info in verbose mode
         if VERBOSE_LOGGING:
-            print(f"{TAB}Keeping only users with IDs: {', '.join(PAGERDUTY_FILTER_USERS)}")
+            print(
+                f"{TAB}Keeping only users with IDs: {', '.join(PAGERDUTY_FILTER_USERS)}"
+            )
 
     return filtered_users
 
@@ -87,7 +89,9 @@ def filter_schedules(schedules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     If multiple filters are specified, a schedule only needs to match one of them
     to be included (OR operation between filters).
     """
-    if not any([PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_USERS, PAGERDUTY_FILTER_SCHEDULE_REGEX]):
+    if not any(
+        [PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_USERS, PAGERDUTY_FILTER_SCHEDULE_REGEX]
+    ):
         return schedules  # No filters specified, return all
 
     filtered_schedules = []
@@ -104,7 +108,9 @@ def filter_schedules(schedules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
                 matches_any_filter = True
             else:
-                reasons.append(f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}")
+                reasons.append(
+                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
+                )
 
         # Filter by users
         if PAGERDUTY_FILTER_USERS:
@@ -116,14 +122,18 @@ def filter_schedules(schedules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             if any(user_id in schedule_users for user_id in PAGERDUTY_FILTER_USERS):
                 matches_any_filter = True
             else:
-                reasons.append(f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}")
+                reasons.append(
+                    f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}"
+                )
 
         # Filter by name regex
         if PAGERDUTY_FILTER_SCHEDULE_REGEX:
             if re.match(PAGERDUTY_FILTER_SCHEDULE_REGEX, schedule["name"]):
                 matches_any_filter = True
             else:
-                reasons.append(f"Schedule regex filter: {PAGERDUTY_FILTER_SCHEDULE_REGEX}")
+                reasons.append(
+                    f"Schedule regex filter: {PAGERDUTY_FILTER_SCHEDULE_REGEX}"
+                )
 
         if matches_any_filter:
             filtered_schedules.append(schedule)
@@ -150,7 +160,13 @@ def filter_escalation_policies(policies: List[Dict[str, Any]]) -> List[Dict[str,
     If multiple filters are specified, a policy only needs to match one of them
     to be included (OR operation between filters).
     """
-    if not any([PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_USERS, PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX]):
+    if not any(
+        [
+            PAGERDUTY_FILTER_TEAM,
+            PAGERDUTY_FILTER_USERS,
+            PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX,
+        ]
+    ):
         return policies  # No filters specified, return all
 
     filtered_policies = []
@@ -167,7 +183,9 @@ def filter_escalation_policies(policies: List[Dict[str, Any]]) -> List[Dict[str,
             if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
                 matches_any_filter = True
             else:
-                reasons.append(f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}")
+                reasons.append(
+                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
+                )
 
         # Filter by users
         if PAGERDUTY_FILTER_USERS:
@@ -180,14 +198,18 @@ def filter_escalation_policies(policies: List[Dict[str, Any]]) -> List[Dict[str,
             if any(user_id in policy_users for user_id in PAGERDUTY_FILTER_USERS):
                 matches_any_filter = True
             else:
-                reasons.append(f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}")
+                reasons.append(
+                    f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}"
+                )
 
         # Filter by name regex
         if PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX:
             if re.match(PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX, policy["name"]):
                 matches_any_filter = True
             else:
-                reasons.append(f"Escalation policy regex filter: {PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX}")
+                reasons.append(
+                    f"Escalation policy regex filter: {PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX}"
+                )
 
         if matches_any_filter:
             filtered_policies.append(policy)
@@ -231,15 +253,21 @@ def filter_integrations(integrations: List[Dict[str, Any]]) -> List[Dict[str, An
             if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
                 matches_any_filter = True
             else:
-                reasons.append(f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}")
+                reasons.append(
+                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
+                )
 
         # Filter by name regex
         if PAGERDUTY_FILTER_INTEGRATION_REGEX:
-            integration_name = f"{integration['service']['name']} - {integration['name']}"
+            integration_name = (
+                f"{integration['service']['name']} - {integration['name']}"
+            )
             if re.match(PAGERDUTY_FILTER_INTEGRATION_REGEX, integration_name):
                 matches_any_filter = True
             else:
-                reasons.append(f"Integration regex filter: {PAGERDUTY_FILTER_INTEGRATION_REGEX}")
+                reasons.append(
+                    f"Integration regex filter: {PAGERDUTY_FILTER_INTEGRATION_REGEX}"
+                )
 
         if matches_any_filter:
             filtered_integrations.append(integration)
@@ -268,7 +296,7 @@ def migrate() -> None:
     filtered_resources_summary = {
         "schedules": 0,
         "escalation_policies": 0,
-        "integrations": 0
+        "integrations": 0,
     }
 
     # Process users only if MIGRATE_USERS is true
@@ -283,7 +311,7 @@ def migrate() -> None:
 
         # Apply filtering to users if specified
         if PAGERDUTY_FILTER_USERS:
-            print(f"▶ Filtering users based on PAGERDUTY_FILTER_USERS...")
+            print("▶ Filtering users based on PAGERDUTY_FILTER_USERS...")
             users = filter_users(users)
 
         # Match users with Grafana OnCall users
@@ -401,10 +429,18 @@ def migrate() -> None:
     # Print filtering and matching summary
     print("\n▶ Migration summary after filtering and matching:")
     if MIGRATE_USERS:
-        print(f"Users: {sum(1 for u in users if u.get('oncall_user'))} matched of {len(users)} total")
-    print(f"Schedules: {sum(1 for s in schedules if not s.get('unmatched_users') and not s.get('migration_errors'))} eligible of {filtered_resources_summary['schedules']} filtered")
-    print(f"Escalation policies: {sum(1 for p in escalation_policies if not p.get('unmatched_users') and not p.get('flawed_schedules'))} eligible of {filtered_resources_summary['escalation_policies']} filtered")
-    print(f"Integrations: {sum(1 for i in integrations if i.get('oncall_type') and not i.get('is_escalation_policy_flawed'))} eligible of {filtered_resources_summary['integrations']} filtered")
+        print(
+            f"Users: {sum(1 for u in users if u.get('oncall_user'))} matched of {len(users)} total"
+        )
+    print(
+        f"Schedules: {sum(1 for s in schedules if not s.get('unmatched_users') and not s.get('migration_errors'))} eligible of {filtered_resources_summary['schedules']} filtered"
+    )
+    print(
+        f"Escalation policies: {sum(1 for p in escalation_policies if not p.get('unmatched_users') and not p.get('flawed_schedules'))} eligible of {filtered_resources_summary['escalation_policies']} filtered"
+    )
+    print(
+        f"Integrations: {sum(1 for i in integrations if i.get('oncall_type') and not i.get('is_escalation_policy_flawed'))} eligible of {filtered_resources_summary['integrations']} filtered"
+    )
     print("")
 
     if MODE == MODE_PLAN:
