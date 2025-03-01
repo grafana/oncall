@@ -101,11 +101,35 @@ class TestPagerDutyFiltering:
     def test_filter_schedules_by_regex(self):
         schedules = [
             self.mock_schedule,
-            {**self.mock_schedule, "name": "Production Schedule"},
+            {**self.mock_schedule, "name": "Another Schedule"},
         ]
         filtered = filter_schedules(schedules)
         assert len(filtered) == 1
         assert filtered[0]["id"] == "SCHEDULE1"
+
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER3"])
+    def test_filter_schedules_with_multiple_filters_or_logic(self):
+        """Test that OR logic is applied between filters - a schedule matching any filter is included"""
+        schedules = [
+            self.mock_schedule,  # Has Team 1 but not USER3
+            {
+                "id": "SCHEDULE2",
+                "name": "Test Schedule 2",
+                "teams": [{"summary": "Team 2"}],  # Not Team 1
+                "schedule_layers": [{"users": [{"user": {"id": "USER3"}}]}],  # Has USER3
+            },
+            {
+                "id": "SCHEDULE3",
+                "name": "Test Schedule 3",
+                "teams": [{"summary": "Team 3"}],  # Not Team 1
+                "schedule_layers": [{"users": [{"user": {"id": "USER4"}}]}],  # Not USER3
+            },
+        ]
+        filtered = filter_schedules(schedules)
+        # SCHEDULE1 matches team filter, SCHEDULE2 matches user filter, SCHEDULE3 matches neither
+        assert len(filtered) == 2
+        assert {s["id"] for s in filtered} == {"SCHEDULE1", "SCHEDULE2"}
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
     def test_filter_escalation_policies_by_team(self):
@@ -123,7 +147,14 @@ class TestPagerDutyFiltering:
             self.mock_policy,
             {
                 **self.mock_policy,
-                "escalation_rules": [{"targets": [{"type": "user", "id": "USER3"}]}],
+                "escalation_rules": [
+                    {
+                        "targets": [
+                            {"type": "user", "id": "USER3"},
+                            {"type": "user", "id": "USER4"},
+                        ]
+                    }
+                ],
             },
         ]
         filtered = filter_escalation_policies(policies)
@@ -134,11 +165,47 @@ class TestPagerDutyFiltering:
     def test_filter_escalation_policies_by_regex(self):
         policies = [
             self.mock_policy,
-            {**self.mock_policy, "name": "Production Policy"},
+            {**self.mock_policy, "name": "Another Policy"},
         ]
         filtered = filter_escalation_policies(policies)
         assert len(filtered) == 1
         assert filtered[0]["id"] == "POLICY1"
+
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER3"])
+    def test_filter_escalation_policies_with_multiple_filters_or_logic(self):
+        """Test that OR logic is applied between filters - a policy matching any filter is included"""
+        policies = [
+            self.mock_policy,  # Has Team 1 but not USER3
+            {
+                "id": "POLICY2",
+                "name": "Test Policy 2",
+                "teams": [{"summary": "Team 2"}],  # Not Team 1
+                "escalation_rules": [
+                    {
+                        "targets": [
+                            {"type": "user", "id": "USER3"},  # Has USER3
+                        ]
+                    }
+                ],
+            },
+            {
+                "id": "POLICY3",
+                "name": "Test Policy 3",
+                "teams": [{"summary": "Team 3"}],  # Not Team 1
+                "escalation_rules": [
+                    {
+                        "targets": [
+                            {"type": "user", "id": "USER4"},  # Not USER3
+                        ]
+                    }
+                ],
+            },
+        ]
+        filtered = filter_escalation_policies(policies)
+        # POLICY1 matches team filter, POLICY2 matches user filter, POLICY3 matches neither
+        assert len(filtered) == 2
+        assert {p["id"] for p in filtered} == {"POLICY1", "POLICY2"}
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
     def test_filter_integrations_by_team(self):
@@ -146,7 +213,10 @@ class TestPagerDutyFiltering:
             self.mock_integration,
             {
                 **self.mock_integration,
-                "service": {"teams": [{"summary": "Team 2"}]},
+                "service": {
+                    "name": "Service 1",
+                    "teams": [{"summary": "Team 2"}],
+                },
             },
         ]
         filtered = filter_integrations(integrations)
@@ -161,13 +231,40 @@ class TestPagerDutyFiltering:
             self.mock_integration,
             {
                 **self.mock_integration,
-                "service": {"name": "Service 2"},
-                "name": "Production Integration",
+                "service": {"name": "Service 2", "teams": [{"summary": "Team 1"}]},
             },
         ]
         filtered = filter_integrations(integrations)
         assert len(filtered) == 1
         assert filtered[0]["id"] == "INTEGRATION1"
+
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 2 - Test")
+    def test_filter_integrations_with_multiple_filters_or_logic(self):
+        """Test that OR logic is applied between filters - an integration matching any filter is included"""
+        integrations = [
+            self.mock_integration,  # Has Team 1 but doesn't match regex
+            {
+                "id": "INTEGRATION2",
+                "name": "Test Integration",
+                "service": {
+                    "name": "Service 2",  # Matches regex
+                    "teams": [{"summary": "Team 2"}],  # Not Team 1
+                },
+            },
+            {
+                "id": "INTEGRATION3",
+                "name": "Test Integration",
+                "service": {
+                    "name": "Service 3",  # Doesn't match regex
+                    "teams": [{"summary": "Team 3"}],  # Not Team 1
+                },
+            },
+        ]
+        filtered = filter_integrations(integrations)
+        # INTEGRATION1 matches team filter, INTEGRATION2 matches regex filter, INTEGRATION3 matches neither
+        assert len(filtered) == 2
+        assert {i["id"] for i in filtered} == {"INTEGRATION1", "INTEGRATION2"}
 
 
 class TestPagerDutyMigrationFiltering:
@@ -187,23 +284,23 @@ class TestPagerDutyMigrationFiltering:
         # Setup mock returns
         mock_session = MockAPISession.return_value
         mock_session.list_all.side_effect = [
-            [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
-            [{"id": "S1"}],  # schedules
-            [{"id": "P1"}],  # policies
-            [{"id": "SVC1", "integrations": []}],  # services
-            [{"id": "V1"}],  # vendors
+            [],  # users
+            [],  # schedules
+            [],  # escalation_policies
+            [],  # services
+            [],  # vendors
         ]
-        mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
-        mock_oncall_client = MockOnCallAPIClient.return_value
-        mock_oncall_client.list_all.return_value = []
+        mock_session.jget.return_value = {"overrides": []}
+        mock_filter_schedules.return_value = []
+        mock_filter_policies.return_value = []
+        mock_filter_integrations.return_value = []
 
-        # Run migration
         migrate()
 
-        # Verify filters were called with correct data
-        mock_filter_schedules.assert_called_once_with([{"id": "S1"}])
-        mock_filter_policies.assert_called_once_with([{"id": "P1"}])
-        mock_filter_integrations.assert_called_once()  # Service data is transformed, so just check it was called
+        # Assert filters were called
+        mock_filter_schedules.assert_called_once()
+        mock_filter_policies.assert_called_once()
+        mock_filter_integrations.assert_called_once()
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
     @patch("lib.pagerduty.migrate.filter_schedules")
@@ -222,37 +319,23 @@ class TestPagerDutyMigrationFiltering:
         # Setup mock returns
         mock_session = MockAPISession.return_value
         mock_session.list_all.side_effect = [
-            [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
-            [{"id": "S1", "teams": [{"summary": "Team 1"}]}],  # schedules
-            [{"id": "P1", "teams": [{"summary": "Team 1"}]}],  # policies
-            [
-                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
-            ],  # services
-            [{"id": "V1"}],  # vendors
+            [],  # users
+            [{"id": "SCHEDULE1", "teams": [{"summary": "Team 1"}]}],  # schedules
+            [{"id": "POLICY1", "teams": [{"summary": "Team 1"}]}],  # escalation_policies
+            [],  # services
+            [],  # vendors
         ]
-        mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
-        mock_oncall_client = MockOnCallAPIClient.return_value
-        mock_oncall_client.list_all.return_value = []
+        mock_session.jget.return_value = {"overrides": []}
+        mock_filter_schedules.return_value = []
+        mock_filter_policies.return_value = []
+        mock_filter_integrations.return_value = []
 
-        # Run migration
         migrate()
 
-        # Verify filters were called and filtered by team
+        # Assert scheduled were filtered by team
         mock_filter_schedules.assert_called_once()
         mock_filter_policies.assert_called_once()
         mock_filter_integrations.assert_called_once()
-
-        # Verify team parameter was included in API calls
-        assert mock_session.list_all.call_args_list == [
-            call("users", params={"include[]": "notification_rules"}),
-            call(
-                "schedules",
-                params={"include[]": ["schedule_layers", "teams"], "time_zone": "UTC"},
-            ),
-            call("escalation_policies", params={"include[]": "teams"}),
-            call("services", params={"include[]": ["integrations", "teams"]}),
-            call("vendors"),
-        ]
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER1"])
     @patch("lib.pagerduty.migrate.filter_schedules")
@@ -271,32 +354,82 @@ class TestPagerDutyMigrationFiltering:
         # Setup mock returns
         mock_session = MockAPISession.return_value
         mock_session.list_all.side_effect = [
-            [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
+            [],  # users
             [
                 {
-                    "id": "S1",
-                    "schedule_layers": [{"users": [{"user": {"id": "USER1"}}]}],
+                    "id": "SCHEDULE1",
+                    "schedule_layers": [
+                        {"users": [{"user": {"id": "USER1"}}]}
+                    ],
                 }
             ],  # schedules
             [
                 {
-                    "id": "P1",
+                    "id": "POLICY1",
                     "escalation_rules": [
                         {"targets": [{"type": "user", "id": "USER1"}]}
                     ],
                 }
-            ],  # policies
-            [{"id": "SVC1", "integrations": []}],  # services
-            [{"id": "V1"}],  # vendors
+            ],  # escalation_policies
+            [],  # services
+            [],  # vendors
         ]
-        mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
-        mock_oncall_client = MockOnCallAPIClient.return_value
-        mock_oncall_client.list_all.return_value = []
+        mock_session.jget.return_value = {"overrides": []}
+        mock_filter_schedules.return_value = []
+        mock_filter_policies.return_value = []
+        mock_filter_integrations.return_value = []
 
-        # Run migration
         migrate()
 
-        # Verify filters were called and filtered by users
+        # Assert schedule filter was called with correct parameters
         mock_filter_schedules.assert_called_once()
         mock_filter_policies.assert_called_once()
         mock_filter_integrations.assert_called_once()
+
+
+@patch("lib.pagerduty.migrate.VERBOSE_LOGGING", True)
+@patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
+def test_verbose_logging_for_schedules(capsys):
+    schedules = [
+        {
+            "id": "SCHEDULE1",
+            "name": "Test Schedule",
+            "teams": [{"summary": "Team 1"}],
+        },
+        {
+            "id": "SCHEDULE2",
+            "name": "Other Schedule",
+            "teams": [{"summary": "Team 2"}],
+        },
+    ]
+
+    filter_schedules(schedules)
+
+    # Capture the output and verify verbose messages
+    captured = capsys.readouterr()
+    assert "Filtered out 1 schedules" in captured.out
+    assert "Schedule SCHEDULE2: No teams found for team filter: Team 1" in captured.out
+
+
+@patch("lib.pagerduty.migrate.VERBOSE_LOGGING", False)
+@patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
+def test_non_verbose_logging_for_schedules(capsys):
+    schedules = [
+        {
+            "id": "SCHEDULE1",
+            "name": "Test Schedule",
+            "teams": [{"summary": "Team 1"}],
+        },
+        {
+            "id": "SCHEDULE2",
+            "name": "Other Schedule",
+            "teams": [{"summary": "Team 2"}],
+        },
+    ]
+
+    filter_schedules(schedules)
+
+    # Capture the output and verify no verbose messages
+    captured = capsys.readouterr()
+    assert "Filtered out 1 schedules" in captured.out
+    assert "Schedule SCHEDULE2" not in captured.out

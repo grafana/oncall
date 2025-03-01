@@ -219,6 +219,46 @@ docker run --rm \
 oncall-migrator
 ```
 
+### Resource Filtering
+
+The PagerDuty migrator allows you to filter resources based on team, users, and name patterns.
+You can use these filters to limit the scope of your migration.
+
+When multiple filters are applied (e.g., both team and user filters), resources matching **ANY** of the
+ filters will be included. This is an OR operation between filter types. For example, if you set:
+
+```bash
+-e PAGERDUTY_FILTER_TEAM="DevOps"
+-e PAGERDUTY_FILTER_USERS="USER1,USER2"
+```
+
+The migrator will include:
+
+- Resources associated with the "DevOps" team
+- Resources associated with USER1 or USER2
+- Resources that match both criteria
+
+This allows for more flexible and intuitive filtering when migrating specific subsets of your PagerDuty setup.
+
+### Output Verbosity
+
+By default, the migrator provides a summary of filtered resources without detailed per-resource information.
+You can enable verbose logging to see detailed information about each filtered resource:
+
+```bash
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="plan" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+-e PAGERDUTY_VERBOSE_LOGGING="true" \
+oncall-migrator
+```
+
+This can be helpful for debugging, but otherwise keeping it disabled will significantly reduce output
+when dealing with large PagerDuty instances.
+
 ### Configuration
 
 Configuration is done via environment variables passed to the docker container.
@@ -235,12 +275,13 @@ Configuration is done via environment variables passed to the docker container.
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES`            | Migrate global event rulesets to Grafana OnCall integrations.                                                                                                                                                                                                                                                                                                                                                      | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` | Include service & integrations names from PD in migrated integrations (only effective when `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`).                                                                                                                                                                                                                                                                          | Boolean                             | `false` |
 | `MIGRATE_USERS`                               | If `false`, will allow you to important all objects, while ignoring user references in schedules and escalation policies. In addition, if `false`, will also skip importing User notification rules. This may be helpful in cases where you are unable to import your list of Grafana users, but would like to experiment with OnCall using your existing PagerDuty setup as a starting point for experimentation. | Boolean                             | `true`  |
-| `PAGERDUTY_FILTER_TEAM`                       | Filter resources by team name. Only resources associated with this team will be migrated.                                                                                                                                                                                                                                                                                                                          | String                              | N/A     |
-| `PAGERDUTY_FILTER_USERS`                      | Filter resources by PagerDuty user IDs (comma-separated). Only resources associated with these users will be migrated.                                                                                                                                                                                                                                                                                             | String                              | N/A     |
-| `PAGERDUTY_FILTER_SCHEDULE_REGEX`             | Filter schedules by name using a regex pattern. Only schedules whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                                    | String                              | N/A     |
-| `PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX`    | Filter escalation policies by name using a regex pattern. Only policies whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                           | String                              | N/A     |
-| `PAGERDUTY_FILTER_INTEGRATION_REGEX`          | Filter integrations by name using a regex pattern. Only integrations whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                              | String                              | N/A     |
+| `PAGERDUTY_FILTER_TEAM`                       | Filter resources by team name. Resources associated with this team will be included in the migration.                                                                                                                                                                                                                                                                                                          | String                              | N/A     |
+| `PAGERDUTY_FILTER_USERS`                      | Filter resources by PagerDuty user IDs (comma-separated). Resources associated with any of these users will be included in the migration.                                                                                                                                                                                                                                                                             | String                              | N/A     |
+| `PAGERDUTY_FILTER_SCHEDULE_REGEX`             | Filter schedules by name using a regex pattern. Schedules whose names match this pattern will be included in the migration.                                                                                                                                                                                                                                                    | String                              | N/A     |
+| `PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX`    | Filter escalation policies by name using a regex pattern. Policies whose names match this pattern will be included in the migration.                                                                                                                                                                                                                                                                           | String                              | N/A     |
+| `PAGERDUTY_FILTER_INTEGRATION_REGEX`          | Filter integrations by name using a regex pattern. Integrations whose names match this pattern will be included in the migration.                                                                                                                                                                                                                                                                              | String                              | N/A     |
 | `PRESERVE_EXISTING_USER_NOTIFICATION_RULES`   | Whether to preserve existing notification rules when migrating users                                                                                                                                                                                                                                                                                                                                               | Boolean                             | `true`  |
+| `PAGERDUTY_VERBOSE_LOGGING`                   | Whether to display detailed per-resource information during filtering. When set to `false`, only summary counts will be shown for filtered resources. Use `true` to see why specific resources were filtered out.                                                                                                                                                                                                   | Boolean                             | `false` |
 
 ### Resources
 
