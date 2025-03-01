@@ -4,6 +4,7 @@ from lib.pagerduty.migrate import (
     filter_escalation_policies,
     filter_integrations,
     filter_schedules,
+    filter_users,
     migrate,
 )
 
@@ -33,6 +34,51 @@ def test_users_are_skipped_when_migrate_users_is_false(
     ]
 
     mock_oncall_client.list_users_with_notification_rules.assert_not_called()
+
+
+@patch("lib.pagerduty.migrate.MIGRATE_USERS", True)
+@patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER1", "USER3"])
+@patch("lib.pagerduty.migrate.MODE", "migrate")  # Skip report generation
+@patch("lib.pagerduty.migrate.APISession")
+@patch("lib.pagerduty.migrate.OnCallAPIClient")
+def test_only_specified_users_are_processed_when_filter_users_is_set(
+    MockOnCallAPIClient, MockAPISession
+):
+    mock_session = MockAPISession.return_value
+
+    # Create test users with required fields
+    users = [
+        {"id": "USER1", "name": "User 1", "oncall_user": None, "email": "user1@example.com"},
+        {"id": "USER2", "name": "User 2", "oncall_user": None, "email": "user2@example.com"},
+        {"id": "USER3", "name": "User 3", "oncall_user": None, "email": "user3@example.com"},
+        {"id": "USER4", "name": "User 4", "oncall_user": None, "email": "user4@example.com"}
+    ]
+
+    # Configure mock to return test users for first call, empty lists for other calls
+    mock_session.list_all.side_effect = [
+        users,  # users
+        [],  # schedules
+        [],  # escalation_policies
+        [],  # services
+        [],  # vendors
+    ]
+    mock_session.jget.return_value = {"overrides": []}
+
+    # Mock the user matching function to set oncall_user
+    with patch("lib.pagerduty.migrate.match_user") as mock_match_user:
+        def set_oncall_user(user, _):
+            # Just leave oncall_user as it is (None)
+            pass
+
+        mock_match_user.side_effect = set_oncall_user
+
+        # Run migrate
+        migrate()
+
+        # Check that match_user was only called for USER1 and USER3
+        assert mock_match_user.call_count == 2
+        user_ids = [call_args[0][0]["id"] for call_args in mock_match_user.call_args_list]
+        assert set(user_ids) == {"USER1", "USER3"}
 
 
 class TestPagerDutyFiltering:
@@ -73,6 +119,26 @@ class TestPagerDutyFiltering:
                 "teams": [{"summary": "Team 1"}],
             },
         }
+
+        self.users = [
+            {"id": "USER1", "name": "User 1"},
+            {"id": "USER2", "name": "User 2"},
+            {"id": "USER3", "name": "User 3"},
+        ]
+
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER1", "USER3"])
+    def test_filter_users(self):
+        """Test filtering users by ID when PAGERDUTY_FILTER_USERS is set."""
+        filtered = filter_users(self.users)
+        assert len(filtered) == 2
+        assert {u["id"] for u in filtered} == {"USER1", "USER3"}
+
+    @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", [])
+    def test_filter_users_no_filter(self):
+        """Test that all users are kept when PAGERDUTY_FILTER_USERS is empty."""
+        filtered = filter_users(self.users)
+        assert len(filtered) == 3
+        assert {u["id"] for u in filtered} == {"USER1", "USER2", "USER3"}
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_TEAM", "Team 1")
     def test_filter_schedules_by_team(self):

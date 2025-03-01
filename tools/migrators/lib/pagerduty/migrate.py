@@ -51,6 +51,35 @@ from lib.pagerduty.resources.users import (
 )
 
 
+def filter_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Filter users based on PAGERDUTY_FILTER_USERS.
+
+    When PAGERDUTY_FILTER_USERS is set, only users with IDs in that list will be included.
+    """
+    if not PAGERDUTY_FILTER_USERS:
+        return users  # No filtering, return all users
+
+    filtered_users = []
+    filtered_out = 0
+
+    for user in users:
+        if user["id"] in PAGERDUTY_FILTER_USERS:
+            filtered_users.append(user)
+        else:
+            filtered_out += 1
+
+    if filtered_out > 0:
+        summary = f"Filtered out {filtered_out} users (keeping only users specified in PAGERDUTY_FILTER_USERS)"
+        print(summary)
+
+        # Only print detailed info in verbose mode
+        if VERBOSE_LOGGING:
+            print(f"{TAB}Keeping only users with IDs: {', '.join(PAGERDUTY_FILTER_USERS)}")
+
+    return filtered_users
+
+
 def filter_schedules(schedules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Filter schedules based on configured filters.
@@ -251,6 +280,11 @@ def migrate() -> None:
         print("▶ Fetching users...")
         users = session.list_all("users", params={"include[]": "notification_rules"})
         oncall_users = OnCallAPIClient.list_users_with_notification_rules()
+
+        # Apply filtering to users if specified
+        if PAGERDUTY_FILTER_USERS:
+            print(f"▶ Filtering users based on PAGERDUTY_FILTER_USERS...")
+            users = filter_users(users)
 
         # Match users with Grafana OnCall users
         for user in users:
