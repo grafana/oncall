@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0073_update_direct_paging_integration_non_default_routes'),
+        ('alerts', '0074_alter_escalationpolicy_step'),
     ]
 
     operations = [

@@ -27,11 +27,8 @@ class Feature(enum.StrEnum):
     LABELS = "labels"
     GOOGLE_OAUTH2 = "google_oauth2"
     SERVICE_DEPENDENCIES = "service_dependencies"
-<<<<<<< HEAD
     PERSONAL_WEBHOOK = "personal_webhook"
-=======
     MATTERMOST = "mattermost"
->>>>>>> 99ba40e8b (Add mattermost OAuth2 flow)
 
 
 class FeaturesAPIView(APIView):
