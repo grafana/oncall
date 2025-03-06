@@ -414,10 +414,6 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
-setuptools==75.8.2
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
