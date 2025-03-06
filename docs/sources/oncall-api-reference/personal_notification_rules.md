@@ -14,6 +14,8 @@ refs:
 
 ## Post a personal notification rule
 
+**Required permission**: `grafana-oncall-app.user-settings:write` (user authentication only)
+
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/" \
   --request POST \
@@ -41,7 +43,7 @@ The above command returns JSON structured in the following way:
 | ----------- | :------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `user_id`   |   Yes    | User ID                                                                                                                                                                                                                                                                                             |
 | `position`  | Optional | Personal notification rules execute one after another starting from `position=0`. `Position=-1` will put the escalation policy to the end of the list. A new escalation policy created with a position of an existing escalation policy will move the old one (and all following) down on the list. |
-| `type`      |   Yes    | One of: `wait`, `notify_by_slack`, `notify_by_sms`, `notify_by_phone_call`, `notify_by_telegram`, `notify_by_email`, `notify_by_mobile_app`, `notify_by_mobile_app_critical`, or `notify_by_msteams` (**NOTE** `notify_by_msteams` is only available on Grafana Cloud).                                                                                                                                                                                |
+| `type`      |   Yes    | One of: `wait`, `notify_by_slack`, `notify_by_sms`, `notify_by_phone_call`, `notify_by_telegram`, `notify_by_email`, `notify_by_mobile_app`, `notify_by_mobile_app_critical`, `notify_by_webhook` or `notify_by_msteams` (**NOTE** `notify_by_msteams` is only available on Grafana Cloud).                                                                                                                                                                                |
 | `duration`  | Optional | A time in seconds to wait (when `type=wait`). Can be one of 60, 300, 900, 1800, or 3600.                                                                                                                                                                                                                                               |
 | `important` | Optional | Boolean value indicates if a rule is "important". Default is `false`.                                                                                                                                                                                                                               |
 
@@ -50,6 +52,8 @@ The above command returns JSON structured in the following way:
 `POST {{API_URL}}/api/v1/personal_notification_rules/`
 
 ## Get personal notification rule
+
+**Required permission**: `grafana-oncall-app.user-settings:read` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/ND9EHN5LN1DUU/" \
@@ -76,6 +80,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/personal_notification_rules/<PERSONAL_NOTIFICATION_RULE_ID>/`
 
 ## List personal notification rules
+
+**Required permission**: `grafana-oncall-app.user-settings:read` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/" \
@@ -140,6 +146,8 @@ The following available filter parameters should be provided as `GET` arguments:
 `GET {{API_URL}}/api/v1/personal_notification_rules/`
 
 ## Delete a personal notification rule
+
+**Required permission**: `grafana-oncall-app.user-settings:write` (user authentication only)
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/NWAL6WFJNWDD8/" \

@@ -25,3 +25,7 @@ class AlertGroupState(str, Enum):
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
     SILENCED = "silenced"
+
+
+SERVICE_LABEL = "service_name"
+SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION = "{{ payload.commonLabels.service_name }}"

@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
 
+from apps.alerts.constants import SERVICE_LABEL, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
@@ -24,12 +25,13 @@ from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.labels.tasks import add_service_label_for_integration
 from apps.metrics_exporter.helpers import (
     metrics_add_integrations_to_cache,
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
+from apps.slack.constants import SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
@@ -43,9 +45,13 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import AlertGroup, ChannelFilter
     from apps.labels.models import AlertReceiveChannelAssociatedLabel
-    from apps.user_management.models import Organization, Team
+    from apps.user_management.models import Organization, Team, User
 
 logger = logging.getLogger(__name__)
+
+
+class CreatingServiceNameDynamicLabelFailed(Exception):
+    """Raised when failed to create a dynamic service name label"""
 
 
 class MessagingBackendTemplatesItem:
@@ -126,6 +132,8 @@ class AlertReceiveChannelManager(models.Manager):
     def create_missing_direct_paging_integrations(organization: "Organization") -> None:
         from apps.alerts.models import ChannelFilter
 
+        logger.info(f"Starting create_missing_direct_paging_integrations for organization: {organization.id}")
+
         # fetch teams without direct paging integration
         teams_missing_direct_paging = list(
             organization.teams.exclude(
@@ -134,10 +142,17 @@ class AlertReceiveChannelManager(models.Manager):
                 ).values_list("team_id", flat=True)
             )
         )
+        number_of_teams_missing_direct_paging = len(teams_missing_direct_paging)
+        logger.info(
+            f"Found {number_of_teams_missing_direct_paging} teams missing direct paging integrations.",
+        )
+
         if not teams_missing_direct_paging:
+            logger.info("No missing direct paging integrations found. Exiting.")
             return
 
         # create missing integrations
+        logger.info(f"Creating missing direct paging integrations for {number_of_teams_missing_direct_paging} teams.")
         AlertReceiveChannel.objects.bulk_create(
             [
                 AlertReceiveChannel(
@@ -151,29 +166,49 @@ class AlertReceiveChannelManager(models.Manager):
             batch_size=5000,
             ignore_conflicts=True,  # ignore if direct paging integration already exists for team
         )
+        logger.info("Missing direct paging integrations creation step completed.")
 
         # fetch integrations for teams (some of them are created above, but some may already exist previously)
         alert_receive_channels = organization.alert_receive_channels.filter(
             team__in=teams_missing_direct_paging, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
         )
+        logger.info(f"Fetched {alert_receive_channels.count()} direct paging integrations for the specified teams.")
 
-        # create default routes
+        # we create two routes for each Direct Paging Integration
+        # 1. route for important alerts (using the payload.oncall.important alert field value) - non-default
+        # 2. route for all other alerts - default
+        routes_to_create = []
+        for alert_receive_channel in alert_receive_channels:
+            routes_to_create.extend(
+                [
+                    ChannelFilter(
+                        alert_receive_channel=alert_receive_channel,
+                        filtering_term="{{ payload.oncall.important }}",
+                        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
+                        is_default=False,
+                        order=0,
+                    ),
+                    ChannelFilter(
+                        alert_receive_channel=alert_receive_channel,
+                        filtering_term=None,
+                        is_default=True,
+                        order=1,
+                    ),
+                ]
+            )
+
+        logger.info(f"Creating {len(routes_to_create)} channel filter routes.")
         ChannelFilter.objects.bulk_create(
-            [
-                ChannelFilter(
-                    alert_receive_channel=alert_receive_channel,
-                    filtering_term=None,
-                    is_default=True,
-                    order=0,
-                )
-                for alert_receive_channel in alert_receive_channels
-            ],
+            routes_to_create,
             batch_size=5000,
-            ignore_conflicts=True,  # ignore if default route already exists for integration
+            ignore_conflicts=True,  # ignore if routes already exist for integration
         )
+        logger.info("Direct paging routes creation completed.")
 
         # add integrations to metrics cache
+        logger.info("Adding integrations to metrics cache.")
         metrics_add_integrations_to_cache(list(alert_receive_channels), organization)
+        logger.info("Integrations have been added to the metrics cache.")
 
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(
@@ -301,16 +336,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    AlertGroupCustomLabelsDB = list[tuple[str, str | None, str | None]] | None
-    alert_group_labels_custom: AlertGroupCustomLabelsDB = models.JSONField(null=True, default=None)
+    DynamicLabelsEntryDB = tuple[str, str | None, str | None]
+    DynamicLabelsConfigDB = list[DynamicLabelsEntryDB] | None
+    alert_group_labels_custom: DynamicLabelsConfigDB = models.JSONField(null=True, default=None)
     """
-    Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
-    For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
-    For templated labels, the format is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>]
+    alert_group_labels_custom stores config of dynamic labels. It's stored as a list of tuples.
+    Format of tuple is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>].
+    The second element is deprecated, so it's always None. It was used for static labels.
+    // TODO: refactor to use just regular DB fields for dynamic label config.
     """
 
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
-    """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
+    """
+    alert_group_labels_template is a Jinja2 template for "multi-label extraction template".
+    It extracts multiple labels from incoming alert payload.
+    """
 
     additional_settings: dict | None = models.JSONField(null=True, default=None)
 
@@ -391,7 +431,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
         return super().save(*args, **kwargs)
 
-    def change_team(self, team_id, user):
+    def change_team(self, team_id: int, user: "User") -> None:
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
@@ -409,26 +449,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return GrafanaAlertingSyncManager(self)
 
     @property
-    def is_alerting_integration(self):
+    def is_alerting_integration(self) -> bool:
         return self.integration in {
             AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
             AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
         }
 
     @cached_property
-    def team_name(self):
+    def team_name(self) -> str:
         return self.team.name if self.team else "No team"
 
     @cached_property
-    def team_id_or_no_team(self):
+    def team_id_or_no_team(self) -> str:
         return self.team_id if self.team else "no_team"
 
     @cached_property
-    def emojized_verbal_name(self):
+    def emojized_verbal_name(self) -> str:
         return emoji.emojize(self.verbal_name, language="alias")
 
     @property
-    def new_incidents_web_link(self):
+    def new_incidents_web_link(self) -> str:
         from apps.alerts.models import AlertGroup
 
         return UIURLBuilder(self.organization).alert_groups(
@@ -436,25 +476,27 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         )
 
     @property
-    def is_rate_limited_in_slack(self):
+    def is_rate_limited_in_slack(self) -> bool:
         return (
             self.rate_limited_in_slack_at is not None
             and self.rate_limited_in_slack_at + SLACK_RATE_LIMIT_TIMEOUT > timezone.now()
         )
 
-    def start_send_rate_limit_message_task(self, delay=SLACK_RATE_LIMIT_DELAY):
+    def start_send_rate_limit_message_task(self, error_message_verb: str, delay: int) -> None:
         task_id = celery_uuid()
+
         self.rate_limit_message_task_id = task_id
         self.rate_limited_in_slack_at = timezone.now()
         self.save(update_fields=["rate_limit_message_task_id", "rate_limited_in_slack_at"])
-        post_slack_rate_limit_message.apply_async((self.pk,), countdown=delay, task_id=task_id)
+
+        post_slack_rate_limit_message.apply_async((self.pk, error_message_verb), countdown=delay, task_id=task_id)
 
     @property
-    def alert_groups_count(self):
+    def alert_groups_count(self) -> int:
         return self.alert_groups.count()
 
     @property
-    def alerts_count(self):
+    def alerts_count(self) -> int:
         from apps.alerts.models import Alert
 
         return Alert.objects.filter(group__channel=self).count()
@@ -464,7 +506,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return self.config.is_able_to_autoresolve
 
     @property
-    def is_demo_alert_enabled(self):
+    def is_demo_alert_enabled(self) -> bool:
         return self.config.is_demo_alert_enabled
 
     @property
@@ -513,7 +555,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return alert_receive_channel
 
     @property
-    def short_name(self):
+    def short_name(self) -> str:
         if self.verbal_name is None:
             return self.created_name + "" if self.deleted_at is None else "(Deleted)"
         elif self.verbal_name == self.created_name:
@@ -548,14 +590,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return create_engine_url(f"integrations/v1/{slug}/{self.token}/")
 
     @property
-    def inbound_email(self):
+    def inbound_email(self) -> typing.Optional[str]:
         if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
             return None
 
         return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
-    def default_channel_filter(self):
+    def default_channel_filter(self) -> typing.Optional["ChannelFilter"]:
         return self.channel_filters.filter(is_default=True).first()
 
     # Templating
@@ -590,7 +632,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         }
 
     @property
-    def is_available_for_custom_templates(self):
+    def is_available_for_custom_templates(self) -> bool:
         return True
 
     # Maintenance
@@ -753,6 +795,54 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
+
+    def create_service_name_dynamic_label(self, is_called_async: bool = False):
+        """
+        create_service_name_dynamic_label creates a dynamic label for service_name for Grafana Alerting integration.
+        Warning: It might make a request to the labels repo API.
+        That's why it's called in api handlers, not in post_save.
+        Once we will have labels operator & get rid of syncing labels from repo, this method should be moved
+        to post_save.
+        """
+        from apps.labels.models import LabelKeyCache
+
+        if not self.organization.is_grafana_labels_enabled:
+            return
+        if self.integration != AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+            return
+
+        # validate that service_name label doesn't exist in already
+        service_name_label = LabelKeyCache.objects.filter(organization=self.organization, name=SERVICE_LABEL).first()
+
+        if service_name_label is not None and self.alert_group_labels_custom is not None:
+            for k, _, _ in self.alert_group_labels_custom:
+                if k == service_name_label.id:
+                    return
+
+        service_name_dynamic_label = self._build_service_name_label_custom(self.organization)
+        if service_name_dynamic_label is None:
+            # if this method was called from a celery task, raise exception to retry it
+            if is_called_async:
+                raise CreatingServiceNameDynamicLabelFailed
+            # otherwise start a celery task to retry the label creation async
+            add_service_label_for_integration.apply_async((self.id,))
+            return
+        self.alert_group_labels_custom = [service_name_dynamic_label] + (self.alert_group_labels_custom or [])
+        self.save(update_fields=["alert_group_labels_custom"])
+
+    @staticmethod
+    def _build_service_name_label_custom(organization: "Organization") -> DynamicLabelsEntryDB | None:
+        """
+        _build_service_name_label_custom returns `service_name` label template in dynamic label format:
+        [key_id, None, template].
+        If there is no label key service_name in the cache - it tries to fetch it from the labels repo API.
+        """
+        from apps.labels.models import LabelKeyCache
+
+        service_label_key = LabelKeyCache.get_or_create_by_name(organization, SERVICE_LABEL)
+        return (
+            [service_label_key.id, None, SERVICE_LABEL_TEMPLATE_FOR_ALERTING_INTEGRATION] if service_label_key else None
+        )
 
 
 @receiver(post_save, sender=AlertReceiveChannel)

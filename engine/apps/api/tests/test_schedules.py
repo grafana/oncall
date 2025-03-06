@@ -23,7 +23,20 @@ from apps.schedules.models import (
 from apps.slack.models import SlackUserGroup
 from common.api_helpers.utils import create_engine_url, serialize_datetime_as_utc_timestamp
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
+ICAL_URL = "https://example.com"
+
+
+@pytest.fixture(autouse=True)
+def patch_fetch_ical_file():
+    """
+    NOTE: we patch this method for all tests in this file to avoid making actual HTTP requests.. we don't really need
+    to test the actual fetching of the ical file in these tests, so just simply mock out the response as an empty string
+
+    Alternatively, if we really needed to, we could save .ical files locally here, and read/return those as the
+    return_value
+    """
+    with patch("apps.schedules.ical_utils.fetch_ical_file", return_value=""):
+        yield
 
 
 @pytest.fixture()
@@ -64,7 +77,7 @@ def schedule_internal_api_setup(
 def test_get_list_schedules(
     schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
 ):
-    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, web_schedule, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
 

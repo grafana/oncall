@@ -124,7 +124,7 @@ def test_create_integration_via_service_account(
     perms = {
         permissions.RBACPermission.Permissions.INTEGRATIONS_WRITE.value: ["*"],
     }
-    setup_service_account_api_mocks(organization, perms)
+    setup_service_account_api_mocks(organization.grafana_url, perms)
 
     client = APIClient()
     data_for_create = {
@@ -140,12 +140,9 @@ def test_create_integration_via_service_account(
         HTTP_AUTHORIZATION=f"{token_string}",
         HTTP_X_GRAFANA_URL=organization.grafana_url,
     )
-    if not organization.is_rbac_permissions_enabled:
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-    else:
-        assert response.status_code == status.HTTP_201_CREATED
-        integration = AlertReceiveChannel.objects.get(public_primary_key=response.data["id"])
-        assert integration.service_account == service_account
+    assert response.status_code == status.HTTP_201_CREATED
+    integration = AlertReceiveChannel.objects.get(public_primary_key=response.data["id"])
+    assert integration.service_account == service_account
 
 
 @pytest.mark.django_db

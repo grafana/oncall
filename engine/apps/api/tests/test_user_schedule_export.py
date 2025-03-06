@@ -6,8 +6,6 @@ from rest_framework.test import APIClient
 from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.models import UserScheduleExportAuthToken
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"  # noqa
-
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(

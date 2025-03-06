@@ -175,7 +175,7 @@ def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCo
     `required_permissions` - A list of permissions that a user must have to be considered authorized
     """
     organization = user.organization
-    if organization.is_rbac_permissions_enabled:
+    if organization.is_rbac_permissions_enabled or user.is_service_account:
         user_permissions = [u["action"] for u in user.permissions]
         required_permission_values = get_required_permission_values(organization, required_permissions)
         return all(permission in user_permissions for permission in required_permission_values)

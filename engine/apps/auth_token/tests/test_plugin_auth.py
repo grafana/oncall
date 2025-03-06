@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
@@ -79,8 +80,12 @@ def test_plugin_authentication_fail(authorization, instance_context):
 
     request = APIRequestFactory().get("/", **headers)
 
-    with pytest.raises(AuthenticationFailed):
-        PluginAuthentication().authenticate(request)
+    class MockCheckTokenResponse:
+        organization = None
+
+    with patch("apps.auth_token.auth.check_token", return_value=MockCheckTokenResponse):
+        with pytest.raises(AuthenticationFailed):
+            PluginAuthentication().authenticate(request)
 
 
 @pytest.mark.django_db

@@ -66,13 +66,10 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             message_ts = payload["event"]["ts"]
 
         try:
-            # TODO: once _channel_id has been fully migrated to channel, remove _channel_id
-            # see https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1732555465144099
             slack_message = SlackMessage.objects.get(
                 slack_id=thread_ts,
-                organization__slack_team_identity=self.slack_team_identity,
-                _channel_id=channel_id,
-                # channel__slack_id=channel_id,
+                _slack_team_identity=self.slack_team_identity,
+                channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             return
@@ -145,9 +142,10 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         except ResolutionNoteSlackMessage.DoesNotExist:
             pass
         else:
-            alert_group = slack_thread_message.alert_group
             slack_thread_message.delete()
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+
+            # don't debounce, so that we update the message immediately, this isn't a high traffic activity
+            slack_thread_message.alert_group.slack_message.update_alert_groups_message(debounce=False)
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

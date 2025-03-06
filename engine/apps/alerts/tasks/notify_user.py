@@ -17,7 +17,6 @@ from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
-from .compare_escalations import compare_escalations
 from .task_logger import task_logger
 
 if typing.TYPE_CHECKING:
@@ -253,7 +252,7 @@ def notify_user_task(
                         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                         notification_policy=notification_policy,
                         alert_group=alert_group,
-                        reason="Alert group slack notifications are disabled",
+                        reason="Alert group Slack notifications are disabled",
                         slack_prevent_posting=prevent_posting_to_thread,
                         notification_step=notification_policy.step,
                         notification_channel=notification_policy.notify_by,
@@ -618,7 +617,7 @@ def send_bundled_notification(user_notification_bundle_id: int):
             )
             return
 
-        if not compare_escalations(send_bundled_notification.request.id, user_notification_bundle.notification_task_id):
+        if send_bundled_notification.request.id != user_notification_bundle.notification_task_id:
             task_logger.info(
                 f"send_bundled_notification: notification_task_id mismatch. "
                 f"Duplication or non-active notification triggered. "

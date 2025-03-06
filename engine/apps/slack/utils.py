@@ -103,10 +103,5 @@ def format_datetime_to_slack_with_time(timestamp: float, format: SlackDateFormat
     return _format_datetime_to_slack(timestamp, f"{{{format}}} {{time}}")
 
 
-def get_cache_key_update_incident_slack_message(alert_group_pk: str) -> str:
-    CACHE_KEY_PREFIX = "update_incident_slack_message"
-    return f"{CACHE_KEY_PREFIX}_{alert_group_pk}"
-
-
 def get_populate_slack_channel_task_id_key(slack_team_identity_id: str) -> str:
     return f"SLACK_CHANNELS_TASK_ID_TEAM_{slack_team_identity_id}"

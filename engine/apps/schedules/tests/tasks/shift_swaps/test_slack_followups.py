@@ -29,9 +29,7 @@ def shift_swap_request_test_setup(
         user = make_user(organization=organization)
 
         slack_channel = make_slack_channel(slack_team_identity)
-        slack_message = make_slack_message(
-            alert_group=None, channel=slack_channel, organization=organization, slack_id="12345"
-        )
+        slack_message = make_slack_message(slack_channel)
 
         schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, slack_channel=slack_channel)
 

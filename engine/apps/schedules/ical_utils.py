@@ -54,6 +54,19 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+class MissingUser:
+    """Represent a missing user in a rolling users shift."""
+
+    DISPLAY_NAME = "(missing)"
+
+    def __init__(self, pk):
+        self.pk = pk
+
+    @property
+    def username(self):
+        return self.DISPLAY_NAME
+
+
 EmptyShift = namedtuple(
     "EmptyShift",
     ["start", "end", "summary", "description", "attendee", "all_day", "calendar_type", "calendar_tz", "shift_pk"],

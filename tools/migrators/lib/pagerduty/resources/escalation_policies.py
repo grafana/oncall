@@ -17,6 +17,10 @@ def match_escalation_policy_for_integration(
     policy_id = integration["service"]["escalation_policy"]["id"]
     policy = find_by_id(escalation_policies, policy_id)
 
+    if policy is None:
+        integration["is_escalation_policy_flawed"] = True
+        return
+
     integration["is_escalation_policy_flawed"] = bool(
         policy["unmatched_users"] or policy["flawed_schedules"]
     )

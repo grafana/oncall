@@ -19,5 +19,5 @@ def check_gaps_and_empty_shifts_in_schedule(schedule_pk):
         task_logger.info(f"Tried to check_gaps_and_empty_shifts_in_schedule for non-existing schedule {schedule_pk}")
         return
 
-    schedule.check_gaps_and_empty_shifts_for_next_week()
+    schedule.check_gaps_and_empty_shifts_for_next_days()
     task_logger.info(f"Finish check_gaps_and_empty_shifts_in_schedule {schedule_pk}")

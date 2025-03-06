@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.grafana_plugin.serializers.sync_data import SyncTeamSerializer
+from apps.grafana_plugin.serializers.sync_data import SyncOnCallSettingsSerializer, SyncTeamSerializer
 from apps.grafana_plugin.sync_data import SyncData, SyncSettings, SyncUser
 from apps.grafana_plugin.tasks.sync_v2 import start_sync_organizations_v2, sync_organizations_v2
 from common.constants.plugin_ids import PluginID
@@ -142,6 +142,7 @@ def test_sync_v2_content_encoding(
         mock_sync.assert_called()
 
 
+@patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.check_token", return_value=(None, {"connected": True}))
 @pytest.mark.parametrize(
     "irm_enabled,expected",
     [
@@ -151,6 +152,9 @@ def test_sync_v2_content_encoding(
 )
 @pytest.mark.django_db
 def test_sync_v2_irm_enabled(
+    # mock this out so that we're not making a real network call, the sync v2 endpoint ends up calling
+    # user_management.sync._sync_organization which calls GrafanaApiClient.check_token
+    _mock_grafana_api_client_check_token,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     settings,
@@ -193,6 +197,47 @@ def test_sync_v2_irm_enabled(
     assert organization.is_grafana_irm_enabled == expected
 
 
+@patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.check_token", return_value=(None, {"connected": True}))
+@pytest.mark.django_db
+def test_sync_v2_none_values(
+    # mock this out so that we're not making a real network call, the sync v2 endpoint ends up calling
+    # user_management.sync._sync_organization which calls GrafanaApiClient.check_token
+    _mock_grafana_api_client_check_token,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    settings,
+):
+    settings.LICENSE = settings.CLOUD_LICENSE_NAME
+    organization, _, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    headers = make_user_auth_headers(None, token, organization=organization)
+    url = reverse("grafana-plugin:sync-v2")
+
+    data = SyncData(
+        users=None,
+        teams=None,
+        team_members={},
+        settings=SyncSettings(
+            stack_id=organization.stack_id,
+            org_id=organization.org_id,
+            license=settings.CLOUD_LICENSE_NAME,
+            oncall_api_url="http://localhost",
+            oncall_token="",
+            grafana_url="http://localhost",
+            grafana_token="fake_token",
+            rbac_enabled=False,
+            incident_enabled=False,
+            incident_backend_url="",
+            labels_enabled=False,
+            irm_enabled=False,
+        ),
+    )
+
+    response = client.post(url, format="json", data=asdict(data), **headers)
+    assert response.status_code == status.HTTP_200_OK
+
+
 @pytest.mark.parametrize(
     "test_team, validation_pass",
     [
@@ -212,6 +257,28 @@ def test_sync_team_serialization(test_team, validation_pass):
     except ValidationError as e:
         validation_error = e
     assert (validation_error is None) == validation_pass
+
+
+@pytest.mark.django_db
+def test_sync_grafana_url_serialization():
+    data = {
+        "stack_id": 123,
+        "org_id": 321,
+        "license": "OSS",
+        "oncall_api_url": "http://localhost",
+        "oncall_token": "",
+        "grafana_url": "http://localhost/",
+        "grafana_token": "fake_token",
+        "rbac_enabled": False,
+        "incident_enabled": False,
+        "incident_backend_url": "",
+        "labels_enabled": False,
+        "irm_enabled": False,
+    }
+    serializer = SyncOnCallSettingsSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    cleaned_data = serializer.save()
+    assert cleaned_data.grafana_url == "http://localhost"
 
 
 @pytest.mark.django_db

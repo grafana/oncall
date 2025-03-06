@@ -24,7 +24,7 @@ def _validate_fcm_length_limit(value: typing.Optional[str]) -> str:
 
 class AlertMobileAppTemplater(AlertTemplater):
     def _render_for(self):
-        return "MOBILE_APP"
+        return "mobile_app"
 
     def _postformat(self, templated_alert: TemplatedAlert) -> TemplatedAlert:
         templated_alert.title = _validate_fcm_length_limit(templated_alert.title)
