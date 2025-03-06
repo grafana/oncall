@@ -1,7 +1,10 @@
 import copy
 
 from lib.oncall.api_client import OnCallAPIClient
-from lib.pagerduty.config import PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP
+from lib.pagerduty.config import (
+    PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP,
+    PRESERVE_EXISTING_USER_NOTIFICATION_RULES,
+)
 from lib.utils import remove_duplicates, transform_wait_delay
 
 
@@ -23,6 +26,13 @@ def remove_duplicate_rules_between_waits(rules: list[dict]) -> list[dict]:
 
 
 def migrate_notification_rules(user: dict) -> None:
+    if (
+        PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+        and user["oncall_user"]["notification_rules"]
+    ):
+        print(f"Preserving existing notification rules for {user['email']}")
+        return
+
     notification_rules = [
         rule for rule in user["notification_rules"] if rule["urgency"] == "high"
     ]

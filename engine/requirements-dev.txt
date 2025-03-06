@@ -18,7 +18,7 @@ charset-normalizer==3.3.2
     #   requests
 distlib==0.3.8
     # via virtualenv
-django==4.2.16
+django==4.2.18
     # via
     #   -c requirements.txt
     #   django-stubs
@@ -91,10 +91,13 @@ pytest==8.2.2
     #   -r requirements-dev.in
     #   pytest-django
     #   pytest-factoryboy
+    #   pytest-socket
     #   pytest-xdist
 pytest-django==4.8.0
     # via -r requirements-dev.in
 pytest-factoryboy==2.7.0
+    # via -r requirements-dev.in
+pytest-socket==0.7.0
     # via -r requirements-dev.in
 pytest-xdist==3.6.1
     # via -r requirements-dev.in
@@ -111,9 +114,7 @@ requests==2.32.3
     #   -c requirements.txt
     #   djangorestframework-stubs
 setuptools==75.3.0
-    # via
-    #   -c requirements.txt
-    #   nodeenv
+    # via nodeenv
 six==1.16.0
     # via
     #   -c requirements.txt

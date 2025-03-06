@@ -5,6 +5,7 @@ export enum UserSettingsTab {
   PhoneVerification,
   SlackInfo,
   TelegramInfo,
+  PersonalWebhookInfo,
   MSTeamsInfo,
   MobileAppConnection,
 }

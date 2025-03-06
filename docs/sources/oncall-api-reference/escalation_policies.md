@@ -14,6 +14,8 @@ refs:
 
 ## Create an escalation policy
 
+**Required permission**: `grafana-oncall-app.escalation-chains:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/" \
   --request POST \
@@ -38,28 +40,30 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-| Parameter                          |                 Required                 | Description                                                                                                                                                                                                                                                                                                |
-| ---------------------------------- |:----------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `escalation_chain_id`              |                   Yes                    | Each escalation policy is assigned to a specific escalation chain.                                                                                                                                                                                                                                         |
-| `position`                         |                 Optional                 | Escalation policies execute one after another starting from `position=0`. `Position=-1` will put the escalation policy to the end of the list. A new escalation policy created with a position of an existing escalation policy will move the old one (and all following) down in the list.                |
-| `type`                             |                   Yes                    | One of: `wait`, `notify_persons`, `notify_person_next_each_time`, `notify_on_call_from_schedule`, `notify_user_group`, `trigger_webhook`, `resolve`, `notify_whole_channel`, `notify_if_time_from_to`, `declare_incident`.                                                                                 |
-| `important`                        |                 Optional                 | Default is `false`. Will assign "important" to personal notification rules if `true`. This can be used to distinguish alerts on which you want to be notified immediately by phone. Applicable for types `notify_persons`, `notify_team_members`, `notify_on_call_from_schedule`, and `notify_user_group`. |
-| `duration`                         |             If type = `wait`             | The duration, in seconds, when type `wait` is chosen. Valid values are any number of seconds in the inclusive range `60 to 86400`.                                                                                                                                                                         |
-| `action_to_trigger`                |    If type = `trigger_webhook`           | ID of a webhook.                                                                                                                                                                                                                                                                                           |
-| `group_to_notify`                  |      If type = `notify_user_group`       | ID of a `User Group`.                                                                                                                                                                                                                                                                                      |
-| `persons_to_notify`                |        If type = `notify_persons`        | List of user IDs.                                                                                                                                                                                                                                                                                          |
-| `persons_to_notify_next_each_time` | If type = `notify_person_next_each_time` | List of user IDs.                                                                                                                                                                                                                                                                                          |
-| `notify_on_call _from_schedule`    | If type = `notify_on_call_from_schedule` | ID of a Schedule.                                                                                                                                                                                                                                                                                          |
-| `notify_if_time_from`              |    If type = `notify_if_time_from_to`    | UTC time represents the beginning of the time period, for example `09:00:00Z`.                                                                                                                                                                                                                             |
-| `notify_if_time_to`                |    If type = `notify_if_time_from_to`    | UTC time represents the end of the time period, for example `18:00:00Z`.                                                                                                                                                                                                                                   |
-| `team_to_notify`                   |     If type = `notify_team_members`      | ID of a team.                                                                                                                                                                                                                                                                                              |
-| `severity`                         |       If type = `declare_incident`       | Severity of the incident.                                                                                                                                                                                                                                                                                  |
+| Parameter                          |                 Required                 | Description                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------- |:----------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `escalation_chain_id`              |                   Yes                    | Each escalation policy is assigned to a specific escalation chain.                                                                                                                                                                                                                                                                         |
+| `position`                         |                 Optional                 | Escalation policies execute one after another starting from `position=0`. `Position=-1` will put the escalation policy to the end of the list. A new escalation policy created with a position of an existing escalation policy will move the old one (and all following) down in the list.                                                |
+| `type`                             |                   Yes                    | One of: `wait`, `notify_persons`, `notify_person_next_each_time`, `notify_on_call_from_schedule`, `notify_user_group`, `trigger_webhook`, `resolve`, `notify_whole_channel`, `notify_if_time_from_to`, `declare_incident`.                                                                                                                 |
+| `important`                        |                 Optional                 | Default is `false`. Will assign "important" to personal notification rules if `true`. This can be used to distinguish alerts on which you want to be notified immediately by phone. Applicable for types `notify_persons`, `notify_person_next_each_time`, `notify_team_members`, `notify_on_call_from_schedule`, and `notify_user_group`. |
+| `duration`                         |             If type = `wait`             | The duration, in seconds, when type `wait` is chosen. Valid values are any number of seconds in the inclusive range `60 to 86400`.                                                                                                                                                                                                         |
+| `action_to_trigger`                |    If type = `trigger_webhook`           | ID of a webhook.                                                                                                                                                                                                                                                                                                                           |
+| `group_to_notify`                  |      If type = `notify_user_group`       | ID of a `User Group`.                                                                                                                                                                                                                                                                                                                      |
+| `persons_to_notify`                |        If type = `notify_persons`        | List of user IDs.                                                                                                                                                                                                                                                                                                                          |
+| `persons_to_notify_next_each_time` | If type = `notify_person_next_each_time` | List of user IDs.                                                                                                                                                                                                                                                                                                                          |
+| `notify_on_call _from_schedule`    | If type = `notify_on_call_from_schedule` | ID of a Schedule.                                                                                                                                                                                                                                                                                                                          |
+| `notify_if_time_from`              |    If type = `notify_if_time_from_to`    | UTC time represents the beginning of the time period, for example `09:00:00Z`.                                                                                                                                                                                                                                                             |
+| `notify_if_time_to`                |    If type = `notify_if_time_from_to`    | UTC time represents the end of the time period, for example `18:00:00Z`.                                                                                                                                                                                                                                                                   |
+| `team_to_notify`                   |     If type = `notify_team_members`      | ID of a team.                                                                                                                                                                                                                                                                                                                              |
+| `severity`                         |       If type = `declare_incident`       | Severity of the incident.                                                                                                                                                                                                                                                                                                                  |
 
 **HTTP request**
 
 `POST {{API_URL}}/api/v1/escalation_policies/`
 
 ## Get an escalation policy
+
+**Required permission**: `grafana-oncall-app.escalation-chains:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \
@@ -81,6 +85,8 @@ The above command returns JSON structured in the following way:
 ```
 
 ## Update an escalation policy
+
+**Required permission**: `grafana-oncall-app.escalation-chains:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \
@@ -114,6 +120,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/escalation_policies/<ESCALATION_POLICY_ID>/`
 
 ## List escalation policies
+
+**Required permission**: `grafana-oncall-app.escalation-chains:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/" \
@@ -162,6 +170,8 @@ The following available filter parameter should be provided as a `GET` argument:
 `GET {{API_URL}}/api/v1/escalation_policies/`
 
 ## Delete an escalation policy
+
+**Required permission**: `grafana-oncall-app.escalation-chains:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \

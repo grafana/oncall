@@ -85,6 +85,59 @@ jobs:
           python manage.py makemigrations --check
           python manage.py lintmigrations
 
+  # the following CI check is to prevent developers from dropping columns in a way that could cause downtime
+  # (the proper way to drop columns is documented in dev/README.md)
+  #
+  # we've been bitten by this before (see https://raintank-corp.slack.com/archives/C081TNWM73N as an example)
+  ensure-database-migrations-drop-columns-the-correct-way:
+    name: "Ensure database migrations drop columns the correct way"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history so we can compare with the base branch
+          fetch-depth: 0
+          # Checkout the head commit of the PR
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
+
+      - name: Check for RemoveField in Migrations
+        # yamllint disable rule:line-length
+        run: |
+          # Get the list of files changed in the PR
+          git diff --name-only ${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.sha }} > changed_files.txt
+
+          # Filter for migration files
+          grep -E '^.*/migrations/.*\.py$' changed_files.txt > migration_files.txt || true
+
+          # Initialize a flag
+          FAILED=0
+
+          # Check each migration file for 'migrations.RemoveField'
+          if [ -s migration_files.txt ]; then
+            while IFS= read -r file; do
+              echo "Checking $file for migrations.RemoveField..."
+              if grep -q 'migrations.RemoveField' "$file"; then
+                echo "❌ Error: Found migrations.RemoveField in $file"
+                FAILED=1
+              else
+                echo "✅ No RemoveField found in $file"
+              fi
+            done < migration_files.txt
+          else
+            echo "No migration files changed."
+          fi
+
+          # Fail the job if RemoveField was found
+          if [ "$FAILED" -eq 1 ]; then
+            echo "❌ Error: Found migrations.RemoveField in one or more migration files. Please check out our documentation at https://github.com/grafana/oncall/tree/dev/dev#removing-a-nullable-field-from-a-model on how to properly drop columns."
+            exit 1
+          fi
+        # yamllint enable rule:line-length
+
   unit-test-helm-chart:
     name: "Helm Chart Unit Tests"
     runs-on: ubuntu-latest-16-cores
@@ -137,9 +190,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
+      - name: Wait for MySQL to be ready
+        working-directory: engine
+        run: ./wait_for_test_mysql_start.sh
+      - name: Test Django migrations work from blank slate
+        working-directory: engine
+        run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
-        run: ./wait_for_test_mysql_start.sh && pytest -x
+        run: pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -176,6 +235,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
+      - name: Test Django migrations work from blank slate
+        working-directory: engine
+        run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
         run: pytest -x
@@ -206,6 +268,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
+      - name: Test Django migrations work from blank slate
+        working-directory: engine
+        run: python manage.py migrate
       - name: Unit Test Backend
         working-directory: engine
         run: pytest -x
@@ -244,7 +309,6 @@ jobs:
         grafana_version:
           - 10.3.0
           - 11.2.0
-          - latest
       fail-fast: false
     with:
       grafana_version: ${{ matrix.grafana_version }}

@@ -19,7 +19,6 @@ from apps.alerts.models import (
     Alert,
     AlertGroupLogRecord,
     AlertReceiveChannel,
-    MaintainableObject,
     ResolutionNote,
     listen_for_alertgrouplogrecord,
     listen_for_alertreceivechannel_model_save,
@@ -114,7 +113,11 @@ from apps.user_management.tests.factories import (
     UserFactory,
 )
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
-from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
+from apps.webhooks.tests.factories import (
+    CustomWebhookFactory,
+    PersonalNotificationWebhookFactory,
+    WebhookResponseFactory,
+)
 from apps.webhooks.tests.test_webhook_presets import (
     ADVANCED_WEBHOOK_PRESET_ID,
     TEST_WEBHOOK_PRESET_ID,
@@ -528,15 +531,13 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(alert_group=None, organization=None, **kwargs):
-        organization = organization or alert_group.channel.organization
-        slack_message = SlackMessageFactory(
+    def _make_slack_message(channel, alert_group=None, **kwargs):
+        return SlackMessageFactory(
+            _slack_team_identity=channel.slack_team_identity,
+            channel=channel,
             alert_group=alert_group,
-            organization=organization,
-            _slack_team_identity=organization.slack_team_identity,
             **kwargs,
         )
-        return slack_message
 
     return _make_slack_message
 
@@ -798,6 +799,15 @@ def make_custom_webhook():
 
 
 @pytest.fixture
+def make_personal_notification_webhook():
+    def _make_personal_notification_webhook(user, webhook, **kwargs):
+        personal_webhook = PersonalNotificationWebhookFactory(user=user, webhook=webhook, **kwargs)
+        return personal_webhook
+
+    return _make_personal_notification_webhook
+
+
+@pytest.fixture
 def make_webhook_response():
     def _make_webhook_response(**kwargs):
         webhook_response = WebhookResponseFactory(**kwargs)
@@ -822,14 +832,6 @@ def make_slack_channel():
         return schedule
 
     return _make_slack_channel
-
-
-@pytest.fixture()
-def mock_start_disable_maintenance_task(monkeypatch):
-    def mocked_start_disable_maintenance_task(*args, **kwargs):
-        return uuid.uuid4()
-
-    monkeypatch.setattr(MaintainableObject, "start_disable_maintenance_task", mocked_start_disable_maintenance_task)
 
 
 @pytest.fixture()
@@ -1099,7 +1101,7 @@ def make_label_key_and_value(make_label_key, make_label_value):
 
 
 @pytest.fixture
-def make_integration_label_association(make_label_key_and_value):
+def make_static_label_config(make_label_key_and_value):
     def _make_integration_label_association(
         organization, alert_receive_channel, key_id=None, key_name=None, value_id=None, value_name=None, **kwargs
     ):

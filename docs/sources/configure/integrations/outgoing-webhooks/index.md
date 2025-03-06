@@ -20,6 +20,11 @@ refs:
       destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/#alert-group-labels
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels/#alert-group-labels
+  personal-webhook:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/webhook
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/webhook
   integration-labels:
     - pattern: /docs/oncall/
       destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/
@@ -109,6 +114,7 @@ This setting does not restrict outgoing webhook execution to events from the sel
 The type of event that will cause this outgoing webhook to execute. The types of triggers are:
 
 - [Manual or Escalation Step](#escalation-step)
+- [Personal Notification](#personal-notification)
 - [Alert Group Created](#alert-group-created)
 - [Acknowledged](#acknowledged)
 - [Resolved](#resolved)
@@ -310,6 +316,7 @@ Context information about the event that triggered the outgoing webhook.
 
 - `{{ event.type }}` - Lower case string matching [type of event](#event-types)
 - `{{ event.time }}` - Time event was triggered
+- `{{ event.user.* }}` - Context data as provided by the user for [Personal Notification](ref:personal-webhook) webhooks
 
 #### `user`
 
@@ -481,6 +488,12 @@ Now the result is correct:
 
 This event will trigger when the outgoing webhook is included as a step in an escalation chain.
 Webhooks with this trigger type can also be manually triggered in the context of an alert group in the web UI.
+
+### Personal Notification
+
+`event.type` `personal notification`
+
+This event will trigger when the outgoing webhook is included as a step in a user's personal notification rules.
 
 ### Alert Group Created
 

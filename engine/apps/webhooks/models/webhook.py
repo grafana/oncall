@@ -88,7 +88,8 @@ class Webhook(models.Model):
         TRIGGER_UNRESOLVE,
         TRIGGER_UNACKNOWLEDGE,
         TRIGGER_STATUS_CHANGE,
-    ) = range(9)
+        TRIGGER_PERSONAL_NOTIFICATION,
+    ) = range(10)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -101,6 +102,7 @@ class Webhook(models.Model):
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
         (TRIGGER_STATUS_CHANGE, "Status change"),
+        (TRIGGER_PERSONAL_NOTIFICATION, "Personal notification"),
     )
 
     ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
@@ -123,6 +125,7 @@ class Webhook(models.Model):
         TRIGGER_UNRESOLVE: "unresolve",
         TRIGGER_UNACKNOWLEDGE: "unacknowledge",
         TRIGGER_STATUS_CHANGE: "status change",
+        TRIGGER_PERSONAL_NOTIFICATION: "personal notification",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
@@ -363,3 +366,27 @@ def webhook_response_post_save(sender, instance, created, *args, **kwargs):
     source_alert_receive_channel = instance.webhook.get_source_alert_receive_channel()
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "on_webhook_response_created"):
         source_alert_receive_channel.config.on_webhook_response_created(instance, source_alert_receive_channel)
+
+
+class PersonalNotificationWebhook(models.Model):
+    user = models.OneToOneField(
+        "user_management.User",
+        on_delete=models.CASCADE,
+        related_name="personal_webhook",
+    )
+    webhook = models.ForeignKey(
+        "webhooks.Webhook",
+        on_delete=models.CASCADE,
+        related_name="personal_channels",
+    )
+    # only visible to owner
+    additional_context_data = mirage_fields.EncryptedTextField(null=True)
+
+    @property
+    def context_data(self):
+        return json.loads(self.additional_context_data) if self.additional_context_data else {}
+
+    @context_data.setter
+    def context_data(self, value):
+        self.additional_context_data = json.dumps(value) if value else None
+        self.save(update_fields=["additional_context_data"])

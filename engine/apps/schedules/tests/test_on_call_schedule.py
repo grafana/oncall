@@ -18,6 +18,7 @@ from apps.schedules.constants import (
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
 )
+from apps.schedules.ical_utils import MissingUser
 from apps.schedules.models import (
     CustomOnCallShift,
     OnCallSchedule,
@@ -350,6 +351,57 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [user.username],
+            "users": [],
+            "shift": {"pk": on_call_shift.public_primary_key},
+            "source": "api",
+        }
+    ]
+    assert events == expected
+
+
+@pytest.mark.django_db
+def test_filter_events_include_empty_if_deleted(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    user = make_user_for_organization(organization)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=8),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    # user is deleted, shift data still exists but the shift is empty
+    user.delete()
+
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_empty=True)
+    expected = [
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": on_call_shift.start,
+            "end": on_call_shift.start + on_call_shift.duration,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": True,
+            "is_gap": False,
+            "priority_level": on_call_shift.priority_level,
+            "missing_users": [MissingUser.DISPLAY_NAME],
             "users": [],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
@@ -1816,6 +1868,63 @@ def test_refresh_ical_final_schedule_ok(
                     component[ICAL_PRIORITY],
                 )
                 assert event in expected_events
+
+
+@pytest.mark.django_db
+def test_filter_events_during_dst_change(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        time_zone="America/Chicago",  # UTC-6 or UTC-5 depending on DST
+        schedule_class=OnCallScheduleCalendar,
+    )
+    start_datetime = timezone.datetime(2024, 10, 1, 0, 0, 0, tzinfo=timezone.utc)
+    duration = timezone.timedelta(seconds=60 * 60 * 24 * 7)  # 1 week
+    data = {
+        "start": start_datetime,
+        "rotation_start": start_datetime,
+        "duration": duration,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "week_start": CustomOnCallShift.MONDAY,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[u1]])
+    schedule.custom_on_call_shifts.add(on_call_shift)
+
+    schedule.refresh_ical_file()
+
+    # week with DST change
+    start_date = timezone.datetime(2024, 11, 4, 0, 0, 0, tzinfo=timezone.utc)
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(start_date, end_date)
+    expected = {
+        "start": timezone.datetime(2024, 10, 29, 5, 0, 0, tzinfo=timezone.utc),
+        "end": timezone.datetime(2024, 11, 5, 6, 0, 0, tzinfo=timezone.utc),
+    }
+    assert len(events) == 1
+    returned = {"start": events[0]["start"], "end": events[0]["end"]}
+    assert returned == expected
+
+    # week with DST change back
+    start_date = timezone.datetime(2025, 3, 10, 0, 0, 0, tzinfo=timezone.utc)
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(start_date, end_date)
+    expected = {
+        "start": timezone.datetime(2025, 3, 4, 6, 0, 0, tzinfo=timezone.utc),
+        "end": timezone.datetime(2025, 3, 11, 5, 0, 0, tzinfo=timezone.utc),
+    }
+    assert len(events) == 1
+    returned = {"start": events[0]["start"], "end": events[0]["end"]}
+    assert returned == expected
 
 
 @pytest.mark.django_db

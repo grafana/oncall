@@ -9,12 +9,14 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
+from apps.auth_token.grafana.grafana_auth_token import setup_organization
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
 from apps.user_management.sync import get_or_create_user
+from common.utils import validate_url
 from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -133,6 +135,12 @@ class BasePluginAuthentication(BaseAuthentication):
         except KeyError:
             user_id = context["UserID"]
 
+        if context.get("IsServiceAccount", False):
+            service_account_role = context.get("Role", "None")
+            # no user involved in service account requests
+            logger.info(f"serviceaccount request - id={user_id} - role={service_account_role}")
+            return None
+
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
@@ -147,6 +155,9 @@ class PluginAuthentication(BasePluginAuthentication):
             context = dict(json.loads(request.headers.get("X-Grafana-Context")))
         except (ValueError, TypeError):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
+
+        if context.get("IsServiceAccount", False):
+            raise exceptions.AuthenticationFailed("Service accounts requests are not allowed.")
 
         try:
             user_id = context.get("UserId", context.get("UserID"))
@@ -347,9 +358,9 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         if not auth.startswith(ServiceAccountToken.GRAFANA_SA_PREFIX):
             return None
 
-        organization = self.get_organization(request)
+        organization = self.get_organization(request, auth)
         if not organization:
-            raise exceptions.AuthenticationFailed("Invalid organization.")
+            raise exceptions.AuthenticationFailed("Organization not found.")
         if organization.is_moved:
             raise OrganizationMovedException(organization)
         if organization.deleted_at:
@@ -357,13 +368,23 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(organization, auth)
 
-    def get_organization(self, request):
+    def get_organization(self, request, auth):
         grafana_url = request.headers.get(X_GRAFANA_URL)
         if grafana_url:
-            organization = Organization.objects.filter(grafana_url=grafana_url).first()
-            if not organization:
-                raise exceptions.AuthenticationFailed("Invalid Grafana URL.")
-            return organization
+            url = validate_url(grafana_url)
+            if url is not None:
+                url = url.rstrip("/")
+                organization = Organization.objects.filter(grafana_url=url).first()
+                if not organization:
+                    # trigger a request to sync the organization
+                    # (ignore response since we can get a 400 if sync was already triggered;
+                    # if organization exists, we are good)
+                    setup_organization(url, auth)
+                    organization = Organization.objects.filter(grafana_url=url).first()
+                    if organization is None:
+                        # sync may still be in progress, client should retry
+                        raise exceptions.Throttled(detail="Organization being synced, please retry.")
+                return organization
 
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             instance_id = request.headers.get(X_GRAFANA_INSTANCE_ID)

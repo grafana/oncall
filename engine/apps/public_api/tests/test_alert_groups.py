@@ -162,9 +162,7 @@ def test_get_alert_group_slack_links(
     organization.slack_team_identity = slack_team_identity
     organization.save()
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, cached_permalink="the-link"
-    )
+    slack_message = make_slack_message(slack_channel, alert_group=alert_group, cached_permalink="the-link")
 
     url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
     response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
@@ -758,7 +756,7 @@ def test_actions_disabled_for_service_accounts(
     perms = {
         permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value: ["*"],
     }
-    setup_service_account_api_mocks(organization, perms=perms)
+    setup_service_account_api_mocks(organization.grafana_url, perms=perms)
 
     client = APIClient()
     disabled_actions = ["acknowledge", "unacknowledge", "resolve", "unresolve", "silence", "unsilence"]

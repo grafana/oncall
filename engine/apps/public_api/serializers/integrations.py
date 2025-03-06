@@ -7,7 +7,6 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
-from apps.user_management.models import ServiceAccountUser
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
@@ -124,13 +123,14 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
+            validated_data = self._add_service_label_if_needed(organization, validated_data)
         user = self.context["request"].user
         with transaction.atomic():
             try:
                 instance = AlertReceiveChannel.create(
                     **validated_data,
-                    author=user if not isinstance(user, ServiceAccountUser) else None,
-                    service_account=user.service_account if isinstance(user, ServiceAccountUser) else None,
+                    author=user if not user.is_service_account else None,
+                    service_account=user.service_account if user.is_service_account else None,
                     organization=organization,
                 )
             except AlertReceiveChannel.DuplicateDirectPagingError:
@@ -141,6 +141,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+            # Create default service_name label
+            instance.create_service_name_dynamic_label()
         return instance
 
     def update(self, *args, **kwargs):

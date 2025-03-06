@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.hashes import SHA1, SHA256
 from cryptography.x509 import NameOID, load_pem_x509_certificate
 from django.conf import settings
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +68,7 @@ def validate_amazon_sns_message(message: dict) -> bool:
         return False
 
     # Fetch the certificate
-    try:
-        response = requests.get(signing_cert_url, timeout=5)
-        response.raise_for_status()
-        certificate_bytes = response.content
-    except requests.RequestException as e:
-        logger.warning("Failed to fetch the certificate from %s: %s", signing_cert_url, e)
-        return False
+    certificate_bytes = fetch_certificate(signing_cert_url)
 
     # Verify the certificate issuer
     certificate = load_pem_x509_certificate(certificate_bytes)
@@ -97,3 +92,17 @@ def validate_amazon_sns_message(message: dict) -> bool:
         return False
 
     return True
+
+
+def fetch_certificate(certificate_url: str) -> bytes:
+    cache_key = f"aws_sns_cert_{certificate_url}"
+    cached_certificate = cache.get(cache_key)
+    if cached_certificate:
+        return cached_certificate
+
+    response = requests.get(certificate_url, timeout=5)
+    response.raise_for_status()
+    certificate = response.content
+
+    cache.set(cache_key, certificate, timeout=60 * 60)  # Cache for 1 hour
+    return certificate

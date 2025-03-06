@@ -1,6 +1,7 @@
 import pytz
 from celery.utils.log import get_task_logger
 from django.core.cache import cache
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
@@ -10,28 +11,16 @@ from common.utils import trim_if_needed
 task_logger = get_task_logger(__name__)
 
 
-# deprecated # todo: delete this task from here and from task routes after the next release
-@shared_dedicated_queue_retry_task()
-def start_check_empty_shifts_in_schedule():
-    return
-
-
-# deprecated # todo: delete this task from here and from task routes after the next release
-@shared_dedicated_queue_retry_task()
-def check_empty_shifts_in_schedule(schedule_pk):
-    return
-
-
 @shared_dedicated_queue_retry_task()
 def start_notify_about_empty_shifts_in_schedule():
-    from apps.schedules.models import OnCallScheduleICal
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start start_notify_about_empty_shifts_in_schedule")
 
     today = timezone.now().date()
     week_ago = today - timezone.timedelta(days=7)
-    schedules = OnCallScheduleICal.objects.filter(
-        empty_shifts_report_sent_at__lte=week_ago,
+    schedules = OnCallSchedule.objects.filter(
+        Q(empty_shifts_report_sent_at__lte=week_ago) | Q(empty_shifts_report_sent_at__isnull=True),
         slack_channel__isnull=False,
         organization__deleted_at__isnull=True,
     )
@@ -59,15 +48,15 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
         task_logger.info(f"Tried to notify_about_empty_shifts_in_schedule_task for non-existing schedule {schedule_pk}")
         return
 
-    empty_shifts = schedule.get_empty_shifts_for_next_week()
+    empty_shifts = schedule.get_empty_shifts_for_next_days()
     schedule.empty_shifts_report_sent_at = timezone.now().date()
 
     if len(empty_shifts) != 0:
         schedule.has_empty_shifts = True
         text = (
-            f'Tried to parse schedule *"{schedule.name}"* and found events without associated users.\n'
-            f"To ensure you don't miss any notifications, use a Grafana username as the event name in the calendar. "
-            f"The user should have Editor or Admin access.\n\n"
+            f"Reviewing *{schedule.slack_url}* on-call schedule found events without valid associated users.\n"
+            f"To ensure you don't miss any notifications, make sure user exists (or you provided a valid Grafana username). "
+            f"The user should have the right permissions, or be an Editor or Admin.\n\n"
         )
         for idx, empty_shift in enumerate(empty_shifts):
             start_timestamp = empty_shift.start.astimezone(pytz.UTC).timestamp()
@@ -91,7 +80,6 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
                 text += '*All-day* event in "UTC" TZ\n'
             else:
                 text += f"From {format_datetime_to_slack_with_time(start_timestamp)} to {format_datetime_to_slack_with_time(end_timestamp)} (your TZ)\n"
-            text += f"_From {OnCallSchedule.CALENDAR_TYPE_VERBAL[empty_shift.calendar_type]} calendar_\n"
             if idx != len(empty_shifts) - 1:
                 text += "\n\n"
         post_message_to_channel(schedule.organization, schedule.slack_channel_slack_id, text)

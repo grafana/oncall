@@ -232,19 +232,17 @@ def test_notify_user_perform_notification_skip_if_resolved(
 def test_perform_notification_reason_to_skip_escalation_in_slack(
     reason_to_skip_escalation,
     error_code,
-    make_organization,
-    make_slack_team_identity,
+    make_organization_with_slack_team_identity,
     make_user,
     make_user_notification_policy,
     make_alert_receive_channel,
     make_alert_group,
     make_user_notification_policy_log_record,
+    make_slack_channel,
     make_slack_message,
 ):
-    organization = make_organization()
-    slack_team_identity = make_slack_team_identity()
-    organization.slack_team_identity = slack_team_identity
-    organization.save()
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+
     user = make_user(organization=organization)
     user_notification_policy = make_user_notification_policy(
         user=user,
@@ -252,19 +250,26 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
         notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
     alert_receive_channel = make_alert_receive_channel(organization=organization)
-    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
-    alert_group.reason_to_skip_escalation = reason_to_skip_escalation
-    alert_group.save()
+
+    alert_group = make_alert_group(
+        alert_receive_channel=alert_receive_channel,
+        reason_to_skip_escalation=reason_to_skip_escalation,
+    )
+
     log_record = make_user_notification_policy_log_record(
         author=user,
         alert_group=alert_group,
         notification_policy=user_notification_policy,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
     )
+
     if not error_code:
-        make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+        slack_channel = make_slack_channel(slack_team_identity=slack_team_identity)
+        make_slack_message(slack_channel, alert_group=alert_group)
+
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
         perform_notification(log_record.pk, False)
+
     last_log_record = UserNotificationPolicyLogRecord.objects.last()
 
     if error_code:
@@ -280,25 +285,24 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
 
 @pytest.mark.django_db
 def test_perform_notification_slack_prevent_posting(
-    make_organization,
-    make_slack_team_identity,
+    make_organization_with_slack_team_identity,
     make_user,
     make_user_notification_policy,
     make_alert_receive_channel,
     make_alert_group,
     make_user_notification_policy_log_record,
+    make_slack_channel,
     make_slack_message,
 ):
-    organization = make_organization()
-    slack_team_identity = make_slack_team_identity()
-    organization.slack_team_identity = slack_team_identity
-    organization.save()
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+
     user = make_user(organization=organization)
     user_notification_policy = make_user_notification_policy(
         user=user,
         step=UserNotificationPolicy.Step.NOTIFY,
         notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
+
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
     log_record = make_user_notification_policy_log_record(
@@ -308,14 +312,16 @@ def test_perform_notification_slack_prevent_posting(
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         slack_prevent_posting=True,
     )
-    make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+
+    slack_channel = make_slack_channel(slack_team_identity=slack_team_identity)
+    make_slack_message(slack_channel, alert_group=alert_group)
 
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
         perform_notification(log_record.pk, False)
 
     mocked_send_slack_notification.assert_not_called()
     last_log_record = UserNotificationPolicyLogRecord.objects.last()
-    assert last_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+    assert last_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
     assert last_log_record.reason == "Prevented from posting in Slack"
     assert (
         last_log_record.notification_error_code
@@ -524,47 +530,73 @@ def test_send_bundle_notification(
     alert_group_1 = make_alert_group(alert_receive_channel=alert_receive_channel)
     alert_group_2 = make_alert_group(alert_receive_channel=alert_receive_channel)
     alert_group_3 = make_alert_group(alert_receive_channel=alert_receive_channel)
+
+    task_id = "test_task_id"
     notification_bundle = make_user_notification_bundle(
-        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id="test_task_id", eta=timezone.now()
+        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id=task_id, eta=timezone.now()
     )
+
     notification_bundle.append_notification(alert_group_1, notification_policy)
     notification_bundle.append_notification(alert_group_2, notification_policy)
     notification_bundle.append_notification(alert_group_3, notification_policy)
+
     assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 3
+
     alert_group_3.resolve()
-    with patch("apps.alerts.tasks.notify_user.compare_escalations", return_value=True):
-        # send notification for 2 active alert groups
-        send_bundled_notification(notification_bundle.id)
-        assert f"alert_group {alert_group_3.id} is not active, skip notification" in caplog.text
-        assert "perform bundled notification for alert groups with ids:" in caplog.text
-        # check bundle_uuid was set, notification for resolved alert group was deleted
-        assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
-        assert notification_bundle.notifications.all().count() == 2
-        assert not notification_bundle.notifications.filter(alert_group=alert_group_3).exists()
 
-        # send notification for 1 active alert group
-        notification_bundle.notifications.update(bundle_uuid=None)
-        alert_group_2.resolve()
-        send_bundled_notification(notification_bundle.id)
-        assert f"alert_group {alert_group_2.id} is not active, skip notification" in caplog.text
-        assert (
-            f"there is only one alert group in bundled notification, perform regular notification. "
-            f"alert_group {alert_group_1.id}"
-        ) in caplog.text
-        # check bundle_uuid was set
-        assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
-        assert notification_bundle.notifications.all().count() == 1
-        # cleanup notifications
-        notification_bundle.notifications.all().delete()
+    # send notification for 2 active alert groups
+    send_bundled_notification.apply((notification_bundle.id,), task_id=task_id)
 
-        # send notification for 0 active alert group
-        notification_bundle.append_notification(alert_group_1, notification_policy)
-        alert_group_1.resolve()
-        send_bundled_notification(notification_bundle.id)
-        assert f"alert_group {alert_group_1.id} is not active, skip notification" in caplog.text
-        assert f"no alert groups to notify about or notification is not allowed for user {user.id}" in caplog.text
-        # check all notifications were deleted
-        assert notification_bundle.notifications.all().count() == 0
+    assert f"alert_group {alert_group_3.id} is not active, skip notification" in caplog.text
+    assert "perform bundled notification for alert groups with ids:" in caplog.text
+
+    # check bundle_uuid was set, notification for resolved alert group was deleted
+    assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
+    assert notification_bundle.notifications.all().count() == 2
+    assert not notification_bundle.notifications.filter(alert_group=alert_group_3).exists()
+
+    # send notification for 1 active alert group
+    notification_bundle.notifications.update(bundle_uuid=None)
+
+    # since we're calling send_bundled_notification several times within this test, we need to reset task_id
+    # because it gets set to None after the first call
+    notification_bundle.notification_task_id = task_id
+    notification_bundle.save()
+
+    alert_group_2.resolve()
+
+    send_bundled_notification.apply((notification_bundle.id,), task_id=task_id)
+
+    assert f"alert_group {alert_group_2.id} is not active, skip notification" in caplog.text
+    assert (
+        f"there is only one alert group in bundled notification, perform regular notification. "
+        f"alert_group {alert_group_1.id}"
+    ) in caplog.text
+
+    # check bundle_uuid was set
+    assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
+    assert notification_bundle.notifications.all().count() == 1
+
+    # cleanup notifications
+    notification_bundle.notifications.all().delete()
+
+    # send notification for 0 active alert group
+    notification_bundle.append_notification(alert_group_1, notification_policy)
+
+    # since we're calling send_bundled_notification several times within this test, we need to reset task_id
+    # because it gets set to None after the first call
+    notification_bundle.notification_task_id = task_id
+    notification_bundle.save()
+
+    alert_group_1.resolve()
+
+    send_bundled_notification.apply((notification_bundle.id,), task_id=task_id)
+
+    assert f"alert_group {alert_group_1.id} is not active, skip notification" in caplog.text
+    assert f"no alert groups to notify about or notification is not allowed for user {user.id}" in caplog.text
+
+    # check all notifications were deleted
+    assert notification_bundle.notifications.all().count() == 0
 
 
 @pytest.mark.django_db

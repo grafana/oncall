@@ -10,9 +10,7 @@ from common.jinja_templater.apply_jinja_template import JinjaTemplateError, Jinj
 if typing.TYPE_CHECKING:
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
-
 logger = logging.getLogger(__name__)
-
 
 # What can be used as a label key/value coming out from the template
 LABEL_VALUE_TYPES = (str, int, float, bool)
@@ -21,28 +19,30 @@ LABEL_VALUE_TYPES = (str, int, float, bool)
 MAX_LABELS_PER_ALERT_GROUP = 15
 
 
-def gather_labels_from_alert_receive_channel_and_raw_request_data(
+def gather_alert_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
 ) -> typing.Optional[types.AlertLabels]:
+    """
+    gather_alert_labels gathers labels for an alert received by the alert receive channel.
+    1. static labels - inherits them from integration.
+    2. dynamic labels and multi-label extraction template – templating the raw_request_data.
+    """
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return None
 
-    # inherit labels from the integration
+    # apply static labels by inheriting labels from the integration
     labels = {
-        label.key.name: label.value.name
-        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
+        label.key.name: label.value.name for label in alert_receive_channel.labels.all().select_related("key", "value")
     }
 
-    # apply custom labels
-    labels.update(_custom_labels(alert_receive_channel, raw_request_data))
+    labels.update(_apply_dynamic_labels(alert_receive_channel, raw_request_data))
 
-    # apply template labels
-    labels.update(_template_labels(alert_receive_channel, raw_request_data))
+    labels.update(_apply_multi_label_extraction_template(alert_receive_channel, raw_request_data))
 
     return labels
 
 
-def assign_labels(
+def save_alert_group_labels(
     alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Optional[types.AlertLabels]
 ) -> None:
     from apps.labels.models import AlertGroupAssociatedLabel
@@ -76,10 +76,10 @@ def assign_labels(
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
 
 
-def _custom_labels(
+def _apply_dynamic_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
 ) -> types.AlertLabels:
-    from apps.labels.models import MAX_VALUE_NAME_LENGTH, LabelKeyCache, LabelValueCache
+    from apps.labels.models import LabelKeyCache
 
     if alert_receive_channel.alert_group_labels_custom is None:
         return {}
@@ -92,91 +92,79 @@ def _custom_labels(
         ).only("id", "name")
     }
 
-    # fetch up-to-date label value names
-    label_value_names = {
-        v.id: v.name
-        for v in LabelValueCache.objects.filter(
-            id__in=[label[1] for label in alert_receive_channel.alert_group_labels_custom if label[1]]
-        ).only("id", "name")
-    }
-
-    rendered_labels = {}
+    result_labels = {}
     for label in alert_receive_channel.alert_group_labels_custom:
-        key_id, value_id, template = label
+        label = _apply_dynamic_label_entry(label, label_key_names, raw_request_data)
+        if label:
+            key, value = label
+            result_labels[key] = value
 
-        if key_id in label_key_names:
-            key = label_key_names[key_id]
-        else:
-            logger.warning("Label key cache not found. %s", key_id)
-            continue
-
-        if value_id:
-            if value_id in label_value_names:
-                rendered_labels[key] = label_value_names[value_id]
-            else:
-                logger.warning("Label value cache not found. %s", value_id)
-                continue
-        else:
-            try:
-                rendered_labels[key] = apply_jinja_template(template, raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                logger.warning("Failed to apply template. %s", e.fallback_message)
-                continue
-
-    labels = {}
-    for key in rendered_labels:
-        value = rendered_labels[key]
-
-        # check value length
-        if len(value) == 0:
-            logger.warning("Template result value is empty. %s", value)
-            continue
-
-        if len(value) > MAX_VALUE_NAME_LENGTH:
-            logger.warning("Template result value is too long. %s", value)
-            continue
-
-        labels[key] = value
-
-    return labels
+    return result_labels
 
 
-def _template_labels(
+def _apply_dynamic_label_entry(
+    label: "AlertReceiveChannel.DynamicLabelsEntryDB", keys: dict, payload: "Alert.RawRequestData"
+) -> typing.Optional[tuple[str, str]]:
+    key_id, value_id, template = label
+    key, value = "", ""
+
+    # check if key exists
+    if key_id in keys:
+        key = keys[key_id]
+    else:
+        logger.warning("Label key cache not found. %s", key_id)
+        return None
+
+    if value_id:
+        # if value_id is present - it's a static k-v pair. Deprecated.
+        logger.warning(
+            "value_id is present in dynamic label entry. It's deprecated & should not be there. %s", value_id
+        )
+    elif template:
+        # otherwise, it's a key-template pair, applying template
+        try:
+            value = apply_jinja_template(template, payload)
+        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+            logger.warning("Failed to apply template. %s", e.fallback_message)
+            return None
+        if not _validate_templated_value(value):
+            return None
+    else:
+        logger.warning("Label value is neither a value_id, nor a template. %s", key)
+    return key, value
+
+
+def _apply_multi_label_extraction_template(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
 ) -> types.AlertLabels:
-    from apps.labels.models import MAX_KEY_NAME_LENGTH, MAX_VALUE_NAME_LENGTH
+    from apps.labels.models import MAX_KEY_NAME_LENGTH
 
     if not alert_receive_channel.alert_group_labels_template:
         return {}
 
+    # render template - output will be a string.
+    # It's expected that it will be a JSON string, to be parsed into a dict.
     try:
-        rendered = apply_jinja_template(alert_receive_channel.alert_group_labels_template, raw_request_data)
+        rendered_labels = apply_jinja_template(alert_receive_channel.alert_group_labels_template, raw_request_data)
     except (JinjaTemplateError, JinjaTemplateWarning) as e:
         logger.warning("Failed to apply template. %s", e.fallback_message)
         return {}
 
+    # unmarshal rendered_labels JSON string to dict
     try:
-        rendered_labels = json.loads(rendered)
+        labels_dict = json.loads(rendered_labels)
     except (TypeError, json.JSONDecodeError):
-        logger.warning("Failed to parse template result. %s", rendered)
+        # it's expected, if user misconfigured the template
+        logger.warning("Failed to parse template result. %s", rendered_labels)
         return {}
 
-    if not isinstance(rendered_labels, dict):
-        logger.warning("Template result is not a dict. %s", rendered_labels)
+    if not isinstance(labels_dict, dict):
+        logger.warning("Template result is not a dict. %s", labels_dict)
         return {}
 
-    labels = {}
-    for key in rendered_labels:
-        value = rendered_labels[key]
-
-        # check value type
-        if not isinstance(value, LABEL_VALUE_TYPES):
-            logger.warning("Template result value has invalid type. %s", value)
-            continue
-
-        # convert value to string
-        value = str(value)
-
+    # validate dict of labels, drop invalid keys & values, convert all values to strings
+    result_labels = {}
+    for key in labels_dict:
         # check key length
         if len(key) == 0:
             logger.warning("Template result key is empty. %s", key)
@@ -186,15 +174,36 @@ def _template_labels(
             logger.warning("Template result key is too long. %s", key)
             continue
 
-        # check value length
-        if len(value) == 0:
-            logger.warning("Template result value is empty. %s", value)
+        # Checks specific to multi-label extraction template, because we're receiving value from a JSON:
+        # 1. check type
+        # 2. convert back to string
+        if not isinstance(labels_dict[key], LABEL_VALUE_TYPES):
+            logger.warning("Templated value has invalid type. %s", labels_dict[key])
+            continue
+        value = str(labels_dict[key])
+
+        # apply common value checks
+        if not _validate_templated_value(value):
             continue
 
-        if len(value) > MAX_VALUE_NAME_LENGTH:
-            logger.warning("Template result value is too long. %s", value)
-            continue
+        result_labels[key] = labels_dict[key]
 
-        labels[key] = value
+    return result_labels
 
-    return labels
+
+def _validate_templated_value(value: str) -> bool:
+    from apps.labels.models import MAX_VALUE_NAME_LENGTH
+
+    # check value length
+    if len(value) == 0:
+        logger.warning("Templated value value is empty. %s", value)
+        return False
+
+    if len(value) > MAX_VALUE_NAME_LENGTH:
+        logger.warning("Templated value is too long. %s", value)
+        return False
+
+    if value.lower().strip() == "none":
+        logger.warning("Templated value is None. %s", value)
+        return False
+    return True

@@ -12,14 +12,6 @@ class Migration(migrations.Migration):
 
     operations = [
         linter.IgnoreMigration(),
-        migrations.RemoveField(
-            model_name='channelfilter',
-            name='_slack_channel_id',
-        ),
-        migrations.RemoveField(
-            model_name='resolutionnoteslackmessage',
-            name='_slack_channel_id',
-        ),
         migrations.DeleteModel(
             name='AlertGroupPostmortem',
         ),

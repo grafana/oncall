@@ -34,8 +34,9 @@ class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     SELECT_RELATED = ["alert_group", "resolution_note_slack_message", "author"]
 
     def create(self, validated_data):
-        if self.context["request"].user.pk:
-            validated_data["author"] = self.context["request"].user
+        user = self.context["request"].user
+        if not user.is_service_account and user.pk:
+            validated_data["author"] = user
         validated_data["source"] = ResolutionNote.Source.WEB
         return super().create(validated_data)
 

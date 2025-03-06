@@ -517,9 +517,9 @@ class SlackEventApiEndpointView(APIView):
 
         try:
             slack_message = SlackMessage.objects.get(
-                _slack_team_identity=slack_team_identity,
                 slack_id=message_ts,
-                channel_id=channel_id,
+                _slack_team_identity=slack_team_identity,
+                channel__slack_id=channel_id,
             )
         except SlackMessage.DoesNotExist:
             return None
@@ -586,7 +586,7 @@ class ResetSlackView(APIView):
             # just a placeholder value to continute uninstallation until UNIFIED_SLACK_APP_ENABLED is not enabled
             removed = True
         if not removed:
-            return Response({"error": "Failed to uninstall slack integration"}, status=500)
+            return Response({"error": "Failed to uninstall Slack integration"}, status=500)
 
         try:
             uninstall_slack_integration(request.user.organization, request.user)

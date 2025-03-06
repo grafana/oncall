@@ -65,6 +65,15 @@ class LabelsAPIClient:
         self._check_response(response)
         return response.json(), response
 
+    def get_label_by_key_name(
+        self, key_name: str
+    ) -> typing.Tuple[typing.Optional["LabelOption"], requests.models.Response]:
+        url = urljoin(self.api_url, f"name/{key_name}")
+
+        response = requests.get(url, timeout=TIMEOUT, headers=self._request_headers)
+        self._check_response(response)
+        return response.json(), response
+
     def get_value(
         self, key_id: str, value_id: str
     ) -> typing.Tuple[typing.Optional["LabelValue"], requests.models.Response]:

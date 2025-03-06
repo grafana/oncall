@@ -14,6 +14,8 @@ refs:
 
 ## Create a resolution note
 
+**Required permission**: `grafana-oncall-app.alert-groups:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/resolution_notes/" \
   --request POST \
@@ -49,6 +51,8 @@ The above command returns JSON structured in the following way:
 
 ## Get a resolution note
 
+**Required permission**: `grafana-oncall-app.alert-groups:read`
+
 ```shell
 curl "{{API_URL}}/api/v1/resolution_notes/M4BTQUS3PRHYQ/" \
   --request GET \
@@ -74,6 +78,8 @@ The above command returns JSON structured in the following way:
 `GET {{API_URL}}/api/v1/resolution_notes/<RESOLUTION_NOTE_ID>/`
 
 ## List resolution notes
+
+**Required permission**: `grafana-oncall-app.alert-groups:read`
 
 ```shell
 curl "{{API_URL}}/api/v1/resolution_notes/" \
@@ -117,6 +123,8 @@ The following available filter parameter should be provided as a `GET` argument:
 
 ## Update a resolution note
 
+**Required permission**: `grafana-oncall-app.alert-groups:write`
+
 ```shell
 curl "{{API_URL}}/api/v1/resolution_notes/M4BTQUS3PRHYQ/" \
   --request PUT \
@@ -145,6 +153,8 @@ The above command returns JSON structured in the following way:
 `PUT {{API_URL}}/api/v1/resolution_notes/<RESOLUTION_NOTE_ID>/`
 
 ## Delete a resolution note
+
+**Required permission**: `grafana-oncall-app.alert-groups:write`
 
 ```shell
 curl "{{API_URL}}/api/v1/resolution_notes/M4BTQUS3PRHYQ/" \

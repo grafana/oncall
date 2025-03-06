@@ -52,3 +52,11 @@ def get_service_account_details(organization: Organization, token: str) -> typin
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=token)
     user_data, _ = grafana_api_client.get_current_user()
     return user_data
+
+
+def setup_organization(grafana_url: str, token: str):
+    grafana_api_client = GrafanaAPIClient(api_url=grafana_url, api_token=token)
+    _, call_status = grafana_api_client.setup_organization()
+    if call_status["status_code"] != 200:
+        return False
+    return True

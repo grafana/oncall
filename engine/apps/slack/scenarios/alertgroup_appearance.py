@@ -83,18 +83,14 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         from apps.alerts.models import AlertGroup
 
         private_metadata = json.loads(payload["view"]["private_metadata"])
-        alert_group_pk = private_metadata["alert_group_pk"]
-
-        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-
-        attachments = alert_group.render_slack_attachments()
-        blocks = alert_group.render_slack_blocks()
+        alert_group = AlertGroup.objects.get(pk=private_metadata["alert_group_pk"])
+        slack_message = alert_group.slack_message
 
         self._slack_client.chat_update(
-            channel=alert_group.slack_message.channel_id,
-            ts=alert_group.slack_message.slack_id,
-            attachments=attachments,
-            blocks=blocks,
+            channel=slack_message.channel.slack_id,
+            ts=slack_message.slack_id,
+            attachments=alert_group.render_slack_attachments(),
+            blocks=alert_group.render_slack_blocks(),
         )
 
 
