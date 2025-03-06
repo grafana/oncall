@@ -61,6 +61,7 @@ test('Connects a personal notification webhook', async ({ adminRolePage: { page 
 
   // Connect
   await page.getByRole('button', { name: 'Connect' }).click();
+  await page.waitForSelector('text=Disconnect');
 
   // Check connection on User Info tab
   await page.getByRole('tab', { name: 'User info' }).click();
