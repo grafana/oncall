@@ -29,7 +29,10 @@ def test_users_are_skipped_when_migrate_users_is_false(
         call("escalation_policies", params={"include[]": "teams"}),
         call("services", params={"include[]": ["integrations", "teams"]}),
         call("vendors"),
-        # no user notification rules fetching
+        # Technical services
+        call("services", params={"include[]": ["integrations", "teams"]}),
+        # Business services
+        call("business_services")
     ]
 
     mock_oncall_client.list_users_with_notification_rules.assert_not_called()
@@ -190,8 +193,10 @@ class TestPagerDutyMigrationFiltering:
             [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
             [{"id": "S1"}],  # schedules
             [{"id": "P1"}],  # policies
+            [{"id": "SVC1", "integrations": []}],  # services with params
             [{"id": "SVC1", "integrations": []}],  # services
             [{"id": "V1"}],  # vendors
+            [{"id": "BS1"}],  # business services
         ]
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
@@ -225,10 +230,10 @@ class TestPagerDutyMigrationFiltering:
             [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
             [{"id": "S1", "teams": [{"summary": "Team 1"}]}],  # schedules
             [{"id": "P1", "teams": [{"summary": "Team 1"}]}],  # policies
-            [
-                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
-            ],  # services
+            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services with params
+            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services
             [{"id": "V1"}],  # vendors
+            [{"id": "BS1", "teams": [{"summary": "Team 1"}]}],  # business services
         ]
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
@@ -252,6 +257,8 @@ class TestPagerDutyMigrationFiltering:
             call("escalation_policies", params={"include[]": "teams"}),
             call("services", params={"include[]": ["integrations", "teams"]}),
             call("vendors"),
+            call("services", params={"include[]": ["integrations", "teams"]}),
+            call("business_services"),
         ]
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER1"])
@@ -286,8 +293,10 @@ class TestPagerDutyMigrationFiltering:
                     ],
                 }
             ],  # policies
+            [{"id": "SVC1", "integrations": []}],  # services with params
             [{"id": "SVC1", "integrations": []}],  # services
             [{"id": "V1"}],  # vendors
+            [{"id": "BS1"}],  # business services
         ]
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
