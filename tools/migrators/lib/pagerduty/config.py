@@ -61,3 +61,6 @@ PAGERDUTY_FILTER_INTEGRATION_REGEX = os.getenv("PAGERDUTY_FILTER_INTEGRATION_REG
 PRESERVE_EXISTING_USER_NOTIFICATION_RULES = (
     os.getenv("PRESERVE_EXISTING_USER_NOTIFICATION_RULES", "true").lower() == "true"
 )
+
+# Environment variable to control verbose logging
+VERBOSE_LOGGING = os.getenv("PAGERDUTY_VERBOSE_LOGGING", "false").lower() == "true"
