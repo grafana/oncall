@@ -2,6 +2,7 @@ from .api_auth_token import ApiAuthToken  # noqa: F401
 from .base_auth_token import BaseAuthToken  # noqa: F401
 from .google_oauth2_token import GoogleOAuth2Token  # noqa: F401
 from .integration_backsync_auth_token import IntegrationBacksyncAuthToken  # noqa: F401
+from .mattermost_auth_token import MattermostAuthToken  # noqa: F401
 from .plugin_auth_token import PluginAuthToken  # noqa: F401
 from .schedule_export_auth_token import ScheduleExportAuthToken  # noqa: F401
 from .service_account_token import ServiceAccountToken  # noqa: F401

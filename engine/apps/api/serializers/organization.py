@@ -84,9 +84,13 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
 
         telegram_configured = not LiveSetting.objects.filter(name__startswith="TELEGRAM", error__isnull=False).exists()
         phone_provider_config = get_phone_provider().flags
+        mattermost_configured = not LiveSetting.objects.filter(
+            name__startswith="MATTERMOST", error__isnull=False
+        ).exists()
         return {
             "telegram_configured": telegram_configured,
             "phone_provider": asdict(phone_provider_config),
+            "mattermost_configured": mattermost_configured,
         }
 
 
