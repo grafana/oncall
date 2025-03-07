@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Case, When
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import fields, serializers
 from rest_framework.exceptions import ValidationError
@@ -104,7 +105,7 @@ class UsersFilteredByOrganizationField(serializers.Field):
         if not request or not queryset:
             return None
 
-        users = queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct()
+        users = queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct().order_by(Case(*[When(public_primary_key=pk, then=pos) for pos, pk in enumerate(data)]))
         users_ppk = set(u.public_primary_key for u in users)
         data_set = set(data)
 
