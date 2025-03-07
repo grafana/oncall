@@ -9,15 +9,17 @@ from lib.pagerduty.migrate import (
 
 
 @patch("lib.pagerduty.migrate.MIGRATE_USERS", False)
-@patch("lib.pagerduty.migrate.PAGERDUTY_MIGRATE_SERVICES", False)
+@patch("lib.pagerduty.migrate.ServiceModelClient")
 @patch("lib.pagerduty.migrate.APISession")
 @patch("lib.pagerduty.migrate.OnCallAPIClient")
 def test_users_are_skipped_when_migrate_users_is_false(
-    MockOnCallAPIClient, MockAPISession
+    MockOnCallAPIClient, MockAPISession, MockServiceModelClient
 ):
     mock_session = MockAPISession.return_value
     mock_session.list_all.return_value = []
     mock_oncall_client = MockOnCallAPIClient.return_value
+    mock_service_client = MockServiceModelClient.return_value
+    mock_service_client.get_components.return_value = []
 
     migrate()
 
@@ -180,8 +182,10 @@ class TestPagerDutyMigrationFiltering:
     @patch("lib.pagerduty.migrate.filter_integrations")
     @patch("lib.pagerduty.migrate.APISession")
     @patch("lib.pagerduty.migrate.OnCallAPIClient")
+    @patch("lib.pagerduty.migrate.ServiceModelClient")
     def test_migrate_calls_filters(
         self,
+        MockServiceModelClient,
         MockOnCallAPIClient,
         MockAPISession,
         mock_filter_integrations,
@@ -202,6 +206,8 @@ class TestPagerDutyMigrationFiltering:
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
         mock_oncall_client.list_all.return_value = []
+        mock_service_client = MockServiceModelClient.return_value
+        mock_service_client.get_components.return_value = []
 
         # Run migration
         migrate()
@@ -217,8 +223,10 @@ class TestPagerDutyMigrationFiltering:
     @patch("lib.pagerduty.migrate.filter_integrations")
     @patch("lib.pagerduty.migrate.APISession")
     @patch("lib.pagerduty.migrate.OnCallAPIClient")
+    @patch("lib.pagerduty.migrate.ServiceModelClient")
     def test_migrate_with_team_filter(
         self,
+        MockServiceModelClient,
         MockOnCallAPIClient,
         MockAPISession,
         mock_filter_integrations,
@@ -231,18 +239,16 @@ class TestPagerDutyMigrationFiltering:
             [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
             [{"id": "S1", "teams": [{"summary": "Team 1"}]}],  # schedules
             [{"id": "P1", "teams": [{"summary": "Team 1"}]}],  # policies
-            [
-                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
-            ],  # services with params
-            [
-                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
-            ],  # services
+            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services with params
+            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services
             [{"id": "V1"}],  # vendors
             [{"id": "BS1", "teams": [{"summary": "Team 1"}]}],  # business services
         ]
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
         mock_oncall_client.list_all.return_value = []
+        mock_service_client = MockServiceModelClient.return_value
+        mock_service_client.get_components.return_value = []
 
         # Run migration
         migrate()
@@ -272,8 +278,10 @@ class TestPagerDutyMigrationFiltering:
     @patch("lib.pagerduty.migrate.filter_integrations")
     @patch("lib.pagerduty.migrate.APISession")
     @patch("lib.pagerduty.migrate.OnCallAPIClient")
+    @patch("lib.pagerduty.migrate.ServiceModelClient")
     def test_migrate_with_users_filter(
         self,
+        MockServiceModelClient,
         MockOnCallAPIClient,
         MockAPISession,
         mock_filter_integrations,
@@ -306,6 +314,8 @@ class TestPagerDutyMigrationFiltering:
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
         mock_oncall_client.list_all.return_value = []
+        mock_service_client = MockServiceModelClient.return_value
+        mock_service_client.get_components.return_value = []
 
         # Run migration
         migrate()
