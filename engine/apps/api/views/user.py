@@ -84,8 +84,8 @@ from common.insight_log import (
 from common.recaptcha import check_recaptcha_internal_api
 
 logger = logging.getLogger(__name__)
-IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
-IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
+IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.permissions.USER_SETTINGS_ADMIN])
+IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.permissions.USER_SETTINGS_READ])
 
 
 UPCOMING_SHIFTS_DEFAULT_DAYS = 7
@@ -119,9 +119,9 @@ class CachedSchedulesContextMixin:
         context = getattr(super(), "get_serializer_context", lambda: {})()
         context.update(
             {
-                "schedules_with_oncall_users": self.schedules_with_oncall_users
-                if self._populate_schedules_oncall_cache()
-                else {}
+                "schedules_with_oncall_users": (
+                    self.schedules_with_oncall_users if self._populate_schedules_oncall_cache() else {}
+                )
             }
         )
         return context
@@ -213,28 +213,28 @@ class UserView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "timezone_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "check_availability": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "metadata": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "forget_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "get_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "get_verification_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "send_test_push": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "send_test_sms": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "filters": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "timezone_options": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "check_availability": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "metadata": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "list": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "update": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "partial_update": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "verify_number": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "forget_number": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "get_verification_code": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "get_verification_call": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "get_backend_verification_code": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "get_telegram_verification_code": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "unlink_slack": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "unlink_telegram": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "unlink_backend": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "make_test_call": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "send_test_push": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "send_test_sms": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "export_token": [RBACPermission.permissions.USER_SETTINGS_WRITE],
+        "upcoming_shifts": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "filters": [RBACPermission.permissions.USER_SETTINGS_READ],
     }
 
     rbac_object_permissions = {
@@ -304,7 +304,7 @@ class UserView(
         kwargs = self.kwargs
 
         is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
-        has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+        has_admin_permission = user_is_authorized(user, [RBACPermission.permissions.USER_SETTINGS_ADMIN])
 
         return is_users_own_data or has_admin_permission
 

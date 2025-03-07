@@ -25,8 +25,8 @@ class SlackChannelView(
     search_fields = ["name"]
 
     rbac_permissions = {
-        "list": [RBACPermission.Permissions.CHATOPS_READ],
-        "retrieve": [RBACPermission.Permissions.CHATOPS_READ],
+        "list": [RBACPermission.permissions.CHATOPS_READ],
+        "retrieve": [RBACPermission.permissions.CHATOPS_READ],
     }
 
     def get_queryset(self):

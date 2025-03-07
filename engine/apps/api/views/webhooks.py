@@ -77,20 +77,20 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "filters": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "list": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "retrieve": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "create": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
-        "update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
-        "partial_update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
-        "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
-        "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
-        "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "trigger_manual": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "current_personal_notification": [RBACPermission.Permissions.USER_SETTINGS_READ],
-        "set_personal_notification": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "metadata": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "filters": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "list": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "retrieve": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "create": [RBACPermission.permissions.OUTGOING_WEBHOOKS_WRITE],
+        "update": [RBACPermission.permissions.OUTGOING_WEBHOOKS_WRITE],
+        "partial_update": [RBACPermission.permissions.OUTGOING_WEBHOOKS_WRITE],
+        "destroy": [RBACPermission.permissions.OUTGOING_WEBHOOKS_WRITE],
+        "responses": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "preview_template": [RBACPermission.permissions.OUTGOING_WEBHOOKS_WRITE],
+        "preset_options": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "trigger_manual": [RBACPermission.permissions.OUTGOING_WEBHOOKS_READ],
+        "current_personal_notification": [RBACPermission.permissions.USER_SETTINGS_READ],
+        "set_personal_notification": [RBACPermission.permissions.USER_SETTINGS_WRITE],
     }
 
     model = Webhook
