@@ -333,8 +333,12 @@ but it can also make the names of integrations too long.
 
 #### Services and Business Services
 
-The tool is capable of migrating both technical services and business services from PagerDuty to Grafana's service model. This feature is disabled by default and can be enabled by setting `PAGERDUTY_MIGRATE_SERVICES` to `true`.
-Set GRAFANA_SERVICE_ACCOUNT_URL to the URL format of a Grafana service account with Admin permission of the form: `https://<namespace>:<token>@<server>`
+The tool is capable of migrating both technical services and business services from PagerDuty to
+Grafana's service model. This feature is disabled by default and can be enabled by setting
+`PAGERDUTY_MIGRATE_SERVICES` to `true`.
+
+Set GRAFANA_SERVICE_ACCOUNT_URL to the URL format of a Grafana service account with Admin
+permission of the form: `https://<namespace>:<token>@<server>`
 
 When enabled, the tool will:
 
@@ -351,6 +355,7 @@ When enabled, the tool will:
    - Maintain business impact relationships
 
 The migration process ensures that:
+
 - Service hierarchies are preserved
 - Dependencies between services are maintained
 - Escalation policies are properly mapped
@@ -358,6 +363,7 @@ The migration process ensures that:
 - Business impact relationships are maintained
 
 Example:
+
 ```bash
 docker run --rm \
 -e MIGRATING_FROM="pagerduty" \
@@ -387,9 +393,11 @@ The tool provides several ways to filter which services are migrated:
    - Only services whose names match the specified regex pattern will be migrated
    - Applies to both technical and business services
 
-These filters can be used individually or combined. When multiple filters are applied, a service must match all active filters to be included in the migration.
+These filters can be used individually or combined. When multiple filters are applied, a service must match all
+active filters to be included in the migration.
 
 Example:
+
 ```bash
 docker run --rm \
 -e MIGRATING_FROM="pagerduty" \
@@ -398,12 +406,16 @@ docker run --rm \
 -e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
 -e PAGERDUTY_FILTER_TEAM="Platform Team" \
+
 -e PAGERDUTY_FILTER_USERS="U123,U456" \
 -e PAGERDUTY_FILTER_SERVICE_REGEX="Prod.*" \
 oncall-migrator
+
+
 ```
 
 This example will only migrate services that:
+
 - Belong to the "Platform Team"
 - Have either user U123 or U456 in their escalation policy (for technical services)
 - Have a name starting with "Prod"

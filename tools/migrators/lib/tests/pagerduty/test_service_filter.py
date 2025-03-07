@@ -2,15 +2,11 @@
 Tests for service filtering functionality.
 """
 
-import pytest
 from unittest.mock import patch
 
+import pytest
+
 from lib.common.resources.services import filter_services
-from lib.pagerduty.config import (
-    PAGERDUTY_FILTER_TEAM,
-    PAGERDUTY_FILTER_USERS,
-    PAGERDUTY_FILTER_SERVICE_REGEX,
-)
 
 
 @pytest.fixture
@@ -27,11 +23,11 @@ def sample_services():
                     {
                         "targets": [
                             {"type": "user", "id": "U123"},
-                            {"type": "user", "id": "U456"}
+                            {"type": "user", "id": "U456"},
                         ]
                     }
                 ]
-            }
+            },
         },
         {
             "id": "P456",
@@ -39,21 +35,15 @@ def sample_services():
             "type": "service",
             "teams": [{"summary": "DevOps Team"}],
             "escalation_policy": {
-                "escalation_rules": [
-                    {
-                        "targets": [
-                            {"type": "user", "id": "U789"}
-                        ]
-                    }
-                ]
-            }
+                "escalation_rules": [{"targets": [{"type": "user", "id": "U789"}]}]
+            },
         },
         {
             "id": "B123",
             "name": "Business Service",
             "type": "business_service",
-            "teams": [{"summary": "Platform Team"}]
-        }
+            "teams": [{"summary": "Platform Team"}],
+        },
     ]
 
 
@@ -62,7 +52,9 @@ def test_filter_services_by_team(sample_services):
     with patch("lib.common.resources.services.PAGERDUTY_FILTER_TEAM", "Platform Team"):
         filtered = filter_services(sample_services)
         assert len(filtered) == 2
-        assert all(service["teams"][0]["summary"] == "Platform Team" for service in filtered)
+        assert all(
+            service["teams"][0]["summary"] == "Platform Team" for service in filtered
+        )
 
 
 def test_filter_services_by_users(sample_services):
@@ -79,7 +71,9 @@ def test_filter_services_by_users(sample_services):
 
 def test_filter_services_by_regex(sample_services):
     """Test filtering services by name regex pattern."""
-    with patch("lib.common.resources.services.PAGERDUTY_FILTER_SERVICE_REGEX", "Prod.*"):
+    with patch(
+        "lib.common.resources.services.PAGERDUTY_FILTER_SERVICE_REGEX", "Prod.*"
+    ):
         filtered = filter_services(sample_services)
         assert len(filtered) == 1
         assert filtered[0]["name"] == "Production Service"
@@ -87,18 +81,20 @@ def test_filter_services_by_regex(sample_services):
 
 def test_filter_services_no_filters(sample_services):
     """Test that no filters returns all services."""
-    with patch("lib.common.resources.services.PAGERDUTY_FILTER_TEAM", ""), \
-         patch("lib.common.resources.services.PAGERDUTY_FILTER_USERS", []), \
-         patch("lib.common.resources.services.PAGERDUTY_FILTER_SERVICE_REGEX", ""):
+    with patch("lib.common.resources.services.PAGERDUTY_FILTER_TEAM", ""), patch(
+        "lib.common.resources.services.PAGERDUTY_FILTER_USERS", []
+    ), patch("lib.common.resources.services.PAGERDUTY_FILTER_SERVICE_REGEX", ""):
         filtered = filter_services(sample_services)
         assert len(filtered) == len(sample_services)
 
 
 def test_filter_services_multiple_filters(sample_services):
     """Test applying multiple filters together."""
-    with patch("lib.common.resources.services.PAGERDUTY_FILTER_TEAM", "Platform Team"), \
-         patch("lib.common.resources.services.PAGERDUTY_FILTER_USERS", ["U123"]), \
-         patch("lib.common.resources.services.PAGERDUTY_FILTER_SERVICE_REGEX", "Prod.*"):
+    with patch(
+        "lib.common.resources.services.PAGERDUTY_FILTER_TEAM", "Platform Team"
+    ), patch("lib.common.resources.services.PAGERDUTY_FILTER_USERS", ["U123"]), patch(
+        "lib.common.resources.services.PAGERDUTY_FILTER_SERVICE_REGEX", "Prod.*"
+    ):
         filtered = filter_services(sample_services)
         assert len(filtered) == 1
         assert filtered[0]["id"] == "P123"

@@ -32,7 +32,7 @@ def test_users_are_skipped_when_migrate_users_is_false(
         # Technical services
         call("services", params={"include[]": ["integrations", "teams"]}),
         # Business services
-        call("business_services")
+        call("business_services"),
     ]
 
     mock_oncall_client.list_users_with_notification_rules.assert_not_called()
@@ -230,8 +230,12 @@ class TestPagerDutyMigrationFiltering:
             [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
             [{"id": "S1", "teams": [{"summary": "Team 1"}]}],  # schedules
             [{"id": "P1", "teams": [{"summary": "Team 1"}]}],  # policies
-            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services with params
-            [{"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}],  # services
+            [
+                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
+            ],  # services with params
+            [
+                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []}
+            ],  # services
             [{"id": "V1"}],  # vendors
             [{"id": "BS1", "teams": [{"summary": "Team 1"}]}],  # business services
         ]

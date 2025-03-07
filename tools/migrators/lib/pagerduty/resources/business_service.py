@@ -4,7 +4,8 @@ PagerDuty business service resources.
 This module provides classes and functions for interacting with PagerDuty business services.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List
+
 from pdpyras import APISession
 
 
@@ -61,8 +62,11 @@ def fetch_business_services(session: APISession) -> List[BusinessService]:
     return services
 
 
-def fetch_business_service_dependencies(session: APISession, business_services: List[BusinessService],
-                                     technical_services: Dict[str, Any]) -> None:
+def fetch_business_service_dependencies(
+    session: APISession,
+    business_services: List[BusinessService],
+    technical_services: Dict[str, Any],
+) -> None:
     """
     Fetch and populate business service dependencies on technical services.
 
@@ -86,28 +90,42 @@ def fetch_business_service_dependencies(session: APISession, business_services: 
 
             # Parse the response
             dependencies_data = response
-            if hasattr(response, 'json'):
+            if hasattr(response, "json"):
                 dependencies_data = response.json()
 
             # Extract relationships from the response
-            if dependencies_data and isinstance(dependencies_data, dict) and "relationships" in dependencies_data:
+            if (
+                dependencies_data
+                and isinstance(dependencies_data, dict)
+                and "relationships" in dependencies_data
+            ):
                 for relationship in dependencies_data["relationships"]:
                     # A dependency relationship has a supporting_service that the business service depends on
                     if "supporting_service" in relationship:
                         dep_id = relationship["supporting_service"]["id"]
-                        if dep_id in technical_services:  # Only add if it's a technical service
+                        if (
+                            dep_id in technical_services
+                        ):  # Only add if it's a technical service
                             service.dependencies.append(technical_services[dep_id])
             else:
-                print(f"No valid relationship data found for business service {service.name} (ID: {service.id})")
+                print(
+                    f"No valid relationship data found for business service {service.name} (ID: {service.id})"
+                )
 
         except Exception as e:
             # Log but continue if we can't fetch dependencies for a service
-            print(f"Error fetching dependencies for business service {service.name}: {e}")
+            print(
+                f"Error fetching dependencies for business service {service.name}: {e}"
+            )
 
-    print(f"Completed fetching dependencies for {len(business_services)} business services.")
+    print(
+        f"Completed fetching dependencies for {len(business_services)} business services."
+    )
 
 
-def get_all_business_services_with_metadata(session: APISession, technical_services: Dict[str, Any]) -> List[BusinessService]:
+def get_all_business_services_with_metadata(
+    session: APISession, technical_services: Dict[str, Any]
+) -> List[BusinessService]:
     """
     Fetch all PagerDuty business services with complete metadata including dependencies.
 

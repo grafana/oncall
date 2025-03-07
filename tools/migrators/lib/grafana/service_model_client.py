@@ -1,12 +1,13 @@
-import os
+from urllib.parse import urlparse
+
 import kubernetes
 from kubernetes import client, config
-from urllib.parse import urlparse, parse_qs
 
 from lib.base_config import GRAFANA_SERVICE_ACCOUNT_URL
 
 SERVICE_MODEL_API_GROUP = "servicemodel.ext.grafana.com"
 SERVICE_MODEL_API_VERSION = "v1alpha1"
+
 
 class ServiceModelClient:
     """
@@ -23,17 +24,21 @@ class ServiceModelClient:
         """
         parsed = urlparse(url)
         if not all([parsed.scheme, parsed.netloc]):
-            raise ValueError("Invalid URL format. Expected: https://<namespace>:<token>@<server>")
+            raise ValueError(
+                "Invalid URL format. Expected: https://<namespace>:<token>@<server>"
+            )
 
         # Split username (namespace) and password (token)
-        if '@' not in parsed.netloc:
-            raise ValueError("URL must contain credentials in the format namespace:token@server")
+        if "@" not in parsed.netloc:
+            raise ValueError(
+                "URL must contain credentials in the format namespace:token@server"
+            )
 
-        auth, server = parsed.netloc.rsplit('@', 1)
-        if ':' not in auth:
+        auth, server = parsed.netloc.rsplit("@", 1)
+        if ":" not in auth:
             raise ValueError("Credentials must be in the format namespace:token")
 
-        namespace, token = auth.split(':', 1)
+        namespace, token = auth.split(":", 1)
 
         # Reconstruct server URL with scheme
         server_url = f"{parsed.scheme}://{server}{parsed.path}"
@@ -47,7 +52,9 @@ class ServiceModelClient:
         """
         if GRAFANA_SERVICE_ACCOUNT_URL:
             try:
-                server_url, namespace, token = self.parse_k8s_url(GRAFANA_SERVICE_ACCOUNT_URL)
+                server_url, namespace, token = self.parse_k8s_url(
+                    GRAFANA_SERVICE_ACCOUNT_URL
+                )
 
                 # Configure client using parsed parameters
                 configuration = client.Configuration()
@@ -63,7 +70,9 @@ class ServiceModelClient:
                 self.api_client = client.ApiClient(configuration)
 
             except ValueError as e:
-                raise ValueError(f"Failed to parse GRAFANA_SERVICE_ACCOUNT_URL: {str(e)}")
+                raise ValueError(
+                    f"Failed to parse GRAFANA_SERVICE_ACCOUNT_URL: {str(e)}"
+                )
         else:
             # Try to load default kubeconfig
             try:
@@ -99,7 +108,7 @@ class ServiceModelClient:
             group=self.api_group,
             version=self.api_version,
             namespace=namespace,
-            plural="components"
+            plural="components",
         )
 
     def get_component(self, name, namespace=None):
@@ -120,7 +129,7 @@ class ServiceModelClient:
                 version=self.api_version,
                 namespace=namespace,
                 plural="components",
-                name=name
+                name=name,
             )
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
@@ -144,7 +153,7 @@ class ServiceModelClient:
             version=self.api_version,
             namespace=namespace,
             plural="components",
-            body=component_data
+            body=component_data,
         )
 
     def update_component(self, name, component_data, namespace=None):
@@ -166,7 +175,7 @@ class ServiceModelClient:
             namespace=namespace,
             plural="components",
             name=name,
-            body=component_data
+            body=component_data,
         )
 
     def patch_component(self, name, patch_data, namespace=None):
@@ -188,7 +197,5 @@ class ServiceModelClient:
             namespace=namespace,
             plural="components",
             name=name,
-            body=patch_data
+            body=patch_data,
         )
-
-

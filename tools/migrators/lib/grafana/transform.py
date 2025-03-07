@@ -5,12 +5,15 @@ This module provides functions to transform PagerDuty technical and business ser
 into the Backstage Catalog format used by Grafana's Service Model.
 """
 
-from typing import Dict, List, Any, Optional, Union
-from lib.pagerduty.resources.services import TechnicalService
+from typing import Any, Dict, List, Union
+
 from lib.pagerduty.resources.business_service import BusinessService
+from lib.pagerduty.resources.services import TechnicalService
 
 
-def transform_service(service: Union[TechnicalService, BusinessService]) -> Dict[str, Any]:
+def transform_service(
+    service: Union[TechnicalService, BusinessService]
+) -> Dict[str, Any]:
     """
     Transform a PagerDuty service (technical or business) into a Backstage Component.
 
@@ -29,15 +32,12 @@ def transform_service(service: Union[TechnicalService, BusinessService]) -> Dict
         "apiVersion": "servicemodel.ext.grafana.com/v1alpha1",
         "kind": "Component",
         "metadata": {
-            "name": service.name.lower().replace(" ", "-"),  # Convert to k8s-friendly name
-            "annotations": {
-                "pagerduty.com/service-id": service.id
-            }
+            "name": service.name.lower().replace(
+                " ", "-"
+            ),  # Convert to k8s-friendly name
+            "annotations": {"pagerduty.com/service-id": service.id},
         },
-        "spec": {
-            "type": service_type,
-            "description": service.description
-        }
+        "spec": {"type": service_type, "description": service.description},
     }
 
     # Add status annotation for technical services
@@ -46,7 +46,9 @@ def transform_service(service: Union[TechnicalService, BusinessService]) -> Dict
 
     # Add PagerDuty URLs to annotations
     if service.html_url:
-        component["metadata"]["annotations"]["pagerduty.com/html-url"] = service.html_url
+        component["metadata"]["annotations"][
+            "pagerduty.com/html-url"
+        ] = service.html_url
     if service.self_url:
         component["metadata"]["annotations"]["pagerduty.com/api-url"] = service.self_url
 
@@ -70,7 +72,7 @@ def validate_component(component: Dict[str, Any]) -> List[str]:
         ("apiVersion", str),
         ("kind", str),
         ("metadata", dict),
-        ("spec", dict)
+        ("spec", dict),
     ]
 
     for field, field_type in required_fields:
@@ -97,7 +99,10 @@ def validate_component(component: Dict[str, Any]) -> List[str]:
         annotations = metadata["annotations"]
         if "pagerduty.com/service-id" not in annotations:
             errors.append("Required annotation missing: pagerduty.com/service-id")
-        if component["spec"]["type"] == "service" and "pagerduty.com/status" not in annotations:
+        if (
+            component["spec"]["type"] == "service"
+            and "pagerduty.com/status" not in annotations
+        ):
             errors.append("Required annotation missing: pagerduty.com/status")
 
     # Check spec requirements

@@ -5,9 +5,10 @@ This module provides functions for fetching PagerDuty services and extracting
 relevant metadata for migration to Grafana's service model.
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List
+
 from pdpyras import APISession
-import os
+
 
 class TechnicalService:
     """Class representing a PagerDuty technical service with all necessary metadata for migration."""
@@ -44,8 +45,9 @@ class TechnicalService:
         return f"TechnicalService(id={self.id}, name={self.name})"
 
 
-def fetch_services(session: APISession, include_integrations: bool = True,
-                  include_teams: bool = True) -> List[TechnicalService]:
+def fetch_services(
+    session: APISession, include_integrations: bool = True, include_teams: bool = True
+) -> List[TechnicalService]:
     """
     Fetch all PagerDuty technical services with their metadata.
 
@@ -76,7 +78,9 @@ def fetch_services(session: APISession, include_integrations: bool = True,
     return services
 
 
-def fetch_service_dependencies(session: APISession, services: List[TechnicalService]) -> None:
+def fetch_service_dependencies(
+    session: APISession, services: List[TechnicalService]
+) -> None:
     """
     Fetch and populate service dependencies using PagerDuty's service dependencies API.
 
@@ -104,19 +108,27 @@ def fetch_service_dependencies(session: APISession, services: List[TechnicalServ
             # Parse the response - depending on how pdpyras works, this might already be parsed
             # If it's already a dict, this will just use it as is
             dependencies_data = response
-            if hasattr(response, 'json'):
+            if hasattr(response, "json"):
                 dependencies_data = response.json()
 
             # Extract relationships from the response
-            if dependencies_data and isinstance(dependencies_data, dict) and "relationships" in dependencies_data:
+            if (
+                dependencies_data
+                and isinstance(dependencies_data, dict)
+                and "relationships" in dependencies_data
+            ):
                 for relationship in dependencies_data["relationships"]:
                     # A dependency relationship has a supporting_service that the current service depends on
                     if "supporting_service" in relationship:
                         dep_id = relationship["supporting_service"]["id"]
-                        if dep_id in service_map and dep_id != service.id:  # Avoid self-references
+                        if (
+                            dep_id in service_map and dep_id != service.id
+                        ):  # Avoid self-references
                             service.dependencies.append(service_map[dep_id])
             else:
-                print(f"No valid relationship data found for service {service.name} (ID: {service.id})")
+                print(
+                    f"No valid relationship data found for service {service.name} (ID: {service.id})"
+                )
 
         except Exception as e:
             # Log but continue if we can't fetch dependencies for a service
@@ -125,7 +137,9 @@ def fetch_service_dependencies(session: APISession, services: List[TechnicalServ
     print(f"Completed fetching dependencies for {len(services)} services.")
 
 
-def get_all_technical_services_with_metadata(session: APISession) -> List[TechnicalService]:
+def get_all_technical_services_with_metadata(
+    session: APISession,
+) -> List[TechnicalService]:
     """
     Fetch all PagerDuty technical services with complete metadata including dependencies.
 

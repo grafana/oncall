@@ -3,16 +3,18 @@ Common service filtering functionality.
 """
 
 import re
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from lib.pagerduty.config import (
+    PAGERDUTY_FILTER_SERVICE_REGEX,
     PAGERDUTY_FILTER_TEAM,
     PAGERDUTY_FILTER_USERS,
-    PAGERDUTY_FILTER_SERVICE_REGEX,
 )
 
 
-def filter_services(services: List[Dict[str, Any]], tab: str = "") -> List[Dict[str, Any]]:
+def filter_services(
+    services: List[Dict[str, Any]], tab: str = ""
+) -> List[Dict[str, Any]]:
     """
     Filter services based on configured filters.
 
@@ -38,7 +40,11 @@ def filter_services(services: List[Dict[str, Any]], tab: str = "") -> List[Dict[
                 reason = f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
 
         # Filter by users (for technical services)
-        if should_include and PAGERDUTY_FILTER_USERS and service.get("type") == "service":
+        if (
+            should_include
+            and PAGERDUTY_FILTER_USERS
+            and service.get("type") == "service"
+        ):
             service_users = set()
             # Get users from escalation policy if present
             if service.get("escalation_policy"):
