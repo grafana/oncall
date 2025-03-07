@@ -389,3 +389,29 @@ def test_get_source_alert_receive_channel(make_organization, make_alert_receive_
 
     assert w1.get_source_alert_receive_channel() == channel2
     assert w2.get_source_alert_receive_channel() == channel1
+
+
+@pytest.mark.django_db
+def test_personal_notification_webhook(
+    make_organization, make_user_for_organization, make_custom_webhook, make_personal_notification_webhook
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization=organization)
+    webhook = make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_PERSONAL_NOTIFICATION)
+
+    personal_webhook = make_personal_notification_webhook(user=user, webhook=webhook)
+
+    assert personal_webhook.user == user
+    assert personal_webhook.webhook == webhook
+
+    # default context data
+    assert personal_webhook.context_data == {}
+
+    # set context data
+    personal_webhook.context_data = {"foo": "bar"}
+    personal_webhook.refresh_from_db()
+    assert personal_webhook.context_data == {"foo": "bar"}
+
+    # set empty
+    personal_webhook.context_data = None
+    assert personal_webhook.context_data == {}

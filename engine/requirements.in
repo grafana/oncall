@@ -1,8 +1,8 @@
 babel==2.12.1
 beautifulsoup4==4.12.2
-celery[redis]==5.3.1
+celery[redis]==5.3.6
 cryptography==43.0.1
-django==4.2.17
+django==4.2.19
 django-add-default-value==0.10.0
 django-anymail[amazon-ses]==12.0
 django-cors-headers==3.7.0
@@ -14,7 +14,7 @@ django-ipware==4.0.2
 django-log-request-id==1.6.0
 django-migration-linter==4.1.0
 django-mirage-field==1.3.0
-django-mysql==4.6.0
+django-mysql==4.16.0
 django-polymorphic==3.1.0
 django-ratelimit==2.0.0
 django-redis==5.4.0
@@ -23,7 +23,7 @@ django-silk==5.0.3
 django-sns-view==0.1.2
 djangorestframework==3.15.2
 factory-boy<3.0
-drf-spectacular==0.26.5
+drf-spectacular==0.28.0
 emoji==2.4.0
 # If the version of grpcio is changed
 # upload a new arm64 wheel instead of /engine/grpcio-1.57.0-cp311-cp311-linux_aarch64.whl
@@ -32,6 +32,7 @@ fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.t
 hiredis==2.2.3
 humanize==4.10.0
 icalendar==5.0.10
+jinja2==3.1.6
 lxml==5.2.2
 markdown2==2.4.10
 opentelemetry-sdk==1.26.0

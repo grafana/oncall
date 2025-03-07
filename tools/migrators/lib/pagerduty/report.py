@@ -1,4 +1,5 @@
 from lib.common.report import ERROR_SIGN, SUCCESS_SIGN, TAB, WARNING_SIGN
+from lib.pagerduty.config import PRESERVE_EXISTING_USER_NOTIFICATION_RULES
 
 
 def format_user(user: dict) -> str:
@@ -88,8 +89,22 @@ def user_report(users: list[dict]) -> str:
     for user in sorted(users, key=lambda u: bool(u["oncall_user"]), reverse=True):
         result += "\n" + TAB + format_user(user)
 
-        if user["oncall_user"] and user["notification_rules"]:
-            result += " (existing notification rules will be deleted)"
+        if user["oncall_user"]:
+            if (
+                user["oncall_user"]["notification_rules"]
+                and PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+            ):
+                # already has user notification rules defined in OnCall.. we won't touch these
+                result += " (existing notification rules will be preserved due to the PRESERVE_EXISTING_USER_NOTIFICATION_RULES being set to True and this user already having notification rules defined in OnCall)"
+            elif (
+                user["oncall_user"]["notification_rules"]
+                and not PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+            ):
+                # already has user notification rules defined in OnCall.. we will overwrite these
+                result += " (existing notification rules will be overwritten due to the PRESERVE_EXISTING_USER_NOTIFICATION_RULES being set to False)"
+            elif user["notification_rules"]:
+                # user has notification rules defined in PagerDuty, but none defined in OnCall, we will migrate these
+                result += " (existing PagerDuty notification rules will be migrated due to this user not having any notification rules defined in OnCall)"
 
     return result
 

@@ -108,10 +108,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
         await UserHelper.verifyPhone(userPk, code);
         userStore.fetchItemById({ userPk });
       } else {
-        window.grecaptcha.ready(async function () {
-          const token = await window.grecaptcha.execute(rootStore.recaptchaSiteKey, {
-            action: 'mobile_verification_code',
-          });
+        async function start_verification(token) {
           await userStore.updateUser({
             pk: userPk,
             email: user.email,
@@ -121,20 +118,31 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
           switch (type) {
             case 'verification_call':
               await UserHelper.fetchVerificationCall(userPk, token);
-              setState({ isPhoneCallInitiated: true });
+              setState({isPhoneCallInitiated: true});
               if (codeInputRef.current) {
                 codeInputRef.current.focus();
               }
               break;
             case 'verification_sms':
               await UserHelper.fetchVerificationCode(userPk, token);
-              setState({ isCodeSent: true });
+              setState({isCodeSent: true});
               if (codeInputRef.current) {
                 codeInputRef.current.focus();
               }
               break;
           }
-        });
+        }
+
+        if (!rootStore.recaptchaSiteKey?.trim()) {
+          await start_verification(null)
+        } else {
+          window.grecaptcha.ready(async function () {
+          const token = await window.grecaptcha.execute(rootStore.recaptchaSiteKey, {
+            action: 'mobile_verification_code',
+          });
+            await start_verification(token);
+          });
+        }
       }
     },
     [
