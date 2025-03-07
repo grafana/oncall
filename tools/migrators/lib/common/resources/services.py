@@ -43,7 +43,7 @@ def filter_services(
         if (
             should_include
             and PAGERDUTY_FILTER_USERS
-            and service.get("type") == "service"
+            and service.get("type") != "business_service"
         ):
             service_users = set()
             # Get users from escalation policy if present
@@ -59,9 +59,9 @@ def filter_services(
 
         # Filter by name regex
         if should_include and PAGERDUTY_FILTER_SERVICE_REGEX:
-            if re.match(PAGERDUTY_FILTER_SERVICE_REGEX, service["name"]):
+            if not re.match(PAGERDUTY_FILTER_SERVICE_REGEX, service["name"]):
                 should_include = False
-                reason = f"Service regex filter: {PAGERDUTY_FILTER_SERVICE_REGEX}"
+                reason = f"Service name does not match regex: {PAGERDUTY_FILTER_SERVICE_REGEX}"
 
         if should_include:
             filtered_services.append(service)
