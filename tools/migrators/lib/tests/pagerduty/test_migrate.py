@@ -9,7 +9,7 @@ from lib.pagerduty.migrate import (
 
 
 @patch("lib.pagerduty.migrate.MIGRATE_USERS", False)
-@patch("lib.pagerduty.migrate.MIGRATE_SERVICES", False)
+@patch("lib.pagerduty.migrate.PAGERDUTY_MIGRATE_SERVICES", False)
 @patch("lib.pagerduty.migrate.APISession")
 @patch("lib.pagerduty.migrate.OnCallAPIClient")
 def test_users_are_skipped_when_migrate_users_is_false(
