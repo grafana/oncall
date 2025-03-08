@@ -417,6 +417,13 @@ This example will only migrate services that:
 - Have either user U123 or U456 in their escalation policy (for technical services)
 - Have a name starting with "Prod"
 
+### After migration
+
+- Connect integrations (press the "How to connect" button on the integration page)
+- Make sure users connect their phone numbers, Slack accounts, etc. in their user settings
+- When using `SCHEDULE_MIGRATION_MODE=ical`, at some point you would probably want to recreate schedules using
+  Google Calendar or Terraform to be able to modify migrated on-call schedules in Grafana OnCall
+
 ## Splunk OnCall
 
 ### Overview
@@ -535,10 +542,3 @@ docker run --rm \
 -e SPLUNK_API_KEY="<SPLUNK_API_KEY>" \
 oncall-migrator python /app/add_users_to_grafana.py
 ```
-
-### After migration
-
-- Connect integrations (press the "How to connect" button on the integration page)
-- Make sure users connect their phone numbers, Slack accounts, etc. in their user settings
-- When using `SCHEDULE_MIGRATION_MODE=ical`, at some point you would probably want to recreate schedules using
-  Google Calendar or Terraform to be able to modify migrated on-call schedules in Grafana OnCall
