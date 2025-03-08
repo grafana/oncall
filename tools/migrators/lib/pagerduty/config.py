@@ -40,22 +40,31 @@ UNSUPPORTED_INTEGRATION_TO_WEBHOOKS = (
 
 MIGRATE_USERS = os.getenv("MIGRATE_USERS", "true").lower() == "true"
 
+# Whether to migrate PagerDuty services to Grafana's service model
+PAGERDUTY_MIGRATE_SERVICES = (
+    os.getenv("PAGERDUTY_MIGRATE_SERVICES", "false").lower() == "true"
+)
+
 # Filter resources by team
-PAGERDUTY_FILTER_TEAM = os.getenv("PAGERDUTY_FILTER_TEAM")
+PAGERDUTY_FILTER_TEAM = os.getenv("PAGERDUTY_FILTER_TEAM", "")
 
 # Filter resources by users (comma-separated list of PagerDuty user IDs)
-PAGERDUTY_FILTER_USERS = [
-    user_id.strip()
-    for user_id in os.getenv("PAGERDUTY_FILTER_USERS", "").split(",")
-    if user_id.strip()
-]
+PAGERDUTY_FILTER_USERS = (
+    os.getenv("PAGERDUTY_FILTER_USERS", "").split(",")
+    if os.getenv("PAGERDUTY_FILTER_USERS")
+    else []
+)
 
 # Filter resources by name regex patterns
-PAGERDUTY_FILTER_SCHEDULE_REGEX = os.getenv("PAGERDUTY_FILTER_SCHEDULE_REGEX")
+PAGERDUTY_FILTER_SCHEDULE_REGEX = os.getenv("PAGERDUTY_FILTER_SCHEDULE_REGEX", "")
 PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX = os.getenv(
-    "PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX"
+    "PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX", ""
 )
-PAGERDUTY_FILTER_INTEGRATION_REGEX = os.getenv("PAGERDUTY_FILTER_INTEGRATION_REGEX")
+PAGERDUTY_FILTER_INTEGRATION_REGEX = os.getenv("PAGERDUTY_FILTER_INTEGRATION_REGEX", "")
+
+# Filter services by name regex pattern. Only applies to services being migrated to Grafana's service model.
+# This filter can be used to selectively migrate specific services based on their names.
+PAGERDUTY_FILTER_SERVICE_REGEX = os.getenv("PAGERDUTY_FILTER_SERVICE_REGEX", "")
 
 # Whether to preserve existing notification rules when migrating users
 PRESERVE_EXISTING_USER_NOTIFICATION_RULES = (

@@ -1,3 +1,5 @@
+from typing import Any, List
+
 from lib.common.report import ERROR_SIGN, SUCCESS_SIGN, TAB, WARNING_SIGN
 from lib.pagerduty.config import PRESERVE_EXISTING_USER_NOTIFICATION_RULES
 
@@ -211,5 +213,54 @@ def ruleset_report(rulesets: list[dict]) -> str:
             result += " (existing integration with name '{}' will be deleted)".format(
                 ruleset["oncall_name"]
             )
+
+    return result
+
+
+def format_service(service: Any, will_be_migrated: bool = True) -> str:
+    """Format a service for reporting."""
+    service_type = (
+        "Business Service"
+        if hasattr(service, "business_service")
+        else "Technical Service"
+    )
+    result = f"{service.name} ({service_type})"
+
+    if not will_be_migrated:
+        result = f"{ERROR_SIGN} {result} — Service was filtered out"
+    elif hasattr(service, "migration_errors") and service.migration_errors:
+        result = f"{ERROR_SIGN} {result} — {service.migration_errors}"
+    else:
+        result = f"{SUCCESS_SIGN} {result}"
+
+    return result
+
+
+def services_report(
+    all_technical_services: List[Any],
+    all_business_services: List[Any],
+    filtered_technical_services: List[Any],
+    filtered_business_services: List[Any],
+) -> str:
+    """Generate a report of services to be migrated."""
+    result = "Services migration report:"
+
+    # Create sets of service IDs that will be migrated
+    technical_ids = {s.id for s in filtered_technical_services}
+    business_ids = {s.id for s in filtered_business_services}
+
+    # Report technical services
+    result += "\n" + TAB + "Technical Services:"
+    for service in sorted(
+        all_technical_services, key=lambda service: service.id not in technical_ids
+    ):
+        result += "\n" + TAB * 2 + format_service(service, service.id in technical_ids)
+
+    # Report business services
+    result += "\n" + TAB + "Business Services:"
+    for service in sorted(
+        all_business_services, key=lambda service: service.id not in business_ids
+    ):
+        result += "\n" + TAB * 2 + format_service(service, service.id in business_ids)
 
     return result
