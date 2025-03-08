@@ -1,5 +1,5 @@
 import { OrgRole } from '@grafana/data';
-import { expect, APIRequestContext } from '@playwright/test';
+import { expect, APIRequestContext, APIResponse } from '@playwright/test';
 
 import { BASE_URL, GRAFANA_ADMIN_PASSWORD, GRAFANA_ADMIN_USERNAME } from '../constants';
 
@@ -128,6 +128,14 @@ class GrafanaAPIClient {
     const data: GetSettingsResponse = await res.json();
     return data.buildInfo.version;
   };
+
+  makeRequest = async (request: APIRequestContext, path: string, method: 'get' | 'post' | 'put' | 'delete' = 'post'): Promise<APIResponse> => {
+    const res = await request[method](`${BASE_URL}/api/plugins/grafana-oncall-app/${path.replace(/^\//, '')}`, {
+      headers: this.requestHeaders,
+    });
+    expect(res.ok()).toBeTruthy();
+    return res;
+  }
 }
 
 const grafanaAPIClient = new GrafanaAPIClient(GRAFANA_ADMIN_USERNAME, GRAFANA_ADMIN_PASSWORD);
