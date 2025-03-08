@@ -406,12 +406,9 @@ docker run --rm \
 -e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
 -e PAGERDUTY_FILTER_TEAM="Platform Team" \
-
 -e PAGERDUTY_FILTER_USERS="U123,U456" \
 -e PAGERDUTY_FILTER_SERVICE_REGEX="Prod.*" \
 oncall-migrator
-
-
 ```
 
 This example will only migrate services that:
@@ -419,13 +416,6 @@ This example will only migrate services that:
 - Belong to the "Platform Team"
 - Have either user U123 or U456 in their escalation policy (for technical services)
 - Have a name starting with "Prod"
-
-### After migration
-
-- Connect integrations (press the "How to connect" button on the integration page)
-- Make sure users connect their phone numbers, Slack accounts, etc. in their user settings
-- When using `SCHEDULE_MIGRATION_MODE=ical`, at some point you would probably want to recreate schedules using
-  Google Calendar or Terraform to be able to modify migrated on-call schedules in Grafana OnCall
 
 ## Splunk OnCall
 
