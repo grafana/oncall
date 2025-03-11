@@ -2,111 +2,109 @@
 Unit tests for the Grafana Service Model transformation logic.
 """
 
-import unittest
 from unittest.mock import Mock
+
+import pytest
 
 from lib.grafana.transform import transform_service, validate_component
 from lib.pagerduty.resources.business_service import BusinessService
 from lib.pagerduty.resources.services import TechnicalService
 
 
-class TestTransform(unittest.TestCase):
-    """Test cases for the transformation functions."""
+@pytest.fixture
+def technical_service():
+    """Create a mock technical service for testing."""
+    service = Mock(spec=TechnicalService)
+    service.name = "Test Service"
+    service.description = "A test service"
+    service.id = "P123456"
+    service.status = "active"
+    service.html_url = "https://pagerduty.com/services/P123456"
+    service.self_url = "https://api.pagerduty.com/services/P123456"
+    return service
 
-    def setUp(self):
-        """Set up test data."""
-        # Create a mock technical service
-        self.technical_service = Mock(spec=TechnicalService)
-        self.technical_service.name = "Test Service"
-        self.technical_service.description = "A test service"
-        self.technical_service.id = "P123456"
-        self.technical_service.status = "active"
-        self.technical_service.html_url = "https://pagerduty.com/services/P123456"
-        self.technical_service.self_url = "https://api.pagerduty.com/services/P123456"
 
-        # Create a mock business service
-        self.business_service = Mock(spec=BusinessService)
-        self.business_service.name = "Test Business Service"
-        self.business_service.description = "A test business service"
-        self.business_service.id = "P789012"
-        self.business_service.html_url = "https://pagerduty.com/services/P789012"
-        self.business_service.self_url = "https://api.pagerduty.com/services/P789012"
+@pytest.fixture
+def business_service():
+    """Create a mock business service for testing."""
+    service = Mock(spec=BusinessService)
+    service.name = "Test Business Service"
+    service.description = "A test business service"
+    service.id = "P789012"
+    service.html_url = "https://pagerduty.com/services/P789012"
+    service.self_url = "https://api.pagerduty.com/services/P789012"
+    return service
 
-    def test_transform_technical_service(self):
-        """Test transforming a technical service."""
-        component = transform_service(self.technical_service)
 
-        # Verify the component structure
-        self.assertEqual(
-            component["apiVersion"], "servicemodel.ext.grafana.com/v1alpha1"
-        )
-        self.assertEqual(component["kind"], "Component")
-        self.assertEqual(component["metadata"]["name"], "test-service")
-        self.assertEqual(component["spec"]["type"], "service")
-        self.assertEqual(component["spec"]["description"], "A test service")
+def test_transform_technical_service(technical_service):
+    """Test transforming a technical service."""
+    component = transform_service(technical_service)
 
-        # Verify annotations
-        annotations = component["metadata"]["annotations"]
-        self.assertEqual(annotations["pagerduty.com/service-id"], "P123456")
-        self.assertEqual(annotations["pagerduty.com/status"], "active")
-        self.assertEqual(
-            annotations["pagerduty.com/html-url"],
-            "https://pagerduty.com/services/P123456",
-        )
-        self.assertEqual(
-            annotations["pagerduty.com/api-url"],
-            "https://api.pagerduty.com/services/P123456",
-        )
+    # Verify the component structure
+    assert component["apiVersion"] == "servicemodel.ext.grafana.com/v1alpha1"
+    assert component["kind"] == "Component"
+    assert component["metadata"]["name"] == "test-service"
+    assert component["spec"]["type"] == "service"
+    assert component["spec"]["description"] == "A test service"
 
-    def test_transform_business_service(self):
-        """Test transforming a business service."""
-        component = transform_service(self.business_service)
+    # Verify annotations
+    annotations = component["metadata"]["annotations"]
+    assert annotations["pagerduty.com/service-id"] == "P123456"
+    assert annotations["pagerduty.com/status"] == "active"
+    assert (
+        annotations["pagerduty.com/html-url"]
+        == "https://pagerduty.com/services/P123456"
+    )
+    assert (
+        annotations["pagerduty.com/api-url"]
+        == "https://api.pagerduty.com/services/P123456"
+    )
 
-        # Verify the component structure
-        self.assertEqual(
-            component["apiVersion"], "servicemodel.ext.grafana.com/v1alpha1"
-        )
-        self.assertEqual(component["kind"], "Component")
-        self.assertEqual(component["metadata"]["name"], "test-business-service")
-        self.assertEqual(component["spec"]["type"], "business_service")
-        self.assertEqual(component["spec"]["description"], "A test business service")
 
-        # Verify annotations
-        annotations = component["metadata"]["annotations"]
-        self.assertEqual(annotations["pagerduty.com/service-id"], "P789012")
-        self.assertEqual(
-            annotations["pagerduty.com/html-url"],
-            "https://pagerduty.com/services/P789012",
-        )
-        self.assertEqual(
-            annotations["pagerduty.com/api-url"],
-            "https://api.pagerduty.com/services/P789012",
-        )
+def test_transform_business_service(business_service):
+    """Test transforming a business service."""
+    component = transform_service(business_service)
 
-    def test_validate_component(self):
-        """Test component validation."""
-        # Test valid component
-        valid_component = {
-            "apiVersion": "servicemodel.ext.grafana.com/v1alpha1",
-            "kind": "Component",
-            "metadata": {
-                "name": "test-service",
-                "annotations": {
-                    "pagerduty.com/service-id": "P123456",
-                    "pagerduty.com/status": "active",
-                },
+    # Verify the component structure
+    assert component["apiVersion"] == "servicemodel.ext.grafana.com/v1alpha1"
+    assert component["kind"] == "Component"
+    assert component["metadata"]["name"] == "test-business-service"
+    assert component["spec"]["type"] == "business_service"
+    assert component["spec"]["description"] == "A test business service"
+
+    # Verify annotations
+    annotations = component["metadata"]["annotations"]
+    assert annotations["pagerduty.com/service-id"] == "P789012"
+    assert (
+        annotations["pagerduty.com/html-url"]
+        == "https://pagerduty.com/services/P789012"
+    )
+    assert (
+        annotations["pagerduty.com/api-url"]
+        == "https://api.pagerduty.com/services/P789012"
+    )
+
+
+def test_validate_component():
+    """Test component validation."""
+    # Test valid component
+    valid_component = {
+        "apiVersion": "servicemodel.ext.grafana.com/v1alpha1",
+        "kind": "Component",
+        "metadata": {
+            "name": "test-service",
+            "annotations": {
+                "pagerduty.com/service-id": "P123456",
+                "pagerduty.com/status": "active",
             },
-            "spec": {"type": "service", "description": "A test service"},
-        }
-        errors = validate_component(valid_component)
-        self.assertEqual(errors, [])
+        },
+        "spec": {"type": "service", "description": "A test service"},
+    }
+    errors = validate_component(valid_component)
+    assert errors == []
 
-        # Test missing required field
-        invalid_component = valid_component.copy()
-        del invalid_component["spec"]
-        errors = validate_component(invalid_component)
-        self.assertIn("Missing required field: spec", errors)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    # Test missing required field
+    invalid_component = valid_component.copy()
+    del invalid_component["spec"]
+    errors = validate_component(invalid_component)
+    assert "Missing required field: spec" in errors

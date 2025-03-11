@@ -296,28 +296,32 @@ def migrate() -> None:
                 services,
                 integrations,
             )
+    if PAGERDUTY_MIGRATE_SERVICES:
+        client = ServiceModelClient()
+        # Get all services
+        all_technical_services = get_all_technical_services_with_metadata(session)
+        technical_service_map = {
+            service.id: service for service in all_technical_services
+        }
+        all_business_services = get_all_business_services_with_metadata(
+            session, technical_service_map
+        )
 
-    client = ServiceModelClient()
-    # Get all services
-    all_technical_services = get_all_technical_services_with_metadata(session)
-    technical_service_map = {service.id: service for service in all_technical_services}
-    all_business_services = get_all_business_services_with_metadata(
-        session, technical_service_map
-    )
+        # Apply filters to services
+        filtered_technical_data = filter_services(
+            [service.raw_data for service in all_technical_services], TAB
+        )
+        filtered_business_data = filter_services(
+            [service.raw_data for service in all_business_services], TAB
+        )
 
-    # Apply filters to services
-    filtered_technical_data = filter_services(
-        [service.raw_data for service in all_technical_services], TAB
-    )
-    filtered_business_data = filter_services(
-        [service.raw_data for service in all_business_services], TAB
-    )
-
-    # Convert filtered data back to service objects
-    technical_services = [
-        TechnicalService(service) for service in filtered_technical_data
-    ]
-    business_services = [BusinessService(service) for service in filtered_business_data]
+        # Convert filtered data back to service objects
+        technical_services = [
+            TechnicalService(service) for service in filtered_technical_data
+        ]
+        business_services = [
+            BusinessService(service) for service in filtered_business_data
+        ]
 
     if MODE == MODE_PLAN:
         print(user_report(users), end="\n\n")

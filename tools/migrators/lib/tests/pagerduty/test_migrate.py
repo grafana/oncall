@@ -9,17 +9,14 @@ from lib.pagerduty.migrate import (
 
 
 @patch("lib.pagerduty.migrate.MIGRATE_USERS", False)
-@patch("lib.pagerduty.migrate.ServiceModelClient")
 @patch("lib.pagerduty.migrate.APISession")
 @patch("lib.pagerduty.migrate.OnCallAPIClient")
 def test_users_are_skipped_when_migrate_users_is_false(
-    MockOnCallAPIClient, MockAPISession, MockServiceModelClient
+    MockOnCallAPIClient, MockAPISession
 ):
     mock_session = MockAPISession.return_value
     mock_session.list_all.return_value = []
     mock_oncall_client = MockOnCallAPIClient.return_value
-    mock_service_client = MockServiceModelClient.return_value
-    mock_service_client.get_components.return_value = []
 
     migrate()
 
@@ -32,10 +29,6 @@ def test_users_are_skipped_when_migrate_users_is_false(
         call("escalation_policies", params={"include[]": "teams"}),
         call("services", params={"include[]": ["integrations", "teams"]}),
         call("vendors"),
-        # Technical services
-        call("services", params={"include[]": ["integrations", "teams"]}),
-        # Business services
-        call("business_services"),
     ]
 
     mock_oncall_client.list_users_with_notification_rules.assert_not_called()
@@ -223,10 +216,8 @@ class TestPagerDutyMigrationFiltering:
     @patch("lib.pagerduty.migrate.filter_integrations")
     @patch("lib.pagerduty.migrate.APISession")
     @patch("lib.pagerduty.migrate.OnCallAPIClient")
-    @patch("lib.pagerduty.migrate.ServiceModelClient")
     def test_migrate_with_team_filter(
         self,
-        MockServiceModelClient,
         MockOnCallAPIClient,
         MockAPISession,
         mock_filter_integrations,
@@ -251,8 +242,6 @@ class TestPagerDutyMigrationFiltering:
         mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
         mock_oncall_client = MockOnCallAPIClient.return_value
         mock_oncall_client.list_all.return_value = []
-        mock_service_client = MockServiceModelClient.return_value
-        mock_service_client.get_components.return_value = []
 
         # Run migration
         migrate()
@@ -272,8 +261,6 @@ class TestPagerDutyMigrationFiltering:
             call("escalation_policies", params={"include[]": "teams"}),
             call("services", params={"include[]": ["integrations", "teams"]}),
             call("vendors"),
-            call("services", params={"include[]": ["integrations", "teams"]}),
-            call("business_services"),
         ]
 
     @patch("lib.pagerduty.migrate.PAGERDUTY_FILTER_USERS", ["USER1"])

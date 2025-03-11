@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 import kubernetes
-from kubernetes import client, config
+from kubernetes import client
 
 from lib.base_config import GRAFANA_SERVICE_ACCOUNT_URL
 
@@ -74,17 +74,10 @@ class ServiceModelClient:
                     f"Failed to parse GRAFANA_SERVICE_ACCOUNT_URL: {str(e)}"
                 )
         else:
-            # Try to load default kubeconfig
-            try:
-                config.load_kube_config()
-                self.api_client = client.ApiClient()
-                self.default_namespace = "default"
-                print("Loaded KUBECONFIG")
-            except config.config_exception.ConfigException:
-                raise ValueError(
-                    "Unable to configure Kubernetes client. Please set: "
-                    "GRAFANA_SERVICE_ACCOUNT_URL (format: https://<namespace>:<token>@<server>) "
-                )
+            raise ValueError(
+                "Unable to configure Kubernetes client. Please set: "
+                "GRAFANA_SERVICE_ACCOUNT_URL (format: https://<namespace>:<token>@<server>) "
+            )
 
         # Base API group and version for service model resources
         self.api_group = SERVICE_MODEL_API_GROUP
