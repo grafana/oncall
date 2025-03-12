@@ -1,12 +1,12 @@
-FROM python:3.11-slim
+FROM python:3.12.3-alpine3.18
 
+ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY requirements.txt requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
-# Copy source code
 COPY . .
 
 # Create data directory and generate session ID
@@ -16,8 +16,4 @@ RUN mkdir -p /app/data && \
 # Set session file location
 ENV SESSION_FILE=/app/data/.session
 
-# Create volume for persistent session ID
-VOLUME /app/data
-
-ENTRYPOINT ["python", "-m"]
-CMD ["main"]
+CMD ["python3", "main.py"]
