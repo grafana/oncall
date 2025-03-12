@@ -6,6 +6,7 @@ Currently the migration tool supports migrating from:
 
 - PagerDuty
 - Splunk OnCall (VictorOps)
+- OpsGenie
 
 ## Getting Started
 
@@ -15,6 +16,7 @@ Currently the migration tool supports migrating from:
 4. Depending on which tool you are migrating from, see more specific instructions there:
    - [PagerDuty](#prerequisites)
    - [Splunk OnCall](#prerequisites-1)
+   - [OpsGenie](#prerequisites-2)
 5. Run a [migration plan](#migration-plan)
 6. If you are pleased with the results of the migration plan, run the tool in [migrate mode](#migration)
 
@@ -44,6 +46,18 @@ docker run --rm \
 -e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
 -e SPLUNK_API_ID="<SPLUNK_API_ID>" \
 -e SPLUNK_API_KEY="<SPLUNK_API_KEY>" \
+oncall-migrator
+```
+
+#### OpsGenie
+
+```shell
+docker run --rm \
+-e MIGRATING_FROM="opsgenie" \
+-e MODE="plan" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e OPSGENIE_API_KEY="<OPSGENIE_API_KEY>" \
 oncall-migrator
 ```
 
@@ -101,6 +115,18 @@ docker run --rm \
 -e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
 -e SPLUNK_API_ID="<SPLUNK_API_ID>" \
 -e SPLUNK_API_KEY="<SPLUNK_API_KEY>" \
+oncall-migrator
+```
+
+#### OpsGenie
+
+```shell
+docker run --rm \
+-e MIGRATING_FROM="opsgenie" \
+-e MODE="migrate" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e OPSGENIE_API_KEY="<OPSGENIE_API_KEY>" \
 oncall-migrator
 ```
 
@@ -419,6 +445,117 @@ See [Migrating Users](#migrating-users) for some more information on how users a
 - Note that delays between escalation steps may be slightly different in Grafana OnCall,
   see [Limitations](#limitations-1) for more info.
 
+
+## OpsGenie
+
+### Overview
+
+Resources that can be migrated using this tool:
+
+- User notification rules
+- On-call schedules (including rotations and time restrictions)
+- Escalation policies
+- Integrations
+
+### Limitations
+
+- Not all integration types are supported
+- Delays between migrated notification/escalation rules could be slightly different from original
+- Some OpsGenie-specific features like custom user roles and team routing rules are not migrated
+
+### Prerequisites
+
+- Obtain an OpsGenie API key: <https://docs.opsgenie.com/docs/api-key-management>
+
+### Configuration
+
+Configuration is done via environment variables passed to the docker container.
+
+| Name                                    | Description                                                                                                                                                                                                                | Type                                | Default |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------- |
+| `MIGRATING_FROM`                        | Set to `opsgenie`                                                                                                                                                                                                          | String                              | N/A     |
+| `OPSGENIE_API_KEY`                      | OpsGenie API key. To create a key, refer to [OpsGenie docs](https://docs.opsgenie.com/docs/api-key-management).                                                                                                            | String                              | N/A     |
+| `OPSGENIE_API_URL`                      | OpsGenie API URL. Use `https://api.eu.opsgenie.com/v2` for EU instances.                                                                                                                                                  | String                              | `https://api.opsgenie.com/v2` |
+| `ONCALL_API_URL`                        | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                                          | String                              | N/A     |
+| `ONCALL_API_TOKEN`                      | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                                              | String                              | N/A     |
+| `MODE`                                  | Migration mode (plan vs actual migration).                                                                                                                                                                                 | String (choices: `plan`, `migrate`) | `plan`  |
+| `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS`   | When set to `true`, integrations with unsupported type will be migrated to Grafana OnCall integrations with type "webhook". When set to `false`, integrations with unsupported type won't be migrated.                    | Boolean                             | `false` |
+| `MIGRATE_USERS`                         | If `false`, will allow you to import all objects while ignoring user references in schedules and escalation policies. In addition, if `false`, will also skip importing User notification rules.                            | Boolean                             | `true`  |
+| `OPSGENIE_FILTER_TEAM`                  | Filter resources by team name. Only resources associated with this team will be migrated.                                                                                                                                  | String                              | N/A     |
+| `OPSGENIE_FILTER_USERS`                 | Filter resources by OpsGenie user IDs (comma-separated). Only resources associated with these users will be migrated.                                                                                                      | String                              | N/A     |
+| `OPSGENIE_FILTER_SCHEDULE_REGEX`        | Filter schedules by name using a regex pattern. Only schedules whose names match this pattern will be migrated.                                                                                                            | String                              | N/A     |
+| `OPSGENIE_FILTER_ESCALATION_POLICY_REGEX` | Filter escalation policies by name using a regex pattern. Only policies whose names match this pattern will be migrated.                                                                                                   | String                              | N/A     |
+| `OPSGENIE_FILTER_INTEGRATION_REGEX`     | Filter integrations by name using a regex pattern. Only integrations whose names match this pattern will be migrated.                                                                                                      | String                              | N/A     |
+| `PRESERVE_EXISTING_USER_NOTIFICATION_RULES` | Whether to preserve existing notification rules when migrating users                                                                                                                                                      | Boolean                             | `true`  |
+
+### Resources
+
+#### User notification rules
+
+The tool is capable of migrating user notification rules from OpsGenie to Grafana OnCall.
+Notification rules from OpsGenie will be migrated to both default and important notification rules in Grafana OnCall
+for each user. Note that delays between notification rules may be slightly different in Grafana OnCall.
+
+By default (when `PRESERVE_EXISTING_USER_NOTIFICATION_RULES` is `true`), existing notification rules in Grafana OnCall will
+be preserved and OpsGenie rules won't be imported for users who already have notification rules configured in Grafana OnCall.
+
+If you want to replace existing notification rules with ones from OpsGenie, set `PRESERVE_EXISTING_USER_NOTIFICATION_RULES`
+to `false`.
+
+See [Migrating Users](#migrating-users) for some more information on how users are migrated.
+
+#### On-call schedules
+
+The tool is capable of migrating on-call schedules from OpsGenie to Grafana OnCall.
+Schedules are migrated with their rotations and time restrictions. The following features are supported:
+
+- Daily, weekly, and hourly rotations
+- Time restrictions (weekday and time of day)
+- Multiple rotations per schedule
+- Schedule overrides
+
+On-call schedules will be migrated to new Grafana OnCall schedules with the same name as in OpsGenie.
+Any existing schedules with the same name will be deleted before migration.
+Any on-call schedules that reference unmatched users won't be migrated.
+
+#### Escalation policies
+
+The tool is capable of migrating escalation policies from OpsGenie to Grafana OnCall.
+Every escalation policy will be migrated to a new Grafana OnCall escalation chain with the same name.
+
+Any existing escalation chains with the same name will be deleted before migration.
+Any escalation policies that reference unmatched users or schedules that cannot be migrated won't be migrated.
+
+Note that delays between escalation steps may be slightly different in Grafana OnCall.
+
+#### Integrations
+
+The tool is capable of migrating integrations from OpsGenie to Grafana OnCall.
+For every integration in OpsGenie, the tool will migrate it to a Grafana OnCall integration.
+
+Any integrations that reference escalation policies that cannot be migrated won't be migrated.
+Any integrations with unsupported type won't be migrated unless `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS` is set to `true`.
+
+The following integration types are supported:
+
+- Datadog
+- Pingdom
+- Prometheus
+- PRTG
+- Google Stackdriver
+- UptimeRobot
+- New Relic
+- Zabbix
+- Elastic
+- Firebase
+- Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
+
+### After migration
+
+- Connect integrations (press the "How to connect" button on the integration page)
+- Make sure users connect their phone numbers, Slack accounts, etc. in their user settings
+- Review and adjust any webhook integrations that were migrated from unsupported OpsGenie integration types
+
 ## Migrating Users
 
 Note that users are matched by email, so if there are users in the report with "no Grafana OnCall user found with
@@ -451,5 +588,18 @@ docker run --rm \
 -e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
 -e SPLUNK_API_ID="<SPLUNK_API_ID>" \
 -e SPLUNK_API_KEY="<SPLUNK_API_KEY>" \
+oncall-migrator python /app/add_users_to_grafana.py
+```
+
+### OpsGenie
+
+```bash
+docker run --rm \
+-e MIGRATING_FROM="opsgenie" \
+-e GRAFANA_URL="<GRAFANA_API_URL>" \
+-e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
+-e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
+-e OPSGENIE_API_KEY="<OPSGENIE_API_KEY>" \
+-e OPSGENIE_API_URL="<OPSGENIE_API_URL>" \
 oncall-migrator python /app/add_users_to_grafana.py
 ```

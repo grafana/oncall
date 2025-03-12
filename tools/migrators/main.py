@@ -1,4 +1,4 @@
-from lib.base_config import MIGRATING_FROM, PAGERDUTY, SPLUNK
+from lib.base_config import MIGRATING_FROM, PAGERDUTY, SPLUNK, OPSGENIE
 
 if __name__ == "__main__":
     if MIGRATING_FROM == PAGERDUTY:
@@ -7,6 +7,10 @@ if __name__ == "__main__":
         migrate()
     elif MIGRATING_FROM == SPLUNK:
         from lib.splunk.migrate import migrate
+
+        migrate()
+    elif MIGRATING_FROM == OPSGENIE:
+        from lib.opsgenie.migrate import migrate
 
         migrate()
     else:

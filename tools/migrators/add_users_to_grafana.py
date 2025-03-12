@@ -5,14 +5,18 @@ from pdpyras import APISession
 
 from lib.grafana.api_client import GrafanaAPIClient
 from lib.splunk.api_client import SplunkOnCallAPIClient
+from lib.opsgenie.api_client import OpsGenieAPIClient
 
 MIGRATING_FROM = os.environ["MIGRATING_FROM"]
 PAGERDUTY = "pagerduty"
 SPLUNK = "splunk"
+OPSGENIE = "opsgenie"
 
 PAGERDUTY_API_TOKEN = os.environ.get("PAGERDUTY_API_TOKEN")
 SPLUNK_API_ID = os.environ.get("SPLUNK_API_ID")
 SPLUNK_API_KEY = os.environ.get("SPLUNK_API_KEY")
+OPSGENIE_API_KEY = os.environ.get("OPSGENIE_API_KEY")
+OPSGENIE_API_URL = os.environ.get("OPSGENIE_API_URL", "https://api.opsgenie.com/v2")
 
 GRAFANA_URL = os.environ["GRAFANA_URL"]  # Example: http://localhost:3000
 GRAFANA_USERNAME = os.environ["GRAFANA_USERNAME"]
@@ -36,6 +40,12 @@ def migrate_splunk_users():
         create_grafana_user(f"{user['firstName']} {user['lastName']}", user["email"])
 
 
+def migrate_opsgenie_users():
+    client = OpsGenieAPIClient(OPSGENIE_API_KEY, OPSGENIE_API_URL)
+    for user in client.fetch_users():
+        create_grafana_user(user["fullName"], user["username"])
+
+
 def create_grafana_user(name: str, email: str):
     response = grafana_client.create_user_with_random_password(name, email)
 
@@ -54,5 +64,7 @@ if __name__ == "__main__":
         migrate_pagerduty_users()
     elif MIGRATING_FROM == SPLUNK:
         migrate_splunk_users()
+    elif MIGRATING_FROM == OPSGENIE:
+        migrate_opsgenie_users()
     else:
         raise ValueError("Invalid value for MIGRATING_FROM")
