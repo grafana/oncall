@@ -1,9 +1,6 @@
 import typing
-from urllib.parse import urljoin
 
-import requests
-
-from lib.network import make_request
+from lib.network import api_call
 from lib.opsgenie.config import OPSGENIE_API_KEY, OPSGENIE_API_URL
 
 
@@ -23,8 +20,7 @@ class OpsGenieAPIClient:
         params: typing.Optional[dict] = None,
         json: typing.Optional[dict] = None,
     ) -> dict:
-        url = urljoin(self.api_url, path)
-        return make_request(method, url, headers=self.headers, params=params, json=json)
+        return api_call(method, self.api_url, path, headers=self.headers, params=params, json=json)
 
     def list_users(self) -> list[dict]:
         """List all users with their notification rules."""
