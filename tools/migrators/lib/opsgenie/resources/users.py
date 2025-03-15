@@ -21,12 +21,12 @@ def match_users_and_schedules_for_escalation_policy(
     policy["matched_schedules"] = []
 
     for rule in policy["rules"]:
-        for recipient in rule["recipients"]:
-            if recipient["type"] == "user":
-                for user in users:
-                    if user["id"] == recipient["id"] and user.get("oncall_user"):
-                        policy["matched_users"].append(user)
-            elif recipient["type"] == "schedule":
-                for schedule in schedules:
-                    if schedule["id"] == recipient["id"] and not schedule.get("migration_errors"):
-                        policy["matched_schedules"].append(schedule)
+        recipient = rule.get("recipient", {})
+        if recipient.get("type") == "user":
+            for user in users:
+                if user["id"] == recipient.get("id") and user.get("oncall_user"):
+                    policy["matched_users"].append(user)
+        elif recipient.get("type") == "schedule":
+            for schedule in schedules:
+                if schedule["id"] == recipient.get("id") and not schedule.get("migration_errors"):
+                    policy["matched_schedules"].append(schedule)

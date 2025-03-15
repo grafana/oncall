@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from lib.oncall.api_client import OnCallAPIClient
 from lib.utils import transform_wait_delay
@@ -14,23 +14,24 @@ def match_escalation_policy(policy: dict, oncall_escalation_chains: List[dict]) 
     policy["oncall_escalation_chain"] = oncall_chain
 
 
-def match_users_and_schedules_for_escalation_policy(
-    policy: dict, users: List[dict], schedules: List[dict]
-) -> None:
-    """Match users and schedules referenced in escalation policy."""
-    policy["matched_users"] = []
-    policy["matched_schedules"] = []
+def match_escalation_policy_for_integration(integration: dict, policies: List[dict]) -> None:
+    """Match OpsGenie integration with its escalation policy."""
+    integration["matched_escalation_policy"] = None
 
-    for rule in policy["rules"]:
-        for recipient in rule["recipients"]:
-            if recipient["type"] == "user":
-                for user in users:
-                    if user["id"] == recipient["id"] and user.get("oncall_user"):
-                        policy["matched_users"].append(user)
-            elif recipient["type"] == "schedule":
-                for schedule in schedules:
-                    if schedule["id"] == recipient["id"] and not schedule.get("migration_errors"):
-                        policy["matched_schedules"].append(schedule)
+    # First try to match by ID if the integration has a policy ID
+    if integration.get("escalationPolicyId"):
+        for policy in policies:
+            if policy["id"] == integration["escalationPolicyId"]:
+                integration["matched_escalation_policy"] = policy
+                return
+
+    # If no match by ID, try to match by name
+    # Some integrations might reference the policy by name instead of ID
+    if integration.get("escalationPolicyName"):
+        for policy in policies:
+            if policy["name"].lower().strip() == integration["escalationPolicyName"].lower().strip():
+                integration["matched_escalation_policy"] = policy
+                return
 
 
 def migrate_escalation_policy(
