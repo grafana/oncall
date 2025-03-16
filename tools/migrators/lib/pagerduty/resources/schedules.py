@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Optional
 from uuid import uuid4
 
+from lib.constants import ONCALL_SHIFT_WEB_SOURCE
 from lib.oncall.api_client import OnCallAPIClient
 from lib.pagerduty.config import (
     SCHEDULE_MIGRATION_MODE,
@@ -243,7 +244,7 @@ class Layer:
                     "start_rotation_from_user_index": 0,
                     "week_start": "MO",
                     "time_zone": "UTC",
-                    "source": 0,  # 0 is alias for "web"
+                    "source": ONCALL_SHIFT_WEB_SOURCE,
                 }
             ], None
 
@@ -363,7 +364,7 @@ class Layer:
                 "start_rotation_from_user_index": 0,
                 "week_start": shift[2],
                 "time_zone": "UTC",
-                "source": 0,  # 0 is alias for "web"
+                "source": ONCALL_SHIFT_WEB_SOURCE,
             }
             payloads.append(payload)
         return payloads, None
@@ -594,5 +595,5 @@ class Override:
             "duration": duration,
             "rotation_start": start,
             "users": [user_id],
-            "source": 0,  # 0 is alias for "web"
+            "source": ONCALL_SHIFT_WEB_SOURCE,
         }

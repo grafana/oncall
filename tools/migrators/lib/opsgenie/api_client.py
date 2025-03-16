@@ -90,7 +90,24 @@ class OpsGenieAPIClient:
             # Get notification rules for each user
             user_id = user["id"]
             rules_response = self._make_request("GET", f"v2/users/{user_id}/notification-rules")
-            user["notification_rules"] = rules_response.get("data", [])
+
+            # Find the create-alert notification rule
+            create_alert_rule = None
+            for rule in rules_response.get("data", []):
+                if rule.get("actionType") == "create-alert":
+                    create_alert_rule = rule
+                    break
+
+            if create_alert_rule:
+                # Get steps for the create-alert rule
+                steps_response = self._make_request(
+                    "GET",
+                    f"v2/users/{user_id}/notification-rules/{create_alert_rule['id']}/steps"
+                )
+                user["notification_rules"] = steps_response.get("data", [])
+            else:
+                user["notification_rules"] = []
+
             users.append(user)
 
         return users
@@ -98,7 +115,20 @@ class OpsGenieAPIClient:
     def list_schedules(self) -> list[dict]:
         """List all schedules with their rotations."""
         response = self._make_request("GET", "v2/schedules", params={"expand": "rotation"})
-        return response.get("data", [])
+        schedules = response.get("data", [])
+
+        # Fetch overrides for each schedule
+        for schedule in schedules:
+            try:
+                overrides_response = self._make_request(
+                    "GET", f"v2/schedules/{schedule['id']}/overrides"
+                )
+                schedule["overrides"] = overrides_response.get("data", [])
+            except Exception as e:
+                print(f"Warning: Failed to fetch overrides for schedule {schedule['name']}: {str(e)}")
+                schedule["overrides"] = []
+
+        return schedules
 
     def list_escalation_policies(self) -> list[dict]:
         """List all escalation policies."""

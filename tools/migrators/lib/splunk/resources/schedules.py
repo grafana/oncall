@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 from uuid import uuid4
 
+from lib.constants import ONCALL_SHIFT_WEB_SOURCE
 from lib.oncall import types as oncall_types
 from lib.oncall.api_client import OnCallAPIClient
 from lib.splunk import types
@@ -14,7 +15,6 @@ TIME_ZONE = "UTC"
 Note: The Splunk schedule rotations do return a `timezone` attribute, but I don't think
 we need to worry about this as the all of the timestamps that we touch are in UTC.
 """
-ONCALL_SHIFT_WEB_SOURCE = 0  # alias for "web"
 
 
 def generate_splunk_schedule_name(

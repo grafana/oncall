@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
+from dataclasses import dataclass
 from typing import Dict, List, Optional
+from uuid import uuid4
 
+from lib.constants import ONCALL_SHIFT_WEB_SOURCE
 from lib.oncall.api_client import OnCallAPIClient
-from lib.utils import dt_to_oncall_datetime
+from lib.utils import dt_to_oncall_datetime, duration_to_frequency_and_interval
 
 
 def match_schedule(
@@ -14,7 +17,19 @@ def match_schedule(
         if schedule["name"].lower().strip() == candidate["name"].lower().strip():
             oncall_schedule = candidate
 
-    schedule["migration_errors"] = []
+    # Check if any rotation has time restrictions
+    has_time_restrictions = False
+    for rotation in schedule.get("rotations", []):
+        if rotation.get("timeRestriction"):
+            has_time_restrictions = True
+            break
+
+    if has_time_restrictions:
+        schedule["migration_errors"] = ["Schedule contains time restrictions which are not supported for migration"]
+        return
+
+    _, errors = Schedule.from_dict(schedule).to_oncall_schedule(user_id_map)
+    schedule["migration_errors"] = errors
     schedule["oncall_schedule"] = oncall_schedule
 
 
@@ -23,82 +38,222 @@ def migrate_schedule(schedule: dict, user_id_map: Dict[str, str]) -> None:
     if schedule["oncall_schedule"]:
         OnCallAPIClient.delete(f"schedules/{schedule['oncall_schedule']['id']}")
 
-    # Create new schedule
-    payload = {
-        "name": schedule["name"],
-        "type": "web",
-        "team_id": None,
-        "time_zone": schedule["timezone"],
-    }
-    oncall_schedule = OnCallAPIClient.create("schedules", payload)
-    schedule["oncall_schedule"] = oncall_schedule
+    schedule["oncall_schedule"] = Schedule.from_dict(schedule).migrate(user_id_map)
 
-    # Migrate rotations
-    for rotation in schedule["rotations"]:
-        if not rotation["enabled"]:
-            continue
 
-        # Convert OpsGenie rotation type to OnCall frequency and interval
-        frequency, interval = _convert_rotation_type(rotation["type"], rotation["length"])
+@dataclass
+class Schedule:
+    """
+    Utility class for converting an OpsGenie schedule to an OnCall schedule.
+    An OpsGenie schedule has multiple rotations, each with a set of participants.
+    """
+    name: str
+    timezone: str
+    rotations: list["Rotation"]
+    overrides: list["Override"]
 
-        # Get start and end dates
+    @classmethod
+    def from_dict(cls, schedule: dict) -> "Schedule":
+        """Create a Schedule object from an OpsGenie API response for a schedule."""
+        rotations = []
+        for rotation_dict in schedule["rotations"]:
+            # Skip disabled rotations
+            if not rotation_dict.get("enabled", True):
+                continue
+            rotations.append(Rotation.from_dict(rotation_dict))
+
+        # Process overrides
+        overrides = []
+        for override_dict in schedule.get("overrides", []):
+            overrides.append(Override.from_dict(override_dict))
+
+        return cls(
+            name=schedule["name"],
+            timezone=schedule["timezone"],
+            rotations=rotations,
+            overrides=overrides,
+        )
+
+    def to_oncall_schedule(
+        self, user_id_map: Dict[str, str]
+    ) -> tuple[Optional[dict], list[str]]:
+        """
+        Convert a Schedule object to an OnCall schedule.
+        Note that it also returns shifts, but these are not created at the same time as the schedule.
+        """
+        shifts = []
+        errors = []
+
+        for rotation in self.rotations:
+            # Check if all users in the rotation exist in OnCall
+            missing_user_ids = [
+                p["id"] for p in rotation.participants
+                if p["type"] == "user" and p["id"] not in user_id_map
+            ]
+            if missing_user_ids:
+                errors.append(
+                    f"{rotation.name}: Users with IDs {missing_user_ids} not found in OnCall."
+                )
+                continue
+
+            shifts.append(rotation.to_oncall_shift(user_id_map))
+
+        # Process overrides
+        for override in self.overrides:
+            # Check if the user exists in OnCall
+            if override.user_id not in user_id_map:
+                errors.append(
+                    f"Override: User with ID '{override.user_id}' not found in OnCall."
+                )
+                continue
+
+            shifts.append(override.to_oncall_override_shift(user_id_map))
+
+        if errors:
+            return None, errors
+
+        return {
+            "name": self.name,
+            "type": "web",
+            "team_id": None,
+            "time_zone": self.timezone,
+            "shifts": shifts,
+        }, []
+
+    def migrate(self, user_id_map: Dict[str, str]) -> dict:
+        """
+        Create an OnCall schedule and its shifts.
+        First create the shifts, then create a schedule with shift IDs provided.
+        """
+        schedule, errors = self.to_oncall_schedule(user_id_map)
+        assert not errors, "Unexpected errors: {}".format(errors)
+
+        # Create shifts in OnCall
+        shift_ids = []
+        for shift in schedule["shifts"]:
+            created_shift = OnCallAPIClient.create("on_call_shifts", shift)
+            shift_ids.append(created_shift["id"])
+
+        # Create schedule in OnCall with shift IDs provided
+        schedule["shifts"] = shift_ids
+        new_schedule = OnCallAPIClient.create("schedules", schedule)
+
+        return new_schedule
+
+
+@dataclass
+class Override:
+    """
+    Utility class for representing a schedule override in OpsGenie.
+    """
+    start_date: datetime
+    end_date: datetime
+    user_id: str
+
+    @classmethod
+    def from_dict(cls, override: dict) -> "Override":
+        """Create an Override object from an OpsGenie API response for a schedule override."""
+        # Convert string dates to datetime objects
+        start_date = datetime.fromisoformat(override["startDate"].replace("Z", "+00:00"))
+        end_date = datetime.fromisoformat(override["endDate"].replace("Z", "+00:00"))
+
+        # Extract user ID from the user object
+        user_id = override.get("user", {}).get("id")
+
+        if not user_id:
+            raise ValueError(f"Could not extract user ID from override: {override}")
+
+        return cls(
+            start_date=start_date,
+            end_date=end_date,
+            user_id=user_id,
+        )
+
+    def to_oncall_override_shift(self, user_id_map: Dict[str, str]) -> dict:
+        """Convert an Override object to an OnCall override shift."""
+        duration = int((self.end_date - self.start_date).total_seconds())
+        oncall_user_id = user_id_map[self.user_id]
+
+        return {
+            "name": f"Override-{uuid4().hex[:8]}",
+            "type": "override",
+            "team_id": None,
+            "start": dt_to_oncall_datetime(self.start_date),
+            "duration": duration,
+            "rotation_start": dt_to_oncall_datetime(self.start_date),
+            "users": [oncall_user_id],
+            "time_zone": "UTC",
+            "source": ONCALL_SHIFT_WEB_SOURCE,
+        }
+
+
+@dataclass
+class Rotation:
+    """
+    Utility class for converting an OpsGenie rotation to an OnCall shift.
+    """
+    name: str
+    type: str
+    length: int
+    start_date: datetime
+    end_date: Optional[datetime]
+    participants: List[dict]
+
+    @classmethod
+    def from_dict(cls, rotation: dict) -> "Rotation":
+        """Create a Rotation object from an OpsGenie API response for a rotation."""
+        # Keep start_date in UTC format
         start_date = datetime.fromisoformat(rotation["startDate"].replace("Z", "+00:00"))
+
         end_date = None
         if rotation.get("endDate"):
             end_date = datetime.fromisoformat(rotation["endDate"].replace("Z", "+00:00"))
 
-        # Create rotation
-        rotation_payload = {
-            "schedule_id": oncall_schedule["id"],
-            "name": rotation["name"],
-            "start": dt_to_oncall_datetime(start_date),
-            "duration": interval,
+        return cls(
+            name=rotation["name"],
+            type=rotation["type"],
+            length=rotation["length"],
+            start_date=start_date,
+            end_date=end_date,
+            participants=rotation["participants"],
+        )
+
+    def to_oncall_shift(self, user_id_map: Dict[str, str]) -> dict:
+        """Convert a Rotation object to an OnCall shift."""
+        # Calculate base duration based on type and length
+        if self.type == "daily":
+            base_duration = timedelta(days=self.length)
+        elif self.type == "weekly":
+            base_duration = timedelta(weeks=self.length)
+        elif self.type == "hourly":
+            base_duration = timedelta(hours=self.length)
+        else:
+            base_duration = timedelta(days=self.length)  # Default to daily
+
+        # Use duration_to_frequency_and_interval to get the natural frequency
+        frequency, interval = duration_to_frequency_and_interval(base_duration)
+
+        shift = {
+            "name": self.name or uuid4().hex,
+            "type": "rolling_users",
+            "time_zone": "UTC",
+            "team_id": None,
+            "level": 1,
+            "start": dt_to_oncall_datetime(self.start_date),
+            "duration": int(base_duration.total_seconds()),
             "frequency": frequency,
-            "by_day": _convert_time_restriction(rotation.get("timeRestriction", {})),
-            "users": [
-                user_id_map[p["id"]]
-                for p in rotation["participants"]
+            "interval": interval,
+            "rolling_users": [
+                [user_id_map[p["id"]]]
+                for p in self.participants
                 if p["type"] == "user" and p["id"] in user_id_map
             ],
+            "start_rotation_from_user_index": 0,
+            "week_start": "MO",
+            "source": ONCALL_SHIFT_WEB_SOURCE,
         }
 
-        if end_date:
-            rotation_payload["until"] = dt_to_oncall_datetime(end_date)
+        if self.end_date:
+            shift["until"] = dt_to_oncall_datetime(self.end_date)
 
-        OnCallAPIClient.create("rotations", rotation_payload)
-
-
-def _convert_rotation_type(rotation_type: str, length: int) -> tuple[str, int]:
-    """Convert OpsGenie rotation type to OnCall frequency and interval."""
-    if rotation_type == "daily":
-        return "daily", length * 24 * 60 * 60  # Convert days to seconds
-    elif rotation_type == "weekly":
-        return "weekly", length * 7 * 24 * 60 * 60  # Convert weeks to seconds
-    elif rotation_type == "hourly":
-        return "hourly", length * 60 * 60  # Convert hours to seconds
-    else:
-        return "custom", length * 24 * 60 * 60  # Default to daily
-
-
-def _convert_time_restriction(restriction: dict) -> Optional[List[str]]:
-    """Convert OpsGenie time restriction to OnCall by_day format."""
-    if not restriction or restriction.get("type") != "weekday-and-time-of-day":
-        return None
-
-    days = []
-    for r in restriction.get("restrictions", []):
-        start_day = r["startDay"].upper()
-        end_day = r["endDay"].upper()
-
-        # Get all days between start and end
-        current = start_day
-        while True:
-            days.append(current[:2])  # OnCall uses 2-letter day codes
-            if current == end_day:
-                break
-            # Move to next day
-            weekdays = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-            idx = (weekdays.index(current) + 1) % 7
-            current = weekdays[idx]
-
-    return sorted(list(set(days)))
+        return shift

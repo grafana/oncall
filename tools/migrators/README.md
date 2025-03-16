@@ -445,7 +445,6 @@ See [Migrating Users](#migrating-users) for some more information on how users a
 - Note that delays between escalation steps may be slightly different in Grafana OnCall,
   see [Limitations](#limitations-1) for more info.
 
-
 ## OpsGenie
 
 ### Overview
@@ -453,7 +452,7 @@ See [Migrating Users](#migrating-users) for some more information on how users a
 Resources that can be migrated using this tool:
 
 - User notification rules
-- On-call schedules (including rotations and time restrictions)
+- On-call schedules (including rotations and overrides)
 - Escalation policies
 - Integrations
 
@@ -462,6 +461,7 @@ Resources that can be migrated using this tool:
 - Not all integration types are supported
 - Delays between migrated notification/escalation rules could be slightly different from original
 - Some OpsGenie-specific features like custom user roles and team routing rules are not migrated
+- OpsGenie schedules with time restrictions (time-of-day or weekday-and-time-of-day) are not supported
 
 ### Prerequisites
 
@@ -507,16 +507,16 @@ See [Migrating Users](#migrating-users) for some more information on how users a
 #### On-call schedules
 
 The tool is capable of migrating on-call schedules from OpsGenie to Grafana OnCall.
-Schedules are migrated with their rotations and time restrictions. The following features are supported:
+Schedules are migrated with their rotations. The following features are supported:
 
 - Daily, weekly, and hourly rotations
-- Time restrictions (weekday and time of day)
 - Multiple rotations per schedule
 - Schedule overrides
 
 On-call schedules will be migrated to new Grafana OnCall schedules with the same name as in OpsGenie.
 Any existing schedules with the same name will be deleted before migration.
-Any on-call schedules that reference unmatched users won't be migrated.
+Any on-call schedules that reference unmatched users won't be migrated. Any OpsGenie schedule which
+uses time restrictions will not be migrated as migrating these is not supported.
 
 #### Escalation policies
 

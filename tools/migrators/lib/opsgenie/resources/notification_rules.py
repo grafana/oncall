@@ -17,17 +17,17 @@ def migrate_notification_rules(user: dict) -> None:
     for rule in user["oncall_user"]["notification_rules"]:
         OnCallAPIClient.delete(f"personal_notification_rules/{rule['id']}")
 
-    # Create new notification rules
-    for rule in user["notification_rules"]:
-        if rule["enabled"]:
-            oncall_type = OPSGENIE_TO_ONCALL_CONTACT_METHOD_MAP.get(rule["type"])
+    # Create new notification rules from the steps
+    for step in user["notification_rules"]:
+        if step.get("enabled", False):
+            oncall_type = OPSGENIE_TO_ONCALL_CONTACT_METHOD_MAP.get(step.get("method"))
             if oncall_type:
                 payload = {
                     "user_id": user["oncall_user"]["id"],
                     "type": oncall_type,
-                    "important": rule.get("criteria", {}).get("isHighPriority", False),
+                    "important": False,  # Steps don't have priority, set to default
                 }
-                if rule.get("delay"):
+                if step.get("sendAfter", {}).get("minutes"):
                     # Convert delay from minutes to seconds
-                    payload["duration"] = rule["delay"] * 60
+                    payload["duration"] = step["sendAfter"]["minutes"] * 60
                 OnCallAPIClient.create("personal_notification_rules", payload)
