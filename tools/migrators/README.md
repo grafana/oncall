@@ -255,17 +255,20 @@ Configuration is done via environment variables passed to the docker container.
 | `PAGERDUTY_API_TOKEN`                         | PagerDuty API **user token**. To create a token, refer to [PagerDuty docs](https://support.pagerduty.com/docs/api-access-keys#generate-a-user-token-rest-api-key).                                                                                                                                                                                                                                                 | String                              | N/A     |
 | `ONCALL_API_URL`                              | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                                                                                                                                                                                                                                  | String                              | N/A     |
 | `ONCALL_API_TOKEN`                            | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                                                                                                                                                                                                                                      | String                              | N/A     |
+| `GRAFANA_SERVICE_ACCOUNT_URL`                            | A URL containing your tenant name (e.g. `stacks-xxx`) and Service Account Token. The URL is of the form `https://<stackid>:<token>@<server>`. e.g. `https://stacks-12345:xxxxxx@my-company.grafana.net/` Your stack id can be found at [grafana.com](https://grafana.com)                                                                                                                                                                      .                                                                                                                                | String                              | N/A     |
 | `MODE`                                        | Migration mode (plan vs actual migration).                                                                                                                                                                                                                                                                                                                                                                         | String (choices: `plan`, `migrate`) | `plan`  |
 | `SCHEDULE_MIGRATION_MODE`                     | Determines how on-call schedules are migrated.                                                                                                                                                                                                                                                                                                                                                                     | String (choices: `ical`, `web`)     | `ical`  |
 | `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS`         | When set to `true`, integrations with unsupported type will be migrated to Grafana OnCall integrations with type "webhook". When set to `false`, integrations with unsupported type won't be migrated.                                                                                                                                                                                                             | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES`            | Migrate global event rulesets to Grafana OnCall integrations.                                                                                                                                                                                                                                                                                                                                                      | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` | Include service & integrations names from PD in migrated integrations (only effective when `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`).                                                                                                                                                                                                                                                                          | Boolean                             | `false` |
 | `MIGRATE_USERS`                               | If `false`, will allow you to important all objects, while ignoring user references in schedules and escalation policies. In addition, if `false`, will also skip importing User notification rules. This may be helpful in cases where you are unable to import your list of Grafana users, but would like to experiment with OnCall using your existing PagerDuty setup as a starting point for experimentation. | Boolean                             | `true`  |
+| `PAGERDUTY_MIGRATE_SERVICES`                               | If `true`, will allow you to import technical and business services. | Boolean                             | `false`  |
 | `PAGERDUTY_FILTER_TEAM`                       | Filter resources by team name. Only resources associated with this team will be migrated.                                                                                                                                                                                                                                                                                                                          | String                              | N/A     |
 | `PAGERDUTY_FILTER_USERS`                      | Filter resources by PagerDuty user IDs (comma-separated). Only resources associated with these users will be migrated.                                                                                                                                                                                                                                                                                             | String                              | N/A     |
 | `PAGERDUTY_FILTER_SCHEDULE_REGEX`             | Filter schedules by name using a regex pattern. Only schedules whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                                    | String                              | N/A     |
 | `PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX`    | Filter escalation policies by name using a regex pattern. Only policies whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                           | String                              | N/A     |
 | `PAGERDUTY_FILTER_INTEGRATION_REGEX`          | Filter integrations by name using a regex pattern. Only integrations whose names match this pattern will be migrated.                                                                                                                                                                                                                                                                                              | String                              | N/A     |
+| `PAGERDUTY_FILTER_SERVICE_REGEX`              | Filter services by name using a regex pattern. Only services whose names match this pattern will be migrated. This filter applies to both technical and business services being migrated to Grafana's service model.                                                                                                                                                                                              | String                              | N/A     |
 | `PRESERVE_EXISTING_USER_NOTIFICATION_RULES`   | Whether to preserve existing notification rules when migrating users                                                                                                                                                                                                                                                                                                                                               | Boolean                             | `true`  |
 
 ### Resources
@@ -353,6 +356,92 @@ If you want to include service & integration names in the names of migrated inte
 `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` to `true` (note that this only applies when
 `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`). This can make searching for integrations easier,
 but it can also make the names of integrations too long.
+
+#### Services and Business Services
+
+The tool is capable of migrating both technical services and business services from PagerDuty to
+Grafana's service model. This feature is disabled by default and can be enabled by setting
+`PAGERDUTY_MIGRATE_SERVICES` to `true`.
+
+Set GRAFANA_SERVICE_ACCOUNT_URL to the URL format of a Grafana service account with Admin
+permission of the form: `https://<namespace>:<token>@<server>`
+
+When enabled, the tool will:
+
+1. **Technical Services**:
+   - Migrate PagerDuty technical services to Grafana Components with type "service"
+   - Preserve service metadata and relationships
+   - Map escalation policies to appropriate escalation chains
+   - Maintain service dependencies and relationships
+
+2. **Business Services**:
+   - Migrate PagerDuty business services to Grafana Components with type "business_service"
+   - Preserve business service hierarchy and relationships
+   - Map technical service dependencies to appropriate Components
+   - Maintain business impact relationships
+
+The migration process ensures that:
+
+- Service hierarchies are preserved
+- Dependencies between services are maintained
+- Escalation policies are properly mapped
+- Service metadata and annotations are preserved
+- Business impact relationships are maintained
+
+Example:
+
+```bash
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="migrate" \
+-e GRAFANA_SERVICE_ACCOUNT_URL="<GRAFANA_SERVICE_ACCOUNT_URL>" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+-e PAGERDUTY_MIGRATE_SERVICES="true" \
+oncall-migrator
+```
+
+#### Service Filtering
+
+The tool provides several ways to filter which services are migrated:
+
+1. **Team-based filtering** (`PAGERDUTY_FILTER_TEAM`):
+   - Only services associated with the specified team will be migrated
+   - Applies to both technical and business services
+
+2. **User-based filtering** (`PAGERDUTY_FILTER_USERS`):
+   - For technical services: only services with the specified users in their escalation policies will be migrated
+   - Business services are not affected by user filters
+   - Multiple user IDs can be specified as a comma-separated list
+
+3. **Name-based filtering** (`PAGERDUTY_FILTER_SERVICE_REGEX`):
+   - Only services whose names match the specified regex pattern will be migrated
+   - Applies to both technical and business services
+
+These filters can be used individually or combined. When multiple filters are applied, a service must match all
+active filters to be included in the migration.
+
+Example:
+
+```bash
+docker run --rm \
+-e MIGRATING_FROM="pagerduty" \
+-e MODE="migrate" \
+-e ONCALL_API_URL="<ONCALL_API_URL>" \
+-e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
+-e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
+-e PAGERDUTY_FILTER_TEAM="Platform Team" \
+-e PAGERDUTY_FILTER_USERS="U123,U456" \
+-e PAGERDUTY_FILTER_SERVICE_REGEX="Prod.*" \
+oncall-migrator
+```
+
+This example will only migrate services that:
+
+- Belong to the "Platform Team"
+- Have either user U123 or U456 in their escalation policy (for technical services)
+- Have a name starting with "Prod"
 
 ### After migration
 

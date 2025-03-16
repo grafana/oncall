@@ -414,6 +414,10 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
+setuptools==76.0.0
+    # via
+    #   apscheduler
+    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
@@ -459,7 +463,7 @@ urllib3==1.26.19
     #   botocore
     #   django-anymail
     #   requests
-uwsgi==2.0.26
+uwsgi==2.0.28
     # via -r requirements.in
 vine==5.1.0
     # via
