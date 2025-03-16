@@ -12,7 +12,7 @@ class OnCallAPIClient:
             ONCALL_API_URL,
             path,
             headers={"Authorization": ONCALL_API_TOKEN},
-            **kwargs
+            **kwargs,
         )
 
     @classmethod

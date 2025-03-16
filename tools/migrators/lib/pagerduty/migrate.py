@@ -4,7 +4,10 @@ import re
 from pdpyras import APISession
 
 from lib.common.report import TAB
+from lib.common.resources.services import filter_services
 from lib.common.resources.users import match_user
+from lib.grafana.service_migrate import migrate_all_services
+from lib.grafana.service_model_client import ServiceModelClient
 from lib.oncall.api_client import OnCallAPIClient
 from lib.pagerduty.config import (
     EXPERIMENTAL_MIGRATE_EVENT_RULES,
@@ -17,6 +20,7 @@ from lib.pagerduty.config import (
     PAGERDUTY_FILTER_SCHEDULE_REGEX,
     PAGERDUTY_FILTER_TEAM,
     PAGERDUTY_FILTER_USERS,
+    PAGERDUTY_MIGRATE_SERVICES,
 )
 from lib.pagerduty.report import (
     escalation_policy_report,
@@ -28,7 +32,12 @@ from lib.pagerduty.report import (
     integration_report,
     ruleset_report,
     schedule_report,
+    services_report,
     user_report,
+)
+from lib.pagerduty.resources.business_service import (
+    BusinessService,
+    get_all_business_services_with_metadata,
 )
 from lib.pagerduty.resources.escalation_policies import (
     match_escalation_policy,
@@ -43,6 +52,10 @@ from lib.pagerduty.resources.integrations import (
 from lib.pagerduty.resources.notification_rules import migrate_notification_rules
 from lib.pagerduty.resources.rulesets import match_ruleset, migrate_ruleset
 from lib.pagerduty.resources.schedules import match_schedule, migrate_schedule
+from lib.pagerduty.resources.services import (
+    TechnicalService,
+    get_all_technical_services_with_metadata,
+)
 from lib.pagerduty.resources.users import (
     match_users_and_schedules_for_escalation_policy,
     match_users_for_schedule,
@@ -283,6 +296,32 @@ def migrate() -> None:
                 services,
                 integrations,
             )
+    if PAGERDUTY_MIGRATE_SERVICES:
+        client = ServiceModelClient()
+        # Get all services
+        all_technical_services = get_all_technical_services_with_metadata(session)
+        technical_service_map = {
+            service.id: service for service in all_technical_services
+        }
+        all_business_services = get_all_business_services_with_metadata(
+            session, technical_service_map
+        )
+
+        # Apply filters to services
+        filtered_technical_data = filter_services(
+            [service.raw_data for service in all_technical_services], TAB
+        )
+        filtered_business_data = filter_services(
+            [service.raw_data for service in all_business_services], TAB
+        )
+
+        # Convert filtered data back to service objects
+        technical_services = [
+            TechnicalService(service) for service in filtered_technical_data
+        ]
+        business_services = [
+            BusinessService(service) for service in filtered_business_data
+        ]
 
     if MODE == MODE_PLAN:
         print(user_report(users), end="\n\n")
@@ -292,6 +331,19 @@ def migrate() -> None:
 
         if rulesets is not None:
             print(ruleset_report(rulesets), end="\n\n")
+
+        if PAGERDUTY_MIGRATE_SERVICES:
+            print(
+                services_report(
+                    all_technical_services,
+                    all_business_services,
+                    technical_services,
+                    business_services,
+                ),
+                end="\n\n",
+            )
+
+            return
 
         return
 
@@ -333,3 +385,11 @@ def migrate() -> None:
             if not ruleset["flawed_escalation_policies"]:
                 migrate_ruleset(ruleset, escalation_policies, services)
                 print(TAB + format_ruleset(ruleset))
+
+    if PAGERDUTY_MIGRATE_SERVICES:
+        print("▶ Migrating services to Grafana's service model...")
+        migrate_all_services(
+            client, technical_services, business_services, dry_run=False
+        )
+    else:
+        print("▶ Skipping service migration as PAGERDUTY_MIGRATE_SERVICES is false...")
