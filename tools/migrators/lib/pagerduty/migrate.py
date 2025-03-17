@@ -21,8 +21,8 @@ from lib.pagerduty.config import (
     PAGERDUTY_FILTER_SCHEDULE_REGEX,
     PAGERDUTY_FILTER_TEAM,
     PAGERDUTY_FILTER_USERS,
-    VERBOSE_LOGGING,
     PAGERDUTY_MIGRATE_SERVICES,
+    VERBOSE_LOGGING,
 )
 from lib.pagerduty.report import (
     escalation_policy_report,
