@@ -13,17 +13,27 @@ OPSGENIE_TO_ONCALL_CONTACT_METHOD_MAP = {
 }
 
 OPSGENIE_TO_ONCALL_VENDOR_MAP = {
-    "Datadog": "datadog",
-    "Pingdom": "pingdom",
-    "Prometheus": "alertmanager",
-    "PRTG": "prtg",
-    "Google Stackdriver": "stackdriver",
-    "UptimeRobot": "uptimerobot",
-    "New Relic": "newrelic",
-    "Zabbix": "zabbix",
-    "Elastic": "elastalert",
-    "Firebase": "fabric",
     "Amazon CloudWatch": "amazon_sns",
+    "AmazonSns": "amazon_sns",
+    "AppDynamics": "appdynamics",
+    "CloudWatch": "amazon_sns",
+    "CloudWatchEvents": "amazon_sns",
+    "Datadog": "datadog",
+    "Email": "inbound_email",
+    "Jira": "jira",
+    "JiraServiceDesk": "jira",
+    "Kapacitor": "kapacitor",
+    "NewRelic": "newrelic",
+    "NewRelicV2": "newrelic",
+    "PingdomV2": "pingdom",
+    "Prometheus": "alertmanager",
+    "Prtg": "prtg",
+    "Scout": "webhook",
+    "Sentry": "sentry",
+    "Stackdriver": "stackdriver",
+    "UptimeRobot": "uptimerobot",
+    "Webhook": "webhook",
+    "Zabbix": "zabbix",
 }
 
 # Set to true to migrate unsupported integrations to OnCall webhook integration

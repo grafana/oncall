@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from lib.oncall.api_client import OnCallAPIClient
 from lib.opsgenie.config import (

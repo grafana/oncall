@@ -58,9 +58,7 @@ class OnCallAPIClient:
     @classmethod
     def list_users_with_notification_rules(cls):
         oncall_users = cls.list_all("users")
-        oncall_notification_rules = cls.list_all(
-            "personal_notification_rules/?important=false"
-        )
+        oncall_notification_rules = cls.list_all("personal_notification_rules")
 
         for user in oncall_users:
             user["notification_rules"] = [

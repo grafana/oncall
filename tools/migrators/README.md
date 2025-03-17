@@ -331,17 +331,22 @@ Any integrations with unsupported type won't be migrated unless `UNSUPPORTED_INT
 
 The following integration types are supported:
 
+- Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
+- Amazon SNS
+- AppDynamics
 - Datadog
+- Email (maps to Inbound Email integration in Grafana OnCall)
+- Jira (including Jira Service Desk)
+- Kapacitor
+- New Relic (including legacy New Relic)
 - Pingdom
-- Prometheus
+- Prometheus (maps to Alertmanager in Grafana OnCall)
 - PRTG
+- Sentry
 - Stackdriver
 - UptimeRobot
-- New Relic
-- Zabbix Webhook (for 5.0 and 5.2)
-- Elastic Alerts
-- Firebase
-- Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
+- Webhook (including API integrations)
+- Zabbix
 
 #### Event rules (global event rulesets)
 
@@ -549,7 +554,6 @@ Resources that can be migrated using this tool:
 
 - Not all integration types are supported
 - Delays between migrated notification/escalation rules could be slightly different from original
-- Some OpsGenie-specific features like custom user roles and team routing rules are not migrated
 - OpsGenie schedules with time restrictions (time-of-day or weekday-and-time-of-day) are not supported
 
 ### Prerequisites
@@ -627,17 +631,22 @@ Any integrations with unsupported type won't be migrated unless `UNSUPPORTED_INT
 
 The following integration types are supported:
 
-- Datadog
-- Pingdom
-- Prometheus
-- PRTG
-- Google Stackdriver
-- UptimeRobot
-- New Relic
-- Zabbix
-- Elastic
-- Firebase
 - Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
+- Amazon SNS
+- AppDynamics
+- Datadog
+- Email
+- Jira (including Jira Service Desk)
+- Kapacitor
+- New Relic (including legacy New Relic)
+- Pingdom (including Pingdom Server Monitor (Scout))
+- Prometheus (maps to Alertmanager in Grafana OnCall)
+- PRTG
+- Sentry
+- Stackdriver
+- UptimeRobot
+- Webhook
+- Zabbix
 
 ### After migration
 
