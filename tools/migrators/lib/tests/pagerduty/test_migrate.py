@@ -30,7 +30,6 @@ def test_users_are_skipped_when_migrate_users_is_false(
         call("escalation_policies", params={"include[]": "teams"}),
         call("services", params={"include[]": ["integrations", "teams"]}),
         call("vendors"),
-        # no user notification rules fetching
     ]
 
     mock_oncall_client.list_users_with_notification_rules.assert_not_called()
@@ -368,8 +367,10 @@ class TestPagerDutyMigrationFiltering:
     @patch("lib.pagerduty.migrate.filter_integrations")
     @patch("lib.pagerduty.migrate.APISession")
     @patch("lib.pagerduty.migrate.OnCallAPIClient")
+    @patch("lib.pagerduty.migrate.ServiceModelClient")
     def test_migrate_calls_filters(
         self,
+        MockServiceModelClient,
         MockOnCallAPIClient,
         MockAPISession,
         mock_filter_integrations,
@@ -379,16 +380,19 @@ class TestPagerDutyMigrationFiltering:
         # Setup mock returns
         mock_session = MockAPISession.return_value
         mock_session.list_all.side_effect = [
-            [],  # users
-            [],  # schedules
-            [],  # escalation_policies
-            [],  # services
-            [],  # vendors
+            [{"id": "U1", "name": "Test User", "email": "test@example.com"}],  # users
+            [{"id": "S1"}],  # schedules
+            [{"id": "P1"}],  # policies
+            [{"id": "SVC1", "integrations": []}],  # services with params
+            [{"id": "SVC1", "integrations": []}],  # services
+            [{"id": "V1"}],  # vendors
+            [{"id": "BS1"}],  # business services
         ]
-        mock_session.jget.return_value = {"overrides": []}
-        mock_filter_schedules.return_value = []
-        mock_filter_policies.return_value = []
-        mock_filter_integrations.return_value = []
+        mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
+        mock_oncall_client = MockOnCallAPIClient.return_value
+        mock_oncall_client.list_all.return_value = []
+        mock_service_client = MockServiceModelClient.return_value
+        mock_service_client.get_components.return_value = []
 
         migrate()
 
@@ -417,10 +421,16 @@ class TestPagerDutyMigrationFiltering:
             [],  # users
             [{"id": "SCHEDULE1", "teams": [{"summary": "Team 1"}]}],  # schedules
             [
-                {"id": "POLICY1", "teams": [{"summary": "Team 1"}]}
+                {"id": "POLICY1", "teams": [{"summary": "Team 1"}]},
             ],  # escalation_policies
-            [],  # services
-            [],  # vendors
+            [
+                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []},
+            ],  # services with params
+            [
+                {"id": "SVC1", "teams": [{"summary": "Team 1"}], "integrations": []},
+            ],  # services
+            [{"id": "V1"}],  # vendors
+            [{"id": "BS1", "teams": [{"summary": "Team 1"}]}],  # business services
         ]
         mock_session.jget.return_value = {"overrides": []}
         mock_filter_schedules.return_value = []
@@ -440,8 +450,10 @@ class TestPagerDutyMigrationFiltering:
     @patch("lib.pagerduty.migrate.filter_integrations")
     @patch("lib.pagerduty.migrate.APISession")
     @patch("lib.pagerduty.migrate.OnCallAPIClient")
+    @patch("lib.pagerduty.migrate.ServiceModelClient")
     def test_migrate_with_users_filter(
         self,
+        MockServiceModelClient,
         MockOnCallAPIClient,
         MockAPISession,
         mock_filter_integrations,
@@ -466,13 +478,21 @@ class TestPagerDutyMigrationFiltering:
                     ],
                 }
             ],  # escalation_policies
-            [],  # services
-            [],  # vendors
+            [{"id": "SVC1", "integrations": []}],  # services with params
+            [{"id": "SVC1", "integrations": []}],  # services
+            [{"id": "V1"}],  # vendors
+            [{"id": "BS1"}],  # business services
         ]
-        mock_session.jget.return_value = {"overrides": []}
+        mock_session.jget.return_value = {"overrides": []}  # Mock schedule overrides
+
         mock_filter_schedules.return_value = []
         mock_filter_policies.return_value = []
         mock_filter_integrations.return_value = []
+
+        mock_oncall_client = MockOnCallAPIClient.return_value
+        mock_oncall_client.list_all.return_value = []
+        mock_service_client = MockServiceModelClient.return_value
+        mock_service_client.get_components.return_value = []
 
         migrate()
 
