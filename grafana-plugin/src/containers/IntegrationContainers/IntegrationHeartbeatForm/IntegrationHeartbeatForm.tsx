@@ -83,7 +83,7 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
               </Field>
             </div>
             <a
-              href="https://grafana.com/docs/oncall/latest/integrations/alertmanager/#configuring-oncall-heartbeats-optional"
+              href="https://grafana.com/docs/oncall/latest/configure/integrations/references/alertmanager/#configuring-oncall-heartbeats-optional"
               target="_blank"
               rel="noreferrer"
             >
