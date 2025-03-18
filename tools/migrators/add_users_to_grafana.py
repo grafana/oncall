@@ -22,6 +22,13 @@ GRAFANA_URL = os.environ["GRAFANA_URL"]  # Example: http://localhost:3000
 GRAFANA_USERNAME = os.environ["GRAFANA_USERNAME"]
 GRAFANA_PASSWORD = os.environ["GRAFANA_PASSWORD"]
 
+# Get optional filter for PagerDuty user IDs
+PAGERDUTY_FILTER_USERS = os.environ.get("PAGERDUTY_FILTER_USERS", "")
+if PAGERDUTY_FILTER_USERS:
+    PAGERDUTY_FILTER_USERS = PAGERDUTY_FILTER_USERS.split(",")
+else:
+    PAGERDUTY_FILTER_USERS = []
+
 SUCCESS_SIGN = "✅"
 ERROR_SIGN = "❌"
 
@@ -29,8 +36,28 @@ grafana_client = GrafanaAPIClient(GRAFANA_URL, GRAFANA_USERNAME, GRAFANA_PASSWOR
 
 
 def migrate_pagerduty_users():
+    """
+    Migrate users from PagerDuty to Grafana.
+    If PAGERDUTY_FILTER_USERS is set, only users with IDs in that list will be migrated.
+    """
     session = APISession(PAGERDUTY_API_TOKEN)
-    for user in session.list_all("users"):
+    all_users = session.list_all("users")
+
+    # Filter users if PAGERDUTY_FILTER_USERS is set
+    if PAGERDUTY_FILTER_USERS:
+        filtered_users = [
+            user for user in all_users if user["id"] in PAGERDUTY_FILTER_USERS
+        ]
+        skipped_count = len(all_users) - len(filtered_users)
+        if skipped_count > 0:
+            print(f"Skipping {skipped_count} users not in PAGERDUTY_FILTER_USERS.")
+        users_to_migrate = filtered_users
+    else:
+        users_to_migrate = all_users
+
+    # Create Grafana users
+    print(f"Creating {len(users_to_migrate)} users in Grafana...")
+    for user in users_to_migrate:
         create_grafana_user(user["name"], user["email"])
 
 
