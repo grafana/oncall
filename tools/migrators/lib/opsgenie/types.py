@@ -1,4 +1,5 @@
-from typing import TypedDict, List, Optional, Literal
+from typing import List, Literal, Optional, TypedDict
+
 
 class OpsGenieUser(TypedDict):
     id: str
@@ -14,6 +15,7 @@ class OpsGenieUser(TypedDict):
     notification_rules: List[dict]
     oncall_user: Optional[dict]
 
+
 class OpsGenieSchedule(TypedDict):
     id: str
     name: str
@@ -25,6 +27,7 @@ class OpsGenieSchedule(TypedDict):
     oncall_schedule: Optional[dict]
     migration_errors: List[str]
 
+
 class OpsGenieEscalationPolicy(TypedDict):
     id: str
     name: str
@@ -33,11 +36,13 @@ class OpsGenieEscalationPolicy(TypedDict):
     rules: List[dict]
     oncall_escalation_chain: Optional[dict]
 
+
 class OpsGenieTeam(TypedDict):
     id: str
     name: str
     description: str
     members: List[dict]
+
 
 class OpsGenieIntegration(TypedDict):
     id: str
@@ -48,6 +53,7 @@ class OpsGenieIntegration(TypedDict):
     isGlobal: bool
     status: dict
     oncall_integration: Optional[dict]
+
 
 class OpsGenieService(TypedDict):
     id: str

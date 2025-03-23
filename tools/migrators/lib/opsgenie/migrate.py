@@ -2,16 +2,7 @@ from lib.common.report import TAB
 from lib.common.resources.users import match_user
 from lib.oncall.api_client import OnCallAPIClient
 from lib.opsgenie.api_client import OpsGenieAPIClient
-from lib.opsgenie.config import (
-    MODE,
-    MODE_PLAN,
-    OPSGENIE_FILTER_ESCALATION_POLICY_REGEX,
-    OPSGENIE_FILTER_INTEGRATION_REGEX,
-    OPSGENIE_FILTER_SCHEDULE_REGEX,
-    OPSGENIE_FILTER_TEAM,
-    OPSGENIE_FILTER_USERS,
-    MIGRATE_USERS,
-)
+from lib.opsgenie.config import MIGRATE_USERS, MODE, MODE_PLAN
 from lib.opsgenie.report import (
     escalation_policy_report,
     format_escalation_policy,
@@ -23,69 +14,24 @@ from lib.opsgenie.report import (
     user_report,
 )
 from lib.opsgenie.resources.escalation_policies import (
+    filter_escalation_policies,
     match_escalation_policy,
-    match_escalation_policy_for_integration,
+    match_users_and_schedules_for_escalation_policy,
     migrate_escalation_policy,
 )
 from lib.opsgenie.resources.integrations import (
+    filter_integrations,
     match_integration,
-    match_integration_type,
     migrate_integration,
 )
 from lib.opsgenie.resources.notification_rules import migrate_notification_rules
-from lib.opsgenie.resources.schedules import match_schedule, migrate_schedule
-from lib.opsgenie.resources.users import (
-    match_users_and_schedules_for_escalation_policy,
+from lib.opsgenie.resources.schedules import (
+    filter_schedules,
+    match_schedule,
     match_users_for_schedule,
+    migrate_schedule,
 )
-
-
-def filter_schedules(schedules: list[dict]) -> list[dict]:
-    """Apply filters to schedules."""
-    if OPSGENIE_FILTER_TEAM:
-        schedules = [
-            s for s in schedules if s["ownerTeam"]["name"] == OPSGENIE_FILTER_TEAM
-        ]
-
-    if OPSGENIE_FILTER_SCHEDULE_REGEX:
-        import re
-
-        pattern = re.compile(OPSGENIE_FILTER_SCHEDULE_REGEX)
-        schedules = [s for s in schedules if pattern.match(s["name"])]
-
-    return schedules
-
-
-def filter_escalation_policies(policies: list[dict]) -> list[dict]:
-    """Apply filters to escalation policies."""
-    if OPSGENIE_FILTER_TEAM:
-        policies = [
-            p for p in policies if p["ownerTeam"]["name"] == OPSGENIE_FILTER_TEAM
-        ]
-
-    if OPSGENIE_FILTER_ESCALATION_POLICY_REGEX:
-        import re
-
-        pattern = re.compile(OPSGENIE_FILTER_ESCALATION_POLICY_REGEX)
-        policies = [p for p in policies if pattern.match(p["name"])]
-
-    return policies
-
-
-def filter_integrations(integrations: list[dict]) -> list[dict]:
-    """Apply filters to integrations."""
-    if OPSGENIE_FILTER_TEAM:
-        integrations = [
-            i for i in integrations if i["ownerTeam"]["name"] == OPSGENIE_FILTER_TEAM
-        ]
-
-    if OPSGENIE_FILTER_INTEGRATION_REGEX:
-        import re
-
-        pattern = re.compile(OPSGENIE_FILTER_INTEGRATION_REGEX)
-        integrations = [i for i in integrations if pattern.match(i["name"])]
-
-    return integrations
+from lib.opsgenie.resources.users import filter_users
 
 
 def migrate() -> None:
@@ -94,6 +40,7 @@ def migrate() -> None:
     if MIGRATE_USERS:
         print("▶ Fetching users...")
         users = client.list_users()
+        users = filter_users(users)
     else:
         print("▶ Skipping user migration as MIGRATE_USERS is false...")
         users = []
@@ -124,7 +71,9 @@ def migrate() -> None:
 
     # Match schedules with their Grafana OnCall counterparts
     print("\n▶ Matching schedules...")
-    user_id_map = {u["id"]: u["oncall_user"]["id"] for u in users if u.get("oncall_user")}
+    user_id_map = {
+        u["id"]: u["oncall_user"]["id"] for u in users if u.get("oncall_user")
+    }
     for schedule in schedules:
         match_schedule(schedule, oncall_schedules, user_id_map)
         match_users_for_schedule(schedule, users)
@@ -141,8 +90,6 @@ def migrate() -> None:
     print("\n▶ Matching integrations...")
     for integration in integrations:
         match_integration(integration, oncall_integrations)
-        match_integration_type(integration)
-        match_escalation_policy_for_integration(integration, escalation_policies)
     print(integration_report(integrations))
 
     if MODE == MODE_PLAN:
@@ -166,15 +113,13 @@ def migrate() -> None:
     # Migrate escalation policies
     print("\n▶ Migrating escalation policies...")
     for policy in escalation_policies:
-        if policy.get("oncall_escalation_chain") is None:
-            continue
         print(f"{TAB}Migrating {format_escalation_policy(policy)}...")
-        migrate_escalation_policy(policy, users, schedules)
+        success = migrate_escalation_policy(policy, users, schedules)
+        if success:
+            print(f"{TAB}Successfully migrated {format_escalation_policy(policy)}")
 
     # Migrate integrations
     print("\n▶ Migrating integrations...")
     for integration in integrations:
-        if integration.get("oncall_integration") is None:
-            continue
         print(f"{TAB}Migrating {format_integration(integration)}...")
-        migrate_integration(integration, escalation_policies)
+        migrate_integration(integration)

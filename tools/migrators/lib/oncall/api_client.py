@@ -1,6 +1,6 @@
 import requests
 
-from lib.base_config import ONCALL_API_TOKEN, ONCALL_API_URL, MIGRATING_FROM
+from lib.base_config import MIGRATING_FROM, ONCALL_API_TOKEN, ONCALL_API_URL
 from lib.network import api_call as _api_call
 from lib.session import get_or_create_session_id
 
@@ -14,10 +14,12 @@ class OnCallAPIClient:
             cls._session_id = get_or_create_session_id()
 
         kwargs.setdefault("headers", {})
-        kwargs["headers"].update({
-            "Authorization": ONCALL_API_TOKEN,
-            "User-Agent": f"IRM Migrator - {MIGRATING_FROM} - {cls._session_id}",
-        })
+        kwargs["headers"].update(
+            {
+                "Authorization": ONCALL_API_TOKEN,
+                "User-Agent": f"IRM Migrator - {MIGRATING_FROM} - {cls._session_id}",
+            }
+        )
 
         return _api_call(method, ONCALL_API_URL, path, **kwargs)
 

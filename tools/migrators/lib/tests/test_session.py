@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from lib.session import get_or_create_session_id, SESSION_FILE
+from lib.session import SESSION_FILE, get_or_create_session_id
 
 
 @pytest.fixture

@@ -1,12 +1,12 @@
 from lib.opsgenie.report import (
-    format_user,
-    format_schedule,
+    escalation_policy_report,
     format_escalation_policy,
     format_integration,
-    user_report,
-    schedule_report,
-    escalation_policy_report,
+    format_schedule,
+    format_user,
     integration_report,
+    schedule_report,
+    user_report,
 )
 
 
@@ -65,8 +65,14 @@ def test_user_report():
 
     report = user_report(users)
     assert "✅ John Doe (john.doe@example.com)" in report
-    assert "⚠️ Jane Smith (jane.smith@example.com) (existing notification rules will be preserved)" in report
-    assert "❌ Bob Wilson (bob.wilson@example.com) — no Grafana OnCall user found with this email" in report
+    assert (
+        "⚠️ Jane Smith (jane.smith@example.com) (existing notification rules will be preserved)"
+        in report
+    )
+    assert (
+        "❌ Bob Wilson (bob.wilson@example.com) — no Grafana OnCall user found with this email"
+        in report
+    )
 
 
 def test_schedule_report():
@@ -107,7 +113,9 @@ def test_escalation_policy_report():
 
     report = escalation_policy_report(policies)
     assert "✅ Critical Alerts" in report
-    assert "⚠️ Non-Critical Alerts (existing escalation chain will be deleted)" in report
+    assert (
+        "⚠️ Non-Critical Alerts (existing escalation chain will be deleted)" in report
+    )
 
 
 def test_integration_report():
@@ -134,5 +142,7 @@ def test_integration_report():
 
     report = integration_report(integrations)
     assert "✅ Prometheus Alerts (Prometheus)" in report
-    assert "⚠️ Datadog Alerts (Datadog) (existing integration will be deleted)" in report
+    assert (
+        "⚠️ Datadog Alerts (Datadog) (existing integration will be deleted)" in report
+    )
     assert "❌ Custom Integration (Custom) — unsupported integration type" in report

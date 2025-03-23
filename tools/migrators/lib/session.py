@@ -3,7 +3,9 @@ import uuid
 from pathlib import Path
 
 # Use environment variable for session file location, with fallback
-SESSION_FILE = Path(os.environ.get("SESSION_FILE", str(Path(__file__).parent.parent / ".session")))
+SESSION_FILE = Path(
+    os.environ.get("SESSION_FILE", str(Path(__file__).parent.parent / ".session"))
+)
 
 
 def get_or_create_session_id() -> str:

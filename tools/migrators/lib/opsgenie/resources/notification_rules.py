@@ -8,13 +8,23 @@ from lib.utils import transform_wait_delay
 
 def migrate_notification_rules(user: dict) -> None:
     """Migrate user notification rules from OpsGenie to Grafana OnCall."""
-    if PRESERVE_EXISTING_USER_NOTIFICATION_RULES and user["oncall_user"]["notification_rules"]:
-        print(f"Preserving existing notification rules for {user.get('email', user.get('username'))}")
+    if (
+        PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+        and user["oncall_user"]["notification_rules"]
+    ):
+        print(
+            f"Preserving existing notification rules for {user.get('email', user.get('username'))}"
+        )
         return
 
     # If not preserving, delete ALL existing notification rules first
-    if not PRESERVE_EXISTING_USER_NOTIFICATION_RULES and user["oncall_user"]["notification_rules"]:
-        print(f"Deleting existing notification rules for {user.get('email', user.get('username'))}")
+    if (
+        not PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+        and user["oncall_user"]["notification_rules"]
+    ):
+        print(
+            f"Deleting existing notification rules for {user.get('email', user.get('username'))}"
+        )
         for rule in user["oncall_user"]["notification_rules"]:
             OnCallAPIClient.delete(f"personal_notification_rules/{rule['id']}")
 
@@ -22,9 +32,7 @@ def migrate_notification_rules(user: dict) -> None:
     for important in (False, True):
         # Get the OnCall rules for the current importance level
         oncall_rules = transform_notification_rules(
-            user["notification_rules"],
-            user["oncall_user"]["id"],
-            important
+            user["notification_rules"], user["oncall_user"]["id"], important
         )
 
         # Create the new rules
@@ -32,7 +40,9 @@ def migrate_notification_rules(user: dict) -> None:
             OnCallAPIClient.create("personal_notification_rules", rule)
 
 
-def transform_notification_rules(notification_steps: list[dict], user_id: str, important: bool) -> list[dict]:
+def transform_notification_rules(
+    notification_steps: list[dict], user_id: str, important: bool
+) -> list[dict]:
     """
     Transform OpsGenie notification steps to OnCall personal notification rules.
     If a step has timeAmount > 0, add a wait step before the notification.
@@ -40,7 +50,7 @@ def transform_notification_rules(notification_steps: list[dict], user_id: str, i
     # Sort steps by sendAfter minutes (or 0 if not present)
     sorted_steps = sorted(
         notification_steps,
-        key=lambda step: step.get("sendAfter", {}).get("timeAmount", 0)
+        key=lambda step: step.get("sendAfter", {}).get("timeAmount", 0),
     )
 
     oncall_rules = []
@@ -59,7 +69,7 @@ def transform_notification_rules(notification_steps: list[dict], user_id: str, i
                 "user_id": user_id,
                 "type": "wait",
                 "duration": transform_wait_delay(time_amount),
-                "important": important
+                "important": important,
             }
             oncall_rules.append(wait_rule)
 
@@ -76,11 +86,7 @@ def transform_notification_rules(notification_steps: list[dict], user_id: str, i
             continue
 
         # Add the notification rule
-        notify_rule = {
-            "user_id": user_id,
-            "type": oncall_type,
-            "important": important
-        }
+        notify_rule = {"user_id": user_id, "type": oncall_type, "important": important}
         oncall_rules.append(notify_rule)
 
     return oncall_rules

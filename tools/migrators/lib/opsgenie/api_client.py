@@ -1,5 +1,5 @@
 import typing
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from lib.network import api_call
 from lib.opsgenie.config import OPSGENIE_API_KEY, OPSGENIE_API_URL
@@ -8,7 +8,9 @@ from lib.opsgenie.config import OPSGENIE_API_KEY, OPSGENIE_API_URL
 class OpsGenieAPIClient:
     DEFAULT_LIMIT = 100  # Maximum allowed by OpsGenie API
 
-    def __init__(self, api_key: str = OPSGENIE_API_KEY, api_url: str = OPSGENIE_API_URL):
+    def __init__(
+        self, api_key: str = OPSGENIE_API_KEY, api_url: str = OPSGENIE_API_URL
+    ):
         self.api_key = api_key
         self.api_url = api_url
         self.headers = {
@@ -34,7 +36,14 @@ class OpsGenieAPIClient:
 
         # Only handle pagination for GET requests when pagination is requested
         if method.upper() != "GET" or not paginate:
-            response = api_call(method, self.api_url, path, headers=self.headers, params=params, json=json)
+            response = api_call(
+                method,
+                self.api_url,
+                path,
+                headers=self.headers,
+                params=params,
+                json=json,
+            )
             return response.json()
 
         # Set default pagination parameters
@@ -47,7 +56,14 @@ class OpsGenieAPIClient:
         combined_response = None
 
         while True:
-            response = api_call(method, self.api_url, path, headers=self.headers, params=params, json=json)
+            response = api_call(
+                method,
+                self.api_url,
+                path,
+                headers=self.headers,
+                params=params,
+                json=json,
+            )
             response_json = response.json()
 
             if combined_response is None:
@@ -89,7 +105,9 @@ class OpsGenieAPIClient:
 
             # Get notification rules for each user
             user_id = user["id"]
-            rules_response = self._make_request("GET", f"v2/users/{user_id}/notification-rules")
+            rules_response = self._make_request(
+                "GET", f"v2/users/{user_id}/notification-rules"
+            )
 
             # Find the create-alert notification rule
             create_alert_rule = None
@@ -102,11 +120,15 @@ class OpsGenieAPIClient:
                 # Get steps for the create-alert rule
                 steps_response = self._make_request(
                     "GET",
-                    f"v2/users/{user_id}/notification-rules/{create_alert_rule['id']}/steps"
+                    f"v2/users/{user_id}/notification-rules/{create_alert_rule['id']}/steps",
                 )
                 user["notification_rules"] = steps_response.get("data", [])
             else:
                 user["notification_rules"] = []
+
+            # Get teams for each user
+            teams_response = self._make_request("GET", f"v2/users/{user_id}/teams")
+            user["teams"] = teams_response.get("data", [])
 
             users.append(user)
 
@@ -114,7 +136,9 @@ class OpsGenieAPIClient:
 
     def list_schedules(self) -> list[dict]:
         """List all schedules with their rotations."""
-        response = self._make_request("GET", "v2/schedules", params={"expand": "rotation"})
+        response = self._make_request(
+            "GET", "v2/schedules", params={"expand": "rotation"}
+        )
         schedules = response.get("data", [])
 
         # Fetch overrides for each schedule
@@ -125,7 +149,9 @@ class OpsGenieAPIClient:
                 )
                 schedule["overrides"] = overrides_response.get("data", [])
             except Exception as e:
-                print(f"Warning: Failed to fetch overrides for schedule {schedule['name']}: {str(e)}")
+                print(
+                    f"Warning: Failed to fetch overrides for schedule {schedule['name']}: {str(e)}"
+                )
                 schedule["overrides"] = []
 
         return schedules

@@ -1,17 +1,97 @@
 import datetime
+import re
+import typing
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 from uuid import uuid4
 
+from lib.common.report import TAB
 from lib.constants import ONCALL_SHIFT_WEB_SOURCE
 from lib.oncall.api_client import OnCallAPIClient
 from lib.pagerduty.config import (
+    PAGERDUTY_FILTER_SCHEDULE_REGEX,
+    PAGERDUTY_FILTER_TEAM,
+    PAGERDUTY_FILTER_USERS,
     SCHEDULE_MIGRATION_MODE,
     SCHEDULE_MIGRATION_MODE_ICAL,
     SCHEDULE_MIGRATION_MODE_WEB,
+    VERBOSE_LOGGING,
 )
 from lib.utils import dt_to_oncall_datetime, duration_to_frequency_and_interval
+
+
+def filter_schedules(
+    schedules: typing.List[typing.Dict[str, typing.Any]]
+) -> typing.List[typing.Dict[str, typing.Any]]:
+    """
+    Filter schedules based on configured filters.
+
+    If multiple filters are specified, a schedule only needs to match one of them
+    to be included (OR operation between filters).
+    """
+    if not any(
+        [PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_USERS, PAGERDUTY_FILTER_SCHEDULE_REGEX]
+    ):
+        return schedules  # No filters specified, return all
+
+    filtered_schedules = []
+    filtered_out = 0
+    filtered_reasons = {}
+
+    for schedule in schedules:
+        matches_any_filter = False
+        reasons = []
+
+        # Filter by team
+        if PAGERDUTY_FILTER_TEAM:
+            teams = schedule.get("teams", [])
+            if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
+                )
+
+        # Filter by users
+        if PAGERDUTY_FILTER_USERS:
+            schedule_users = set()
+            for layer in schedule.get("schedule_layers", []):
+                for user in layer.get("users", []):
+                    schedule_users.add(user["user"]["id"])
+
+            if any(user_id in schedule_users for user_id in PAGERDUTY_FILTER_USERS):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}"
+                )
+
+        # Filter by name regex
+        if PAGERDUTY_FILTER_SCHEDULE_REGEX:
+            if re.match(PAGERDUTY_FILTER_SCHEDULE_REGEX, schedule["name"]):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"Schedule regex filter: {PAGERDUTY_FILTER_SCHEDULE_REGEX}"
+                )
+
+        if matches_any_filter:
+            filtered_schedules.append(schedule)
+        else:
+            filtered_out += 1
+            filtered_reasons[schedule["id"]] = reasons
+
+    if filtered_out > 0:
+        summary = f"Filtered out {filtered_out} schedules"
+        print(summary)
+
+        # Only print detailed reasons in verbose mode
+        if VERBOSE_LOGGING:
+            for schedule_id, reasons in filtered_reasons.items():
+                print(f"{TAB}Schedule {schedule_id}: {', '.join(reasons)}")
+
+    return filtered_schedules
 
 
 def match_schedule(

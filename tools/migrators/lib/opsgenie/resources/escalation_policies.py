@@ -1,11 +1,34 @@
+import re
 from typing import List
 
 from lib.oncall.api_client import OnCallAPIClient
+from lib.opsgenie.config import (
+    OPSGENIE_FILTER_ESCALATION_POLICY_REGEX,
+    OPSGENIE_FILTER_TEAM,
+)
 from lib.utils import transform_wait_delay
 
 
+def filter_escalation_policies(policies: list[dict]) -> list[dict]:
+    """Apply filters to escalation policies."""
+    if OPSGENIE_FILTER_TEAM:
+        filtered_policies = []
+        for p in policies:
+            if p["ownerTeam"]["id"] == OPSGENIE_FILTER_TEAM:
+                filtered_policies.append(p)
+        policies = filtered_policies
+
+    if OPSGENIE_FILTER_ESCALATION_POLICY_REGEX:
+        pattern = re.compile(OPSGENIE_FILTER_ESCALATION_POLICY_REGEX)
+        policies = [p for p in policies if pattern.match(p["name"])]
+
+    return policies
+
+
 def match_escalation_policy(policy: dict, oncall_escalation_chains: List[dict]) -> None:
-    """Match OpsGenie escalation policy with Grafana OnCall escalation chain."""
+    """
+    Match OpsGenie escalation policy with Grafana OnCall escalation chain.
+    """
     oncall_chain = None
     for candidate in oncall_escalation_chains:
         if policy["name"].lower().strip() == candidate["name"].lower().strip():
@@ -14,30 +37,35 @@ def match_escalation_policy(policy: dict, oncall_escalation_chains: List[dict]) 
     policy["oncall_escalation_chain"] = oncall_chain
 
 
-def match_escalation_policy_for_integration(integration: dict, policies: List[dict]) -> None:
-    """Match OpsGenie integration with its escalation policy."""
-    integration["matched_escalation_policy"] = None
+def match_users_and_schedules_for_escalation_policy(
+    policy: dict, users: List[dict], schedules: List[dict]
+) -> None:
+    """
+    Match users and schedules referenced in escalation policy.
+    """
+    policy["matched_users"] = []
+    policy["matched_schedules"] = []
 
-    # First try to match by ID if the integration has a policy ID
-    if integration.get("escalationPolicyId"):
-        for policy in policies:
-            if policy["id"] == integration["escalationPolicyId"]:
-                integration["matched_escalation_policy"] = policy
-                return
-
-    # If no match by ID, try to match by name
-    # Some integrations might reference the policy by name instead of ID
-    if integration.get("escalationPolicyName"):
-        for policy in policies:
-            if policy["name"].lower().strip() == integration["escalationPolicyName"].lower().strip():
-                integration["matched_escalation_policy"] = policy
-                return
+    for rule in policy["rules"]:
+        recipient = rule.get("recipient", {})
+        if recipient.get("type") == "user":
+            for user in users:
+                if user["id"] == recipient.get("id") and user.get("oncall_user"):
+                    policy["matched_users"].append(user)
+        elif recipient.get("type") == "schedule":
+            for schedule in schedules:
+                if schedule["id"] == recipient.get("id") and not schedule.get(
+                    "migration_errors"
+                ):
+                    policy["matched_schedules"].append(schedule)
 
 
 def migrate_escalation_policy(
     policy: dict, users: List[dict], schedules: List[dict]
 ) -> None:
-    """Migrate OpsGenie escalation policy to Grafana OnCall."""
+    """
+    Migrate OpsGenie escalation policy to Grafana OnCall.
+    """
     if policy["oncall_escalation_chain"]:
         OnCallAPIClient.delete(
             f"escalation_chains/{policy['oncall_escalation_chain']['id']}"
@@ -52,14 +80,14 @@ def migrate_escalation_policy(
     position = 0
     for rule in policy["rules"]:
         # Convert wait duration from minutes to seconds
-        wait_delay = transform_wait_delay(rule.get("notifyOnce", False), rule.get("delay", 0))
+        wait_delay = transform_wait_delay(
+            rule.get("notifyOnce", False), rule.get("delay", 0)
+        )
 
         # Create policies for each recipient
         for recipient in rule["recipients"]:
             if recipient["type"] == "user":
-                user = next(
-                    (u for u in users if u["id"] == recipient["id"]), None
-                )
+                user = next((u for u in users if u["id"] == recipient["id"]), None)
                 if user and user.get("oncall_user"):
                     policy_payload = {
                         "escalation_chain_id": chain["id"],

@@ -767,3 +767,21 @@ docker run --rm \
 -e OPSGENIE_API_URL="<OPSGENIE_API_URL>" \
 oncall-migrator python /app/add_users_to_grafana.py
 ```
+
+You can also filter which OpsGenie users are added to Grafana by using the `OPSGENIE_FILTER_USERS` environment variable:
+
+```bash
+docker run --rm \
+-e MIGRATING_FROM="opsgenie" \
+-e GRAFANA_URL="<GRAFANA_API_URL>" \
+-e GRAFANA_USERNAME="<GRAFANA_USERNAME>" \
+-e GRAFANA_PASSWORD="<GRAFANA_PASSWORD>" \
+-e OPSGENIE_API_KEY="<OPSGENIE_API_KEY>" \
+-e OPSGENIE_API_URL="<OPSGENIE_API_URL>" \
+-e OPSGENIE_FILTER_USERS="OPSGENIE_USER_ID_1,OPSGENIE_USER_ID_2,OPSGENIE_USER_ID_3" \
+oncall-migrator python /app/add_users_to_grafana.py
+```
+
+This is useful when you want to selectively add users to Grafana, such as when testing the migration process
+or when you only need to add specific users from a large OpsGenie organization.
+The `OPSGENIE_FILTER_USERS` variable should contain a comma-separated list of OpsGenie user IDs.

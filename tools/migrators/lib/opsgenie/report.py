@@ -1,9 +1,7 @@
-from lib.common.report import (
-    ERROR_SIGN,
-    SUCCESS_SIGN,
-    TAB,
-    WARNING_SIGN,
-    format_error_list,
+from lib.common.report import ERROR_SIGN, SUCCESS_SIGN, TAB, WARNING_SIGN
+from lib.opsgenie.config import (
+    PRESERVE_EXISTING_USER_NOTIFICATION_RULES,
+    UNSUPPORTED_INTEGRATION_TO_WEBHOOKS,
 )
 
 
@@ -32,9 +30,21 @@ def user_report(users: list[dict]) -> str:
     report = ["User notification rules report:"]
     for user in users:
         if user.get("oncall_user"):
-            if user["oncall_user"]["notification_rules"]:
+            if (
+                user["oncall_user"]["notification_rules"]
+                and PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+            ):
                 report.append(
-                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be preserved)"
+                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be preserved "
+                    "because PRESERVE_EXISTING_USER_NOTIFICATION_RULES is true)"
+                )
+            elif (
+                user["oncall_user"]["notification_rules"]
+                and not PRESERVE_EXISTING_USER_NOTIFICATION_RULES
+            ):
+                report.append(
+                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be deleted "
+                    "because PRESERVE_EXISTING_USER_NOTIFICATION_RULES is false)"
                 )
             else:
                 report.append(f"{TAB}{SUCCESS_SIGN} {format_user(user)}")
@@ -50,9 +60,10 @@ def schedule_report(schedules: list[dict]) -> str:
     report = ["Schedule report:"]
     for schedule in schedules:
         if schedule.get("migration_errors"):
-            report.append(
-                f"{TAB}{ERROR_SIGN} {format_schedule(schedule)} — {format_error_list(schedule['migration_errors'])}"
-            )
+            errors = schedule["migration_errors"]
+            report.append(f"{TAB}{ERROR_SIGN} {format_schedule(schedule)} —")
+            for error in errors:
+                report.append(f"{TAB}{TAB}- {error}")
         elif schedule.get("oncall_schedule"):
             report.append(
                 f"{TAB}{WARNING_SIGN} {format_schedule(schedule)} (existing schedule will be deleted)"
@@ -83,9 +94,16 @@ def integration_report(integrations: list[dict]) -> str:
             report.append(
                 f"{TAB}{WARNING_SIGN} {format_integration(integration)} (existing integration will be deleted)"
             )
-        elif not integration.get("oncall_type"):
+        elif (
+            not integration.get("oncall_type")
+            and not UNSUPPORTED_INTEGRATION_TO_WEBHOOKS
+        ):
             report.append(
                 f"{TAB}{ERROR_SIGN} {format_integration(integration)} — unsupported integration type"
+            )
+        elif not integration.get("oncall_type") and UNSUPPORTED_INTEGRATION_TO_WEBHOOKS:
+            report.append(
+                f"{TAB}{WARNING_SIGN} {format_integration(integration)} — unsupported integration type, will be migrated as webhook"
             )
         else:
             report.append(f"{TAB}{SUCCESS_SIGN} {format_integration(integration)}")

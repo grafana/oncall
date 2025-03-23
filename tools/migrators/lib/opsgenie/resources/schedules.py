@@ -1,17 +1,72 @@
-from datetime import datetime, timedelta
+import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from uuid import uuid4
 
 from lib.constants import ONCALL_SHIFT_WEB_SOURCE
 from lib.oncall.api_client import OnCallAPIClient
+from lib.opsgenie.config import (
+    OPSGENIE_FILTER_SCHEDULE_REGEX,
+    OPSGENIE_FILTER_TEAM,
+    OPSGENIE_FILTER_USERS,
+)
 from lib.utils import dt_to_oncall_datetime, duration_to_frequency_and_interval
+
+
+def filter_schedules(schedules: list[dict]) -> list[dict]:
+    """Apply filters to schedules."""
+    if OPSGENIE_FILTER_TEAM:
+        filtered_schedules = []
+        for s in schedules:
+            if s["ownerTeam"]["id"] == OPSGENIE_FILTER_TEAM:
+                filtered_schedules.append(s)
+        schedules = filtered_schedules
+
+    if OPSGENIE_FILTER_USERS:
+        filtered_schedules = []
+        for schedule in schedules:
+            # Check if any rotation has a participant with ID in OPSGENIE_FILTER_USERS
+            include_schedule = False
+            for rotation in schedule.get("rotations", []):
+                for participant in rotation.get("participants", []):
+                    if (
+                        participant.get("type") == "user"
+                        and participant.get("id") in OPSGENIE_FILTER_USERS
+                    ):
+                        include_schedule = True
+                        break
+                if include_schedule:
+                    break
+
+            # Also check overrides for the filtered users
+            if not include_schedule:
+                for override in schedule.get("overrides", []):
+                    if (
+                        override.get("user", {}).get("type") == "user"
+                        and override.get("user", {}).get("id") in OPSGENIE_FILTER_USERS
+                    ):
+                        include_schedule = True
+                        break
+
+            if include_schedule:
+                filtered_schedules.append(schedule)
+
+        schedules = filtered_schedules
+
+    if OPSGENIE_FILTER_SCHEDULE_REGEX:
+        pattern = re.compile(OPSGENIE_FILTER_SCHEDULE_REGEX)
+        schedules = [s for s in schedules if pattern.match(s["name"])]
+
+    return schedules
 
 
 def match_schedule(
     schedule: dict, oncall_schedules: List[dict], user_id_map: Dict[str, str]
 ) -> None:
-    """Match OpsGenie schedule with Grafana OnCall schedule."""
+    """
+    Match OpsGenie schedule with Grafana OnCall schedule.
+    """
     oncall_schedule = None
     for candidate in oncall_schedules:
         if schedule["name"].lower().strip() == candidate["name"].lower().strip():
@@ -25,7 +80,9 @@ def match_schedule(
             break
 
     if has_time_restrictions:
-        schedule["migration_errors"] = ["Schedule contains time restrictions which are not supported for migration"]
+        schedule["migration_errors"] = [
+            "Schedule contains time restrictions which are not supported for migration"
+        ]
         return
 
     _, errors = Schedule.from_dict(schedule).to_oncall_schedule(user_id_map)
@@ -33,8 +90,24 @@ def match_schedule(
     schedule["oncall_schedule"] = oncall_schedule
 
 
+def match_users_for_schedule(schedule: dict, users: List[dict]) -> None:
+    """
+    Match users referenced in schedule.
+    """
+    schedule["matched_users"] = []
+
+    for rotation in schedule["rotations"]:
+        for participant in rotation["participants"]:
+            if participant["type"] == "user":
+                for user in users:
+                    if user["id"] == participant["id"] and user.get("oncall_user"):
+                        schedule["matched_users"].append(user)
+
+
 def migrate_schedule(schedule: dict, user_id_map: Dict[str, str]) -> None:
-    """Migrate OpsGenie schedule to Grafana OnCall."""
+    """
+    Migrate OpsGenie schedule to Grafana OnCall.
+    """
     if schedule["oncall_schedule"]:
         OnCallAPIClient.delete(f"schedules/{schedule['oncall_schedule']['id']}")
 
@@ -47,6 +120,7 @@ class Schedule:
     Utility class for converting an OpsGenie schedule to an OnCall schedule.
     An OpsGenie schedule has multiple rotations, each with a set of participants.
     """
+
     name: str
     timezone: str
     rotations: list["Rotation"]
@@ -87,7 +161,8 @@ class Schedule:
         for rotation in self.rotations:
             # Check if all users in the rotation exist in OnCall
             missing_user_ids = [
-                p["id"] for p in rotation.participants
+                p["id"]
+                for p in rotation.participants
                 if p["type"] == "user" and p["id"] not in user_id_map
             ]
             if missing_user_ids:
@@ -146,6 +221,7 @@ class Override:
     """
     Utility class for representing a schedule override in OpsGenie.
     """
+
     start_date: datetime
     end_date: datetime
     user_id: str
@@ -154,7 +230,9 @@ class Override:
     def from_dict(cls, override: dict) -> "Override":
         """Create an Override object from an OpsGenie API response for a schedule override."""
         # Convert string dates to datetime objects
-        start_date = datetime.fromisoformat(override["startDate"].replace("Z", "+00:00"))
+        start_date = datetime.fromisoformat(
+            override["startDate"].replace("Z", "+00:00")
+        )
         end_date = datetime.fromisoformat(override["endDate"].replace("Z", "+00:00"))
 
         # Extract user ID from the user object
@@ -192,6 +270,7 @@ class Rotation:
     """
     Utility class for converting an OpsGenie rotation to an OnCall shift.
     """
+
     name: str
     type: str
     length: int
@@ -203,11 +282,15 @@ class Rotation:
     def from_dict(cls, rotation: dict) -> "Rotation":
         """Create a Rotation object from an OpsGenie API response for a rotation."""
         # Keep start_date in UTC format
-        start_date = datetime.fromisoformat(rotation["startDate"].replace("Z", "+00:00"))
+        start_date = datetime.fromisoformat(
+            rotation["startDate"].replace("Z", "+00:00")
+        )
 
         end_date = None
         if rotation.get("endDate"):
-            end_date = datetime.fromisoformat(rotation["endDate"].replace("Z", "+00:00"))
+            end_date = datetime.fromisoformat(
+                rotation["endDate"].replace("Z", "+00:00")
+            )
 
         return cls(
             name=rotation["name"],
