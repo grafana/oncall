@@ -28,12 +28,14 @@ def test_match_users_and_schedules_for_escalation_policy():
         "name": "Critical Alerts",
         "rules": [
             {
-                "recipients": [
-                    {"type": "user", "id": "u1"},
-                    {"type": "schedule", "id": "s1"},
-                ],
-            }
+                "recipient": {"type": "user", "id": "u1"},
+            },
+            {
+                "recipient": {"type": "schedule", "id": "s1"},
+            },
         ],
+        "matched_users": [],
+        "matched_schedules": [],
     }
     users = [
         {"id": "u1", "oncall_user": {"id": "ou1"}},
@@ -51,7 +53,7 @@ def test_match_users_and_schedules_for_escalation_policy():
     assert policy["matched_schedules"][0]["id"] == "s1"
 
 
-@patch("lib.oncall.api_client.OnCallAPIClient")
+@patch("lib.opsgenie.resources.escalation_policies.OnCallAPIClient")
 def test_migrate_escalation_policy(mock_client):
     mock_client.create.side_effect = [
         {"id": "oc1"},  # Chain creation
@@ -68,14 +70,20 @@ def test_migrate_escalation_policy(mock_client):
                 "recipients": [
                     {"type": "user", "id": "u1"},
                 ],
-                "delay": 5,
+                "delay": {
+                    "timeAmount": 5,
+                    "timeUnit": "minutes"
+                },
                 "isHighPriority": True,
             },
             {
                 "recipients": [
                     {"type": "schedule", "id": "s1"},
                 ],
-                "delay": 10,
+                "delay": {
+                    "timeAmount": 10,
+                    "timeUnit": "minutes"
+                },
             },
         ],
         "oncall_escalation_chain": {"id": "oc_old"},

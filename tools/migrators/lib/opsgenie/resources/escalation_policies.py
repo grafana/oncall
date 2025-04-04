@@ -80,39 +80,38 @@ def migrate_escalation_policy(
     position = 0
     for rule in policy["rules"]:
         # Convert wait duration from minutes to seconds
-        wait_delay = transform_wait_delay(
-            rule.get("notifyOnce", False), rule.get("delay", 0)
-        )
+        delay = rule.get("delay", {})
+        wait_delay = transform_wait_delay(delay.get("timeAmount", 0))
 
         # Create policies for each recipient
-        for recipient in rule["recipients"]:
-            if recipient["type"] == "user":
-                user = next((u for u in users if u["id"] == recipient["id"]), None)
-                if user and user.get("oncall_user"):
-                    policy_payload = {
-                        "escalation_chain_id": chain["id"],
-                        "position": position,
-                        "type": "notify_persons",
-                        "persons_to_notify": [user["oncall_user"]["id"]],
-                        "important": rule.get("isHighPriority", False),
-                    }
-                    OnCallAPIClient.create("escalation_policies", policy_payload)
-                    position += 1
+        recipient = rule.get("recipient")
+        if recipient["type"] == "user":
+            user = next((u for u in users if u["id"] == recipient["id"]), None)
+            if user and user.get("oncall_user"):
+                policy_payload = {
+                    "escalation_chain_id": chain["id"],
+                    "position": position,
+                    "type": "notify_persons",
+                    "persons_to_notify": [user["oncall_user"]["id"]],
+                    "important": rule.get("isHighPriority", False),
+                }
+                OnCallAPIClient.create("escalation_policies", policy_payload)
+                position += 1
 
-            elif recipient["type"] == "schedule":
-                schedule = next(
-                    (s for s in schedules if s["id"] == recipient["id"]), None
-                )
-                if schedule and schedule.get("oncall_schedule"):
-                    policy_payload = {
-                        "escalation_chain_id": chain["id"],
-                        "position": position,
-                        "type": "notify_on_call_from_schedule",
-                        "schedule_id": schedule["oncall_schedule"]["id"],
-                        "important": rule.get("isHighPriority", False),
-                    }
-                    OnCallAPIClient.create("escalation_policies", policy_payload)
-                    position += 1
+        elif recipient["type"] == "schedule":
+            schedule = next(
+                (s for s in schedules if s["id"] == recipient["id"]), None
+            )
+            if schedule and schedule.get("oncall_schedule"):
+                policy_payload = {
+                    "escalation_chain_id": chain["id"],
+                    "position": position,
+                    "type": "notify_on_call_from_schedule",
+                    "schedule_id": schedule["oncall_schedule"]["id"],
+                    "important": rule.get("isHighPriority", False),
+                }
+                OnCallAPIClient.create("escalation_policies", policy_payload)
+                position += 1
 
         # Add wait step if there's a delay
         if wait_delay:

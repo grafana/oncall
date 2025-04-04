@@ -35,16 +35,14 @@ def user_report(users: list[dict]) -> str:
                 and PRESERVE_EXISTING_USER_NOTIFICATION_RULES
             ):
                 report.append(
-                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be preserved "
-                    "because PRESERVE_EXISTING_USER_NOTIFICATION_RULES is true)"
+                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be preserved)"
                 )
             elif (
                 user["oncall_user"]["notification_rules"]
                 and not PRESERVE_EXISTING_USER_NOTIFICATION_RULES
             ):
                 report.append(
-                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be deleted "
-                    "because PRESERVE_EXISTING_USER_NOTIFICATION_RULES is false)"
+                    f"{TAB}{WARNING_SIGN} {format_user(user)} (existing notification rules will be deleted)"
                 )
             else:
                 report.append(f"{TAB}{SUCCESS_SIGN} {format_user(user)}")
@@ -61,9 +59,12 @@ def schedule_report(schedules: list[dict]) -> str:
     for schedule in schedules:
         if schedule.get("migration_errors"):
             errors = schedule["migration_errors"]
-            report.append(f"{TAB}{ERROR_SIGN} {format_schedule(schedule)} —")
-            for error in errors:
-                report.append(f"{TAB}{TAB}- {error}")
+            error_msg = " — " + errors[0] if len(errors) == 1 else " —"
+            report.append(f"{TAB}{ERROR_SIGN} {format_schedule(schedule)}{error_msg}")
+            # Add additional errors as bullet points if more than one
+            if len(errors) > 1:
+                for error in errors:
+                    report.append(f"{TAB}{TAB}- {error}")
         elif schedule.get("oncall_schedule"):
             report.append(
                 f"{TAB}{WARNING_SIGN} {format_schedule(schedule)} (existing schedule will be deleted)"

@@ -31,7 +31,7 @@ def test_match_integration():
     assert integration.get("oncall_type") is None
 
 
-@patch("lib.oncall.api_client.OnCallAPIClient")
+@patch("lib.opsgenie.resources.integrations.OnCallAPIClient")
 def test_migrate_integration(mock_client):
     mock_client.create.return_value = {"id": "oi1"}
 
@@ -44,7 +44,7 @@ def test_migrate_integration(mock_client):
         "oncall_escalation_chain": {"id": "oc1"},
     }
 
-    migrate_integration(integration, [])
+    migrate_integration(integration)
 
     # Verify integration creation
     mock_client.delete.assert_called_once_with("integrations/oi_old")

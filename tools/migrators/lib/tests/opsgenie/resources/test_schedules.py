@@ -67,13 +67,13 @@ def test_match_users_for_schedule():
     assert schedule["matched_users"][0]["id"] == "u1"
 
 
-@patch("lib.oncall.api_client.OnCallAPIClient")
+@patch("lib.opsgenie.resources.schedules.OnCallAPIClient")
 def test_migrate_schedule(mock_client):
     # Mock OnCall API responses
     mock_client.create.side_effect = [
-        {"id": "os1", "name": "Primary Schedule"},  # Schedule creation
         {"id": "or1"},  # First rotation
         {"id": "or2"},  # Second rotation
+        {"id": "os1", "name": "Primary Schedule"},  # Schedule creation
     ]
 
     schedule = {
@@ -115,6 +115,47 @@ def test_migrate_schedule(mock_client):
 
     # Verify schedule creation
     mock_client.delete.assert_called_once_with("schedules/os_old")
+
+    # Verify shift creation calls
+    mock_client.create.assert_any_call(
+        "on_call_shifts",
+        {
+            "name": "Daily Rotation",
+            "type": "rolling_users",
+            "time_zone": "UTC",
+            "team_id": None,
+            "level": 1,
+            "start": "2024-01-01T00:00:00Z",
+            "duration": 86400,  # 1 day in seconds
+            "frequency": "daily",
+            "interval": 1,
+            "rolling_users": [["ou1"]],
+            "start_rotation_from_user_index": 0,
+            "week_start": "MO",
+            "source": "web",
+        },
+    )
+
+    mock_client.create.assert_any_call(
+        "on_call_shifts",
+        {
+            "name": "Weekly Rotation",
+            "type": "rolling_users",
+            "time_zone": "UTC",
+            "team_id": None,
+            "level": 1,
+            "start": "2024-01-01T00:00:00Z",
+            "duration": 604800,  # 1 week in seconds
+            "frequency": "weekly",
+            "interval": 1,
+            "rolling_users": [["ou2"]],
+            "start_rotation_from_user_index": 0,
+            "week_start": "MO",
+            "source": "web",
+        },
+    )
+
+    # Verify final schedule creation with shift IDs
     mock_client.create.assert_any_call(
         "schedules",
         {
@@ -122,32 +163,6 @@ def test_migrate_schedule(mock_client):
             "type": "web",
             "team_id": None,
             "time_zone": "UTC",
-        },
-    )
-
-    # Verify rotation creation calls
-    mock_client.create.assert_any_call(
-        "rotations",
-        {
-            "schedule_id": "os1",
-            "name": "Daily Rotation",
-            "start": "2024-01-01T00:00:00Z",
-            "duration": 86400,  # 1 day in seconds
-            "frequency": "daily",
-            "by_day": None,
-            "users": ["ou1"],
-        },
-    )
-
-    mock_client.create.assert_any_call(
-        "rotations",
-        {
-            "schedule_id": "os1",
-            "name": "Weekly Rotation",
-            "start": "2024-01-01T00:00:00Z",
-            "duration": 604800,  # 1 week in seconds
-            "frequency": "weekly",
-            "by_day": ["MO", "TU", "WE", "TH", "FR"],
-            "users": ["ou2"],
+            "shifts": ["or1", "or2"],
         },
     )

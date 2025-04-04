@@ -3,21 +3,28 @@ from unittest.mock import patch
 from lib.opsgenie.resources.notification_rules import migrate_notification_rules
 
 
-@patch("lib.oncall.api_client.OnCallAPIClient")
+@patch("lib.opsgenie.resources.notification_rules.OnCallAPIClient")
 def test_migrate_notification_rules(mock_client):
     user = {
         "id": "u1",
+        "username": "test.user@example.com",
         "notification_rules": [
             {
-                "type": "sms",
                 "enabled": True,
-                "delay": 5,
+                "contact": {"method": "sms"},
+                "sendAfter": {
+                    "timeAmount": 5,
+                    "timeUnit": "minutes"
+                },
                 "criteria": {"isHighPriority": True},
             },
             {
-                "type": "voice",
                 "enabled": True,
-                "delay": 10,
+                "contact": {"method": "voice"},
+                "sendAfter": {
+                    "timeAmount": 10,
+                    "timeUnit": "minutes"
+                },
             },
         ],
         "oncall_user": {
