@@ -9,6 +9,11 @@ from lib.opsgenie.config import (
 from lib.utils import transform_wait_delay
 
 
+def determine_policy_name(policy: dict) -> str:
+    """Determine the name of the policy."""
+    return f"{policy['ownerTeam']['name']} - {policy['name']}"
+
+
 def filter_escalation_policies(policies: list[dict]) -> list[dict]:
     """Apply filters to escalation policies."""
     if OPSGENIE_FILTER_TEAM:
@@ -31,7 +36,10 @@ def match_escalation_policy(policy: dict, oncall_escalation_chains: List[dict]) 
     """
     oncall_chain = None
     for candidate in oncall_escalation_chains:
-        if policy["name"].lower().strip() == candidate["name"].lower().strip():
+        if (
+            determine_policy_name(policy).lower().strip()
+            == candidate["name"].lower().strip()
+        ):
             oncall_chain = candidate
 
     policy["oncall_escalation_chain"] = oncall_chain
@@ -72,19 +80,30 @@ def migrate_escalation_policy(
         )
 
     # Create new escalation chain
-    chain_payload = {"name": policy["name"], "team_id": None}
+    chain_payload = {"name": determine_policy_name(policy), "team_id": None}
     chain = OnCallAPIClient.create("escalation_chains", chain_payload)
     policy["oncall_escalation_chain"] = chain
 
     # Create escalation policies for each rule
     position = 0
     for rule in policy["rules"]:
-        # Convert wait duration from minutes to seconds
-        delay = rule.get("delay", {})
-        wait_delay = transform_wait_delay(delay.get("timeAmount", 0))
+        if rule.get("notifyType") != "default":
+            continue
 
-        # Create policies for each recipient
-        recipient = rule.get("recipient")
+        # Convert wait duration from minutes to seconds + add wait step if there's a delay
+        delay = rule.get("delay", {}).get("timeAmount")
+        if delay:
+            wait_payload = {
+                "escalation_chain_id": chain["id"],
+                "position": position,
+                "type": "wait",
+                "duration": transform_wait_delay(delay),
+            }
+            OnCallAPIClient.create("escalation_policies", wait_payload)
+            position += 1
+
+        # Create notification step
+        recipient = rule["recipient"]
         if recipient["type"] == "user":
             user = next((u for u in users if u["id"] == recipient["id"]), None)
             if user and user.get("oncall_user"):
@@ -93,7 +112,7 @@ def migrate_escalation_policy(
                     "position": position,
                     "type": "notify_persons",
                     "persons_to_notify": [user["oncall_user"]["id"]],
-                    "important": rule.get("isHighPriority", False),
+                    "important": False,
                 }
                 OnCallAPIClient.create("escalation_policies", policy_payload)
                 position += 1
@@ -105,19 +124,8 @@ def migrate_escalation_policy(
                     "escalation_chain_id": chain["id"],
                     "position": position,
                     "type": "notify_on_call_from_schedule",
-                    "schedule_id": schedule["oncall_schedule"]["id"],
-                    "important": rule.get("isHighPriority", False),
+                    "notify_on_call_from_schedule": schedule["oncall_schedule"]["id"],
+                    "important": False,
                 }
                 OnCallAPIClient.create("escalation_policies", policy_payload)
                 position += 1
-
-        # Add wait step if there's a delay
-        if wait_delay:
-            wait_payload = {
-                "escalation_chain_id": chain["id"],
-                "position": position,
-                "type": "wait",
-                "duration": wait_delay,
-            }
-            OnCallAPIClient.create("escalation_policies", wait_payload)
-            position += 1

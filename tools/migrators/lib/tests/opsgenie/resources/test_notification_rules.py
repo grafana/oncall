@@ -17,7 +17,6 @@ def test_migrate_notification_rules(mock_client):
                 "enabled": True,
                 "contact": {"method": "sms"},
                 "sendAfter": {"timeAmount": 5, "timeUnit": "minutes"},
-                "criteria": {"isHighPriority": True},
             },
             {
                 "enabled": True,

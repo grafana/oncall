@@ -30,6 +30,10 @@ class OpsGenieAPIClient:
         Make a request to the OpsGenie API with automatic pagination handling.
         If paginate=True and method is GET, it will automatically handle pagination
         and combine all results into a single response.
+
+        NOTE: we need to be careful with rate limiting, this is handled inside of lib.network.api_call
+        (see HTTP 429 exception handling)
+        # https://docs.opsgenie.com/docs/api-rate-limiting
         """
         if params is None:
             params = {}
@@ -143,16 +147,10 @@ class OpsGenieAPIClient:
 
         # Fetch overrides for each schedule
         for schedule in schedules:
-            try:
-                overrides_response = self._make_request(
-                    "GET", f"v2/schedules/{schedule['id']}/overrides"
-                )
-                schedule["overrides"] = overrides_response.get("data", [])
-            except Exception as e:
-                print(
-                    f"Warning: Failed to fetch overrides for schedule {schedule['name']}: {str(e)}"
-                )
-                schedule["overrides"] = []
+            overrides_response = self._make_request(
+                "GET", f"v2/schedules/{schedule['id']}/overrides"
+            )
+            schedule["overrides"] = overrides_response.get("data", [])
 
         return schedules
 

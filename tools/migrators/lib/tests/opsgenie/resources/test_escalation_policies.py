@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from lib.opsgenie.resources.escalation_policies import (
     match_escalation_policy,
@@ -11,11 +11,14 @@ def test_match_escalation_policy():
     policy = {
         "id": "ep1",
         "name": "Critical Alerts",
+        "ownerTeam": {
+            "name": "Team A",
+        },
         "rules": [],
     }
     oncall_chains = [
-        {"id": "oc1", "name": "Critical Alerts"},
-        {"id": "oc2", "name": "Non-Critical Alerts"},
+        {"id": "oc1", "name": "Team A - Critical Alerts"},
+        {"id": "oc2", "name": "Team B - Non-Critical Alerts"},
     ]
 
     match_escalation_policy(policy, oncall_chains)
@@ -26,6 +29,9 @@ def test_match_users_and_schedules_for_escalation_policy():
     policy = {
         "id": "ep1",
         "name": "Critical Alerts",
+        "ownerTeam": {
+            "name": "Team A",
+        },
         "rules": [
             {
                 "recipient": {"type": "user", "id": "u1"},
@@ -60,21 +66,36 @@ def test_migrate_escalation_policy(mock_client):
     policy = {
         "id": "ep1",
         "name": "Critical Alerts",
+        "ownerTeam": {
+            "name": "Team A",
+        },
         "rules": [
             {
                 "recipient": {
                     "type": "user",
                     "id": "u1",
                 },
-                "delay": {"timeAmount": 5, "timeUnit": "minutes"},
-                "isHighPriority": True,
+                "notifyType": "default",
+                "delay": {
+                    "timeAmount": 5,
+                },
             },
             {
                 "recipient": {
                     "type": "schedule",
                     "id": "s1",
                 },
-                "delay": {"timeAmount": 10, "timeUnit": "minutes"},
+                "notifyType": "default",
+                "delay": {
+                    "timeAmount": 12,
+                },
+            },
+            {
+                "recipient": {
+                    "type": "user",
+                    "id": "u2",
+                },
+                "notifyType": "somethingElse",
             },
         ],
         "oncall_escalation_chain": {"id": "oc_old"},
@@ -88,56 +109,59 @@ def test_migrate_escalation_policy(mock_client):
 
     migrate_escalation_policy(policy, users, schedules)
 
-    # Verify chain creation
+    # Verify that existing chain is deleted
     mock_client.delete.assert_called_once_with("escalation_chains/oc_old")
-    mock_client.create.assert_any_call(
-        "escalation_chains",
-        {
-            "name": "Critical Alerts",
-            "team_id": None,
-        },
-    )
 
-    # Verify first policy and wait step
-    mock_client.create.assert_any_call(
-        "escalation_policies",
-        {
-            "escalation_chain_id": "oc1",
-            "position": 0,
-            "type": "notify_persons",
-            "persons_to_notify": ["ou1"],
-            "important": True,
-        },
-    )
-
-    mock_client.create.assert_any_call(
-        "escalation_policies",
-        {
-            "escalation_chain_id": "oc1",
-            "position": 1,
-            "type": "wait",
-            "duration": 300,  # 5 minutes in seconds
-        },
-    )
-
-    # Verify second policy and wait step
-    mock_client.create.assert_any_call(
-        "escalation_policies",
-        {
-            "escalation_chain_id": "oc1",
-            "position": 2,
-            "type": "notify_on_call_from_schedule",
-            "schedule_id": "os1",
-            "important": False,
-        },
-    )
-
-    mock_client.create.assert_any_call(
-        "escalation_policies",
-        {
-            "escalation_chain_id": "oc1",
-            "position": 3,
-            "type": "wait",
-            "duration": 300,  # 5 minutes in seconds (closest to 10 minutes in ONCALL_DELAY_OPTIONS)
-        },
+    mock_client.create.assert_has_calls(
+        [
+            # Verify new escalation chain is created
+            call(
+                "escalation_chains",
+                {
+                    "name": "Team A - Critical Alerts",
+                    "team_id": None,
+                },
+            ),
+            # Verify first wait and policy steps are created
+            call(
+                "escalation_policies",
+                {
+                    "escalation_chain_id": "oc1",
+                    "position": 0,
+                    "type": "wait",
+                    "duration": 300,  # 5 minutes in seconds
+                },
+            ),
+            call(
+                "escalation_policies",
+                {
+                    "escalation_chain_id": "oc1",
+                    "position": 1,
+                    "type": "notify_persons",
+                    "persons_to_notify": ["ou1"],
+                    "important": False,
+                },
+            ),
+            # Verify second policy and wait step
+            call(
+                "escalation_policies",
+                {
+                    "escalation_chain_id": "oc1",
+                    "position": 2,
+                    "type": "wait",
+                    "duration": 900,  # 15 minutes in seconds
+                },
+            ),
+            call(
+                "escalation_policies",
+                {
+                    "escalation_chain_id": "oc1",
+                    "position": 3,
+                    "type": "notify_on_call_from_schedule",
+                    "notify_on_call_from_schedule": "os1",
+                    "important": False,
+                },
+            ),
+        ],
+        any_order=False,  # Order of calls is important
     )

@@ -602,8 +602,9 @@ Resources that can be migrated using this tool:
 ### Limitations
 
 - Not all integration types are supported
-- Delays between migrated notification/escalation rules could be slightly different from original
+- Not all Escalation Policy rule types are supported
 - OpsGenie schedules with time restrictions (time-of-day or weekday-and-time-of-day) are not supported
+- Delays between migrated notification/escalation rules could be slightly different from original
 
 ### Prerequisites
 
@@ -663,19 +664,23 @@ uses time restrictions will not be migrated as migrating these is not supported.
 #### Escalation policies
 
 The tool is capable of migrating escalation policies from OpsGenie to Grafana OnCall.
-Every escalation policy will be migrated to a new Grafana OnCall escalation chain with the same name.
+Every escalation policy will be migrated to a new Grafana OnCall escalation chain with name convention of
+`{team name} - {escalation policy name}`.
 
-Any existing escalation chains with the same name will be deleted before migration.
-Any escalation policies that reference unmatched users or schedules that cannot be migrated won't be migrated.
+Caveats:
 
-Note that delays between escalation steps may be slightly different in Grafana OnCall.
+- Only the "Notify user" and "Notify on-call user(s) in schedule" rule types are supported. If an OpsGenie Escalation
+Policy references a rule other than these, those rule steps are simply ignored in the migration
+- Any existing escalation chains with the same name will be deleted, in Grafana OnCall, before migration.
+Note that delays between escalation steps may be slightly different in Grafana OnCall
+- Grafana OnCall Escalation Policies which are migrated, are not attached to any Integration/Route, and must
+be done manually
 
 #### Integrations
 
 The tool is capable of migrating integrations from OpsGenie to Grafana OnCall.
 For every integration in OpsGenie, the tool will migrate it to a Grafana OnCall integration.
 
-Any integrations that reference escalation policies that cannot be migrated won't be migrated.
 Any integrations with unsupported type won't be migrated unless `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS` is set to `true`.
 
 The following integration types are supported:

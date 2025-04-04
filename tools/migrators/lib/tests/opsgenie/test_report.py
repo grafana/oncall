@@ -28,8 +28,11 @@ def test_format_schedule():
 def test_format_escalation_policy():
     policy = {
         "name": "Critical Alerts",
+        "ownerTeam": {
+            "name": "Team A",
+        },
     }
-    assert format_escalation_policy(policy) == "Critical Alerts"
+    assert format_escalation_policy(policy) == "Team A - Critical Alerts"
 
 
 def test_format_integration():
@@ -104,17 +107,24 @@ def test_escalation_policy_report():
         {
             "name": "Critical Alerts",
             "oncall_escalation_chain": None,
+            "ownerTeam": {
+                "name": "Team A",
+            },
         },
         {
             "name": "Non-Critical Alerts",
             "oncall_escalation_chain": {"id": "oc1"},
+            "ownerTeam": {
+                "name": "Team B",
+            },
         },
     ]
 
     report = escalation_policy_report(policies)
-    assert "✅ Critical Alerts" in report
+    assert "✅ Team A - Critical Alerts" in report
     assert (
-        "⚠️ Non-Critical Alerts (existing escalation chain will be deleted)" in report
+        "⚠️ Team B - Non-Critical Alerts (existing escalation chain will be deleted)"
+        in report
     )
 
 

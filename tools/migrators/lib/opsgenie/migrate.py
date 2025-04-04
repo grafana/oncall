@@ -2,7 +2,12 @@ from lib.common.report import TAB
 from lib.common.resources.users import match_user
 from lib.oncall.api_client import OnCallAPIClient
 from lib.opsgenie.api_client import OpsGenieAPIClient
-from lib.opsgenie.config import MIGRATE_USERS, MODE, MODE_PLAN
+from lib.opsgenie.config import (
+    MIGRATE_USERS,
+    MODE,
+    MODE_PLAN,
+    UNSUPPORTED_INTEGRATION_TO_WEBHOOKS,
+)
 from lib.opsgenie.report import (
     escalation_policy_report,
     format_escalation_policy,
@@ -113,13 +118,39 @@ def migrate() -> None:
     # Migrate escalation policies
     print("\n▶ Migrating escalation policies...")
     for policy in escalation_policies:
-        print(f"{TAB}Migrating {format_escalation_policy(policy)}...")
-        success = migrate_escalation_policy(policy, users, schedules)
-        if success:
-            print(f"{TAB}Successfully migrated {format_escalation_policy(policy)}")
+        if all(rule["notifyType"] != "default" for rule in policy["rules"]):
+            print(
+                f"{TAB}Skipping migrating {format_escalation_policy(policy)} because all of its rules "
+                "have a non-default notifyType"
+            )
+            continue
+        elif any(rule["notifyType"] != "default" for rule in policy["rules"]):
+            print(
+                f"{TAB}Migrating {format_escalation_policy(policy)} but some of its rules "
+                "have a non-default notifyType, and those rules will not be migrated"
+            )
+        else:
+            print(f"{TAB}Migrating {format_escalation_policy(policy)}...")
+
+        migrate_escalation_policy(policy, users, schedules)
 
     # Migrate integrations
     print("\n▶ Migrating integrations...")
     for integration in integrations:
         print(f"{TAB}Migrating {format_integration(integration)}...")
+
+        if (
+            integration["oncall_type"] is None
+            and not UNSUPPORTED_INTEGRATION_TO_WEBHOOKS
+        ):
+            print(
+                f"{TAB}Skipping {format_integration(integration)} because it is not supported and UNSUPPORTED_INTEGRATION_TO_WEBHOOKS is false"
+            )
+            continue
+        elif integration["oncall_type"] is None and UNSUPPORTED_INTEGRATION_TO_WEBHOOKS:
+            print(
+                f"{TAB}Migrating {format_integration(integration)} as webhook because it is not supported and UNSUPPORTED_INTEGRATION_TO_WEBHOOKS is true"
+            )
+            continue
+
         migrate_integration(integration)

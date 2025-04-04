@@ -1,6 +1,145 @@
 from unittest.mock import patch
 
-from lib.opsgenie.resources.integrations import match_integration, migrate_integration
+from lib.opsgenie.resources.integrations import (
+    filter_integrations,
+    match_integration,
+    migrate_integration,
+)
+
+
+@patch("lib.opsgenie.resources.integrations.OPSGENIE_FILTER_TEAM", "team1")
+def test_filter_integrations_by_team():
+    integrations = [
+        {
+            "id": "i1",
+            "name": "Integration 1",
+            "teamId": "team1",
+        },
+        {
+            "id": "i2",
+            "name": "Integration 2",
+            "teamId": "team2",
+        },
+        {
+            "id": "i3",
+            "name": "Integration 3",
+            "teamId": "team1",
+        },
+    ]
+
+    filtered = filter_integrations(integrations)
+    assert len(filtered) == 2
+    assert filtered[0]["id"] == "i1"
+    assert filtered[1]["id"] == "i3"
+
+
+@patch("lib.opsgenie.resources.integrations.OPSGENIE_FILTER_TEAM", None)
+@patch(
+    "lib.opsgenie.resources.integrations.OPSGENIE_FILTER_INTEGRATION_REGEX", "^Prod.*"
+)
+def test_filter_integrations_by_regex():
+    integrations = [
+        {
+            "id": "i1",
+            "name": "Production Alert",
+            "teamId": "team1",
+        },
+        {
+            "id": "i2",
+            "name": "Staging Alert",
+            "teamId": "team2",
+        },
+        {
+            "id": "i3",
+            "name": "Prod DB Alert",
+            "teamId": "team1",
+        },
+    ]
+
+    filtered = filter_integrations(integrations)
+    assert len(filtered) == 2
+    assert filtered[0]["id"] == "i1"
+    assert filtered[1]["id"] == "i3"
+
+
+@patch("lib.opsgenie.resources.integrations.OPSGENIE_FILTER_TEAM", "team1")
+@patch(
+    "lib.opsgenie.resources.integrations.OPSGENIE_FILTER_INTEGRATION_REGEX", "^Prod.*"
+)
+def test_filter_integrations_by_team_and_regex():
+    integrations = [
+        {
+            "id": "i1",
+            "name": "Production Alert",
+            "teamId": "team1",
+        },
+        {
+            "id": "i2",
+            "name": "Staging Alert",
+            "teamId": "team1",
+        },
+        {
+            "id": "i3",
+            "name": "Prod DB Alert",
+            "teamId": "team2",
+        },
+        {
+            "id": "i4",
+            "name": "Prod API Alert",
+            "teamId": "team1",
+        },
+    ]
+
+    filtered = filter_integrations(integrations)
+    assert len(filtered) == 2
+    assert filtered[0]["id"] == "i1"
+    assert filtered[1]["id"] == "i4"
+
+
+@patch("lib.opsgenie.resources.integrations.OPSGENIE_FILTER_TEAM", None)
+@patch("lib.opsgenie.resources.integrations.OPSGENIE_FILTER_INTEGRATION_REGEX", None)
+def test_filter_integrations_no_filters():
+    integrations = [
+        {
+            "id": "i1",
+            "name": "Integration 1",
+            "teamId": "team1",
+        },
+        {
+            "id": "i2",
+            "name": "Integration 2",
+            "teamId": "team2",
+        },
+    ]
+
+    filtered = filter_integrations(integrations)
+    assert len(filtered) == 2
+    assert filtered == integrations
+
+
+@patch("lib.opsgenie.resources.integrations.OPSGENIE_FILTER_TEAM", "team1")
+def test_filter_integrations_missing_team_id():
+    integrations = [
+        {
+            "id": "i1",
+            "name": "Integration 1",
+            "teamId": "team1",
+        },
+        {
+            "id": "i2",
+            "name": "Integration 2",
+        },
+        {
+            "id": "i3",
+            "name": "Integration 3",
+            "teamId": "team1",
+        },
+    ]
+
+    filtered = filter_integrations(integrations)
+    assert len(filtered) == 2
+    assert filtered[0]["id"] == "i1"
+    assert filtered[1]["id"] == "i3"
 
 
 def test_match_integration():

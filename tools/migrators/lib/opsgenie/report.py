@@ -3,6 +3,7 @@ from lib.opsgenie.config import (
     PRESERVE_EXISTING_USER_NOTIFICATION_RULES,
     UNSUPPORTED_INTEGRATION_TO_WEBHOOKS,
 )
+from lib.opsgenie.resources.escalation_policies import determine_policy_name
 
 
 def format_user(user: dict) -> str:
@@ -17,7 +18,7 @@ def format_schedule(schedule: dict) -> str:
 
 def format_escalation_policy(policy: dict) -> str:
     """Format escalation policy for display in reports."""
-    return policy["name"]
+    return determine_policy_name(policy)
 
 
 def format_integration(integration: dict) -> str:
