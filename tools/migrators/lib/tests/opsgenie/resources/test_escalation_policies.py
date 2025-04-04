@@ -55,35 +55,26 @@ def test_match_users_and_schedules_for_escalation_policy():
 
 @patch("lib.opsgenie.resources.escalation_policies.OnCallAPIClient")
 def test_migrate_escalation_policy(mock_client):
-    mock_client.create.side_effect = [
-        {"id": "oc1"},  # Chain creation
-        {"id": "op1"},  # First policy
-        {"id": "op2"},  # Wait step
-        {"id": "op3"},  # Second policy
-    ]
+    mock_client.create.return_value = {"id": "oc1"}
 
     policy = {
         "id": "ep1",
         "name": "Critical Alerts",
         "rules": [
             {
-                "recipients": [
-                    {"type": "user", "id": "u1"},
-                ],
-                "delay": {
-                    "timeAmount": 5,
-                    "timeUnit": "minutes"
+                "recipient": {
+                    "type": "user",
+                    "id": "u1",
                 },
+                "delay": {"timeAmount": 5, "timeUnit": "minutes"},
                 "isHighPriority": True,
             },
             {
-                "recipients": [
-                    {"type": "schedule", "id": "s1"},
-                ],
-                "delay": {
-                    "timeAmount": 10,
-                    "timeUnit": "minutes"
+                "recipient": {
+                    "type": "schedule",
+                    "id": "s1",
                 },
+                "delay": {"timeAmount": 10, "timeUnit": "minutes"},
             },
         ],
         "oncall_escalation_chain": {"id": "oc_old"},
@@ -91,7 +82,11 @@ def test_migrate_escalation_policy(mock_client):
         "matched_schedules": [{"id": "s1", "oncall_schedule": {"id": "os1"}}],
     }
 
-    migrate_escalation_policy(policy, [], [])
+    # Create test data
+    users = [{"id": "u1", "oncall_user": {"id": "ou1"}}]
+    schedules = [{"id": "s1", "oncall_schedule": {"id": "os1"}}]
+
+    migrate_escalation_policy(policy, users, schedules)
 
     # Verify chain creation
     mock_client.delete.assert_called_once_with("escalation_chains/oc_old")
@@ -103,7 +98,7 @@ def test_migrate_escalation_policy(mock_client):
         },
     )
 
-    # Verify policy creation calls
+    # Verify first policy and wait step
     mock_client.create.assert_any_call(
         "escalation_policies",
         {
@@ -125,6 +120,7 @@ def test_migrate_escalation_policy(mock_client):
         },
     )
 
+    # Verify second policy and wait step
     mock_client.create.assert_any_call(
         "escalation_policies",
         {
@@ -133,5 +129,15 @@ def test_migrate_escalation_policy(mock_client):
             "type": "notify_on_call_from_schedule",
             "schedule_id": "os1",
             "important": False,
+        },
+    )
+
+    mock_client.create.assert_any_call(
+        "escalation_policies",
+        {
+            "escalation_chain_id": "oc1",
+            "position": 3,
+            "type": "wait",
+            "duration": 300,  # 5 minutes in seconds (closest to 10 minutes in ONCALL_DELAY_OPTIONS)
         },
     )

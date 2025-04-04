@@ -34,7 +34,10 @@ def test_filter_integrations_by_team(mock_integration):
     assert filtered[0]["id"] == "INTEGRATION1"
 
 
-@patch("lib.pagerduty.resources.integrations.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 1 - Test")
+@patch(
+    "lib.pagerduty.resources.integrations.PAGERDUTY_FILTER_INTEGRATION_REGEX",
+    "^Service 1 - Test",
+)
 def test_filter_integrations_by_regex(mock_integration):
     integrations = [
         mock_integration,
@@ -49,7 +52,10 @@ def test_filter_integrations_by_regex(mock_integration):
 
 
 @patch("lib.pagerduty.resources.integrations.PAGERDUTY_FILTER_TEAM", "Team 1")
-@patch("lib.pagerduty.resources.integrations.PAGERDUTY_FILTER_INTEGRATION_REGEX", "^Service 2 - Test")
+@patch(
+    "lib.pagerduty.resources.integrations.PAGERDUTY_FILTER_INTEGRATION_REGEX",
+    "^Service 2 - Test",
+)
 def test_filter_integrations_with_multiple_filters_or_logic(mock_integration):
     """Test that OR logic is applied between filters - an integration matching any filter is included"""
     integrations = [

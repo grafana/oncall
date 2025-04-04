@@ -99,9 +99,7 @@ def migrate_escalation_policy(
                 position += 1
 
         elif recipient["type"] == "schedule":
-            schedule = next(
-                (s for s in schedules if s["id"] == recipient["id"]), None
-            )
+            schedule = next((s for s in schedules if s["id"] == recipient["id"]), None)
             if schedule and schedule.get("oncall_schedule"):
                 policy_payload = {
                     "escalation_chain_id": chain["id"],

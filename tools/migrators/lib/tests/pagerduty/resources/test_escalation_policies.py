@@ -2,7 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from lib.pagerduty.resources.escalation_policies import filter_escalation_policies, match_escalation_policy
+from lib.pagerduty.resources.escalation_policies import (
+    filter_escalation_policies,
+    match_escalation_policy,
+)
 
 
 @pytest.fixture
@@ -54,7 +57,10 @@ def test_filter_escalation_policies_by_users(mock_escalation_policy):
     assert filtered[0]["id"] == "POLICY1"
 
 
-@patch("lib.pagerduty.resources.escalation_policies.PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX", "^Test")
+@patch(
+    "lib.pagerduty.resources.escalation_policies.PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX",
+    "^Test",
+)
 def test_filter_escalation_policies_by_regex(mock_escalation_policy):
     policies = [
         mock_escalation_policy,
@@ -67,7 +73,9 @@ def test_filter_escalation_policies_by_regex(mock_escalation_policy):
 
 @patch("lib.pagerduty.resources.escalation_policies.PAGERDUTY_FILTER_TEAM", "Team 1")
 @patch("lib.pagerduty.resources.escalation_policies.PAGERDUTY_FILTER_USERS", ["USER3"])
-def test_filter_escalation_policies_with_multiple_filters_or_logic(mock_escalation_policy):
+def test_filter_escalation_policies_with_multiple_filters_or_logic(
+    mock_escalation_policy,
+):
     """Test that OR logic is applied between filters - a policy matching any filter is included"""
     policies = [
         mock_escalation_policy,  # Has Team 1 but not USER3

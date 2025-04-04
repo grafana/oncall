@@ -3,7 +3,12 @@ from unittest.mock import patch
 
 import pytest
 
-from lib.pagerduty.resources.schedules import filter_schedules, match_schedule, Restriction, Schedule
+from lib.pagerduty.resources.schedules import (
+    Restriction,
+    Schedule,
+    filter_schedules,
+    match_schedule,
+)
 
 user_id_map = {
     "USER_ID_1": "USER_ID_1",
@@ -75,17 +80,13 @@ def test_filter_schedules_with_multiple_filters_or_logic(mock_schedule):
             "id": "SCHEDULE2",
             "name": "Test Schedule 2",
             "teams": [{"summary": "Team 2"}],  # Not Team 1
-            "schedule_layers": [
-                {"users": [{"user": {"id": "USER3"}}]}
-            ],  # Has USER3
+            "schedule_layers": [{"users": [{"user": {"id": "USER3"}}]}],  # Has USER3
         },
         {
             "id": "SCHEDULE3",
             "name": "Test Schedule 3",
             "teams": [{"summary": "Team 3"}],  # Not Team 1
-            "schedule_layers": [
-                {"users": [{"user": {"id": "USER4"}}]}
-            ],  # Not USER3
+            "schedule_layers": [{"users": [{"user": {"id": "USER4"}}]}],  # Not USER3
         },
     ]
     filtered = filter_schedules(schedules)

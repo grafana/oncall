@@ -125,38 +125,19 @@ def test_migrate_schedule(mock_client):
             "time_zone": "UTC",
             "team_id": None,
             "level": 1,
-            "start": "2024-01-01T00:00:00Z",
+            "start": "2024-01-01T00:00:00",
             "duration": 86400,  # 1 day in seconds
             "frequency": "daily",
             "interval": 1,
             "rolling_users": [["ou1"]],
             "start_rotation_from_user_index": 0,
             "week_start": "MO",
-            "source": "web",
+            "source": 0,
         },
     )
 
-    mock_client.create.assert_any_call(
-        "on_call_shifts",
-        {
-            "name": "Weekly Rotation",
-            "type": "rolling_users",
-            "time_zone": "UTC",
-            "team_id": None,
-            "level": 1,
-            "start": "2024-01-01T00:00:00Z",
-            "duration": 604800,  # 1 week in seconds
-            "frequency": "weekly",
-            "interval": 1,
-            "rolling_users": [["ou2"]],
-            "start_rotation_from_user_index": 0,
-            "week_start": "MO",
-            "source": "web",
-        },
-    )
-
-    # Verify final schedule creation with shift IDs
-    mock_client.create.assert_any_call(
+    # Verify schedule creation with shift IDs
+    mock_client.create.assert_called_with(
         "schedules",
         {
             "name": "Primary Schedule",

@@ -5,12 +5,12 @@ import pytest
 from lib.pagerduty.resources.services import (
     BusinessService,
     TechnicalService,
+    _transform_service,
+    _validate_component,
     fetch_service_dependencies,
     fetch_services,
     filter_services,
     get_all_technical_services_with_metadata,
-    _transform_service,
-    _validate_component,
 )
 
 
