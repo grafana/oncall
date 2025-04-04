@@ -380,22 +380,17 @@ Any integrations with unsupported type won't be migrated unless `UNSUPPORTED_INT
 
 The following integration types are supported:
 
-- Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
-- Amazon SNS
-- AppDynamics
 - Datadog
-- Email (maps to Inbound Email integration in Grafana OnCall)
-- Jira (including Jira Service Desk)
-- Kapacitor
-- New Relic (including legacy New Relic)
 - Pingdom
-- Prometheus (maps to Alertmanager in Grafana OnCall)
+- Prometheus
 - PRTG
-- Sentry
 - Stackdriver
 - UptimeRobot
-- Webhook (including API integrations)
-- Zabbix
+- New Relic
+- Zabbix Webhook (for 5.0 and 5.2)
+- Elastic Alerts
+- Firebase
+- Amazon CloudWatch (maps to Amazon SNS integration in Grafana OnCall)
 
 #### Event rules (global event rulesets)
 
