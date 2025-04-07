@@ -4,15 +4,19 @@ import sys
 from pdpyras import APISession
 
 from lib.grafana.api_client import GrafanaAPIClient
+from lib.opsgenie.api_client import OpsGenieAPIClient
 from lib.splunk.api_client import SplunkOnCallAPIClient
 
 MIGRATING_FROM = os.environ["MIGRATING_FROM"]
 PAGERDUTY = "pagerduty"
 SPLUNK = "splunk"
+OPSGENIE = "opsgenie"
 
 PAGERDUTY_API_TOKEN = os.environ.get("PAGERDUTY_API_TOKEN")
 SPLUNK_API_ID = os.environ.get("SPLUNK_API_ID")
 SPLUNK_API_KEY = os.environ.get("SPLUNK_API_KEY")
+OPSGENIE_API_KEY = os.environ.get("OPSGENIE_API_KEY")
+OPSGENIE_API_URL = os.environ.get("OPSGENIE_API_URL", "https://api.opsgenie.com/v2")
 
 GRAFANA_URL = os.environ["GRAFANA_URL"]  # Example: http://localhost:3000
 GRAFANA_USERNAME = os.environ["GRAFANA_USERNAME"]
@@ -24,6 +28,13 @@ if PAGERDUTY_FILTER_USERS:
     PAGERDUTY_FILTER_USERS = PAGERDUTY_FILTER_USERS.split(",")
 else:
     PAGERDUTY_FILTER_USERS = []
+
+# Get optional filter for OpsGenie user IDs
+OPSGENIE_FILTER_USERS = os.environ.get("OPSGENIE_FILTER_USERS", "")
+if OPSGENIE_FILTER_USERS:
+    OPSGENIE_FILTER_USERS = OPSGENIE_FILTER_USERS.split(",")
+else:
+    OPSGENIE_FILTER_USERS = []
 
 SUCCESS_SIGN = "✅"
 ERROR_SIGN = "❌"
@@ -63,6 +74,30 @@ def migrate_splunk_users():
         create_grafana_user(f"{user['firstName']} {user['lastName']}", user["email"])
 
 
+def migrate_opsgenie_users():
+    """
+    Migrate users from OpsGenie to Grafana.
+    If OPSGENIE_FILTER_USERS is set, only users with IDs in that list will be migrated.
+    """
+    client = OpsGenieAPIClient(OPSGENIE_API_KEY, OPSGENIE_API_URL)
+    all_users = client.list_users()
+
+    # Filter users if OPSGENIE_FILTER_USERS is set
+    if OPSGENIE_FILTER_USERS:
+        filtered_users = [
+            user for user in all_users if user["id"] in OPSGENIE_FILTER_USERS
+        ]
+        skipped_count = len(all_users) - len(filtered_users)
+        if skipped_count > 0:
+            print(f"Skipping {skipped_count} users not in OPSGENIE_FILTER_USERS.")
+        users_to_migrate = filtered_users
+    else:
+        users_to_migrate = all_users
+
+    for user in users_to_migrate:
+        create_grafana_user(user["fullName"], user["username"])
+
+
 def create_grafana_user(name: str, email: str):
     response = grafana_client.create_user_with_random_password(name, email)
 
@@ -81,5 +116,7 @@ if __name__ == "__main__":
         migrate_pagerduty_users()
     elif MIGRATING_FROM == SPLUNK:
         migrate_splunk_users()
+    elif MIGRATING_FROM == OPSGENIE:
+        migrate_opsgenie_users()
     else:
         raise ValueError("Invalid value for MIGRATING_FROM")

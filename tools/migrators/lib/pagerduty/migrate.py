@@ -1,13 +1,9 @@
 import datetime
-import re
-from typing import Any, Dict, List
 
 from pdpyras import APISession
 
 from lib.common.report import TAB
-from lib.common.resources.services import filter_services
 from lib.common.resources.users import match_user
-from lib.grafana.service_migrate import migrate_all_services
 from lib.grafana.service_model_client import ServiceModelClient
 from lib.oncall.api_client import OnCallAPIClient
 from lib.pagerduty.config import (
@@ -16,13 +12,8 @@ from lib.pagerduty.config import (
     MODE,
     MODE_PLAN,
     PAGERDUTY_API_TOKEN,
-    PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX,
-    PAGERDUTY_FILTER_INTEGRATION_REGEX,
-    PAGERDUTY_FILTER_SCHEDULE_REGEX,
-    PAGERDUTY_FILTER_TEAM,
     PAGERDUTY_FILTER_USERS,
     PAGERDUTY_MIGRATE_SERVICES,
-    VERBOSE_LOGGING,
 )
 from lib.pagerduty.report import (
     escalation_policy_report,
@@ -37,267 +28,38 @@ from lib.pagerduty.report import (
     services_report,
     user_report,
 )
-from lib.pagerduty.resources.business_service import (
-    BusinessService,
-    get_all_business_services_with_metadata,
-)
 from lib.pagerduty.resources.escalation_policies import (
+    filter_escalation_policies,
     match_escalation_policy,
     match_escalation_policy_for_integration,
     migrate_escalation_policy,
 )
 from lib.pagerduty.resources.integrations import (
+    filter_integrations,
     match_integration,
     match_integration_type,
     migrate_integration,
 )
 from lib.pagerduty.resources.notification_rules import migrate_notification_rules
 from lib.pagerduty.resources.rulesets import match_ruleset, migrate_ruleset
-from lib.pagerduty.resources.schedules import match_schedule, migrate_schedule
+from lib.pagerduty.resources.schedules import (
+    filter_schedules,
+    match_schedule,
+    migrate_schedule,
+)
 from lib.pagerduty.resources.services import (
+    BusinessService,
     TechnicalService,
+    filter_services,
+    get_all_business_services_with_metadata,
     get_all_technical_services_with_metadata,
+    migrate_all_services,
 )
 from lib.pagerduty.resources.users import (
+    filter_users,
     match_users_and_schedules_for_escalation_policy,
     match_users_for_schedule,
 )
-
-
-def filter_users(users: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Filter users based on PAGERDUTY_FILTER_USERS.
-
-    When PAGERDUTY_FILTER_USERS is set, only users with IDs in that list will be included.
-    """
-    if not PAGERDUTY_FILTER_USERS:
-        return users  # No filtering, return all users
-
-    filtered_users = []
-    filtered_out = 0
-
-    for user in users:
-        if user["id"] in PAGERDUTY_FILTER_USERS:
-            filtered_users.append(user)
-        else:
-            filtered_out += 1
-
-    if filtered_out > 0:
-        summary = f"Filtered out {filtered_out} users (keeping only users specified in PAGERDUTY_FILTER_USERS)"
-        print(summary)
-
-        # Only print detailed info in verbose mode
-        if VERBOSE_LOGGING:
-            print(
-                f"{TAB}Keeping only users with IDs: {', '.join(PAGERDUTY_FILTER_USERS)}"
-            )
-
-    return filtered_users
-
-
-def filter_schedules(schedules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Filter schedules based on configured filters.
-
-    If multiple filters are specified, a schedule only needs to match one of them
-    to be included (OR operation between filters).
-    """
-    if not any(
-        [PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_USERS, PAGERDUTY_FILTER_SCHEDULE_REGEX]
-    ):
-        return schedules  # No filters specified, return all
-
-    filtered_schedules = []
-    filtered_out = 0
-    filtered_reasons = {}
-
-    for schedule in schedules:
-        matches_any_filter = False
-        reasons = []
-
-        # Filter by team
-        if PAGERDUTY_FILTER_TEAM:
-            teams = schedule.get("teams", [])
-            if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
-                )
-
-        # Filter by users
-        if PAGERDUTY_FILTER_USERS:
-            schedule_users = set()
-            for layer in schedule.get("schedule_layers", []):
-                for user in layer.get("users", []):
-                    schedule_users.add(user["user"]["id"])
-
-            if any(user_id in schedule_users for user_id in PAGERDUTY_FILTER_USERS):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}"
-                )
-
-        # Filter by name regex
-        if PAGERDUTY_FILTER_SCHEDULE_REGEX:
-            if re.match(PAGERDUTY_FILTER_SCHEDULE_REGEX, schedule["name"]):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"Schedule regex filter: {PAGERDUTY_FILTER_SCHEDULE_REGEX}"
-                )
-
-        if matches_any_filter:
-            filtered_schedules.append(schedule)
-        else:
-            filtered_out += 1
-            filtered_reasons[schedule["id"]] = reasons
-
-    if filtered_out > 0:
-        summary = f"Filtered out {filtered_out} schedules"
-        print(summary)
-
-        # Only print detailed reasons in verbose mode
-        if VERBOSE_LOGGING:
-            for schedule_id, reasons in filtered_reasons.items():
-                print(f"{TAB}Schedule {schedule_id}: {', '.join(reasons)}")
-
-    return filtered_schedules
-
-
-def filter_escalation_policies(policies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Filter escalation policies based on configured filters.
-
-    If multiple filters are specified, a policy only needs to match one of them
-    to be included (OR operation between filters).
-    """
-    if not any(
-        [
-            PAGERDUTY_FILTER_TEAM,
-            PAGERDUTY_FILTER_USERS,
-            PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX,
-        ]
-    ):
-        return policies  # No filters specified, return all
-
-    filtered_policies = []
-    filtered_out = 0
-    filtered_reasons = {}
-
-    for policy in policies:
-        matches_any_filter = False
-        reasons = []
-
-        # Filter by team
-        if PAGERDUTY_FILTER_TEAM:
-            teams = policy.get("teams", [])
-            if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
-                )
-
-        # Filter by users
-        if PAGERDUTY_FILTER_USERS:
-            policy_users = set()
-            for rule in policy.get("escalation_rules", []):
-                for target in rule.get("targets", []):
-                    if target["type"] == "user":
-                        policy_users.add(target["id"])
-
-            if any(user_id in policy_users for user_id in PAGERDUTY_FILTER_USERS):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}"
-                )
-
-        # Filter by name regex
-        if PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX:
-            if re.match(PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX, policy["name"]):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"Escalation policy regex filter: {PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX}"
-                )
-
-        if matches_any_filter:
-            filtered_policies.append(policy)
-        else:
-            filtered_out += 1
-            filtered_reasons[policy["id"]] = reasons
-
-    if filtered_out > 0:
-        summary = f"Filtered out {filtered_out} escalation policies"
-        print(summary)
-
-        # Only print detailed reasons in verbose mode
-        if VERBOSE_LOGGING:
-            for policy_id, reasons in filtered_reasons.items():
-                print(f"{TAB}Policy {policy_id}: {', '.join(reasons)}")
-
-    return filtered_policies
-
-
-def filter_integrations(integrations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Filter integrations based on configured filters.
-
-    If multiple filters are specified, an integration only needs to match one of them
-    to be included (OR operation between filters).
-    """
-    if not any([PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_INTEGRATION_REGEX]):
-        return integrations  # No filters specified, return all
-
-    filtered_integrations = []
-    filtered_out = 0
-    filtered_reasons = {}
-
-    for integration in integrations:
-        matches_any_filter = False
-        reasons = []
-
-        # Filter by team
-        if PAGERDUTY_FILTER_TEAM:
-            teams = integration["service"].get("teams", [])
-            if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
-                )
-
-        # Filter by name regex
-        if PAGERDUTY_FILTER_INTEGRATION_REGEX:
-            integration_name = (
-                f"{integration['service']['name']} - {integration['name']}"
-            )
-            if re.match(PAGERDUTY_FILTER_INTEGRATION_REGEX, integration_name):
-                matches_any_filter = True
-            else:
-                reasons.append(
-                    f"Integration regex filter: {PAGERDUTY_FILTER_INTEGRATION_REGEX}"
-                )
-
-        if matches_any_filter:
-            filtered_integrations.append(integration)
-        else:
-            filtered_out += 1
-            filtered_reasons[integration["id"]] = reasons
-
-    if filtered_out > 0:
-        summary = f"Filtered out {filtered_out} integrations"
-        print(summary)
-
-        # Only print detailed reasons in verbose mode
-        if VERBOSE_LOGGING:
-            for integration_id, reasons in filtered_reasons.items():
-                print(f"{TAB}Integration {integration_id}: {', '.join(reasons)}")
-
-    return filtered_integrations
 
 
 def migrate() -> None:
@@ -452,10 +214,10 @@ def migrate() -> None:
 
         # Apply filters to services
         filtered_technical_data = filter_services(
-            [service.raw_data for service in all_technical_services], TAB
+            [service.raw_data for service in all_technical_services]
         )
         filtered_business_data = filter_services(
-            [service.raw_data for service in all_business_services], TAB
+            [service.raw_data for service in all_business_services]
         )
 
         # Convert filtered data back to service objects
@@ -479,9 +241,8 @@ def migrate() -> None:
         f"Escalation policies: {sum(1 for p in escalation_policies if not p.get('unmatched_users') and not p.get('flawed_schedules'))} eligible of {filtered_resources_summary['escalation_policies']} filtered"
     )
     print(
-        f"Integrations: {sum(1 for i in integrations if i.get('oncall_type') and not i.get('is_escalation_policy_flawed'))} eligible of {filtered_resources_summary['integrations']} filtered"
+        f"Integrations: {sum(1 for i in integrations if i.get('oncall_type') and not i.get('is_escalation_policy_flawed'))} eligible of {filtered_resources_summary['integrations']} filtered\n"
     )
-    print("")
 
     if MODE == MODE_PLAN:
         if MIGRATE_USERS:

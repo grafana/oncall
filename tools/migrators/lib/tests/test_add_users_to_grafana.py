@@ -353,3 +353,189 @@ def test_splunk_user_already_exists(
     ), 'Expected "already exists" message not found in print calls'
     # Verify sys.exit was not called
     mock_exit.assert_not_called()
+
+
+@patch("lib.opsgenie.api_client.OpsGenieAPIClient")
+@patch("lib.grafana.api_client.GrafanaAPIClient")
+@patch("sys.exit")
+@patch.dict(
+    "os.environ",
+    {
+        "MIGRATING_FROM": "opsgenie",
+        "OPSGENIE_API_KEY": "test_token",
+        "GRAFANA_URL": "http://test.com",
+        "GRAFANA_USERNAME": "test_user",
+        "GRAFANA_PASSWORD": "test_pass",
+        "OPSGENIE_FILTER_USERS": "",
+    },
+)
+def test_migrate_all_opsgenie_users(
+    mock_exit, mock_grafana_client_class, mock_opsgenie_client_class
+):
+    mock_opsgenie_instance = mock_opsgenie_client_class.return_value
+    mock_opsgenie_instance.list_users.return_value = [
+        {"id": "USER1", "fullName": "User One", "username": "user1@example.com"},
+        {"id": "USER2", "fullName": "User Two", "username": "user2@example.com"},
+        {"id": "USER3", "fullName": "User Three", "username": "user3@example.com"},
+    ]
+
+    mock_grafana_instance = mock_grafana_client_class.return_value
+    mock_grafana_instance.create_user_with_random_password.return_value = MockResponse(
+        200
+    )
+
+    import importlib
+
+    import add_users_to_grafana
+
+    importlib.reload(add_users_to_grafana)
+
+    add_users_to_grafana.migrate_opsgenie_users()
+
+    assert mock_opsgenie_instance.list_users.called
+    assert mock_grafana_instance.create_user_with_random_password.call_count == 3
+    mock_exit.assert_not_called()
+
+    calls = mock_grafana_instance.create_user_with_random_password.call_args_list
+    call_emails = [call[0][1] for call in calls]
+    assert "user1@example.com" in call_emails
+    assert "user2@example.com" in call_emails
+    assert "user3@example.com" in call_emails
+
+
+@patch("lib.opsgenie.api_client.OpsGenieAPIClient")
+@patch("lib.grafana.api_client.GrafanaAPIClient")
+@patch("sys.exit")
+@patch.dict(
+    "os.environ",
+    {
+        "MIGRATING_FROM": "opsgenie",
+        "OPSGENIE_API_KEY": "test_token",
+        "GRAFANA_URL": "http://test.com",
+        "GRAFANA_USERNAME": "test_user",
+        "GRAFANA_PASSWORD": "test_pass",
+        "OPSGENIE_FILTER_USERS": "USER1,USER3",
+    },
+)
+def test_migrate_filtered_opsgenie_users(
+    mock_exit, mock_grafana_client_class, mock_opsgenie_client_class
+):
+    mock_opsgenie_instance = mock_opsgenie_client_class.return_value
+    mock_opsgenie_instance.list_users.return_value = [
+        {"id": "USER1", "fullName": "User One", "username": "user1@example.com"},
+        {"id": "USER2", "fullName": "User Two", "username": "user2@example.com"},
+        {"id": "USER3", "fullName": "User Three", "username": "user3@example.com"},
+    ]
+
+    mock_grafana_instance = mock_grafana_client_class.return_value
+    mock_grafana_instance.create_user_with_random_password.return_value = MockResponse(
+        200
+    )
+
+    import importlib
+
+    import add_users_to_grafana
+
+    importlib.reload(add_users_to_grafana)
+
+    add_users_to_grafana.migrate_opsgenie_users()
+
+    assert mock_opsgenie_instance.list_users.called
+    assert mock_grafana_instance.create_user_with_random_password.call_count == 2
+    mock_exit.assert_not_called()
+
+    calls = mock_grafana_instance.create_user_with_random_password.call_args_list
+    call_emails = [call[0][1] for call in calls]
+    assert "user1@example.com" in call_emails
+    assert "user3@example.com" in call_emails
+    assert "user2@example.com" not in call_emails
+
+
+@patch("lib.opsgenie.api_client.OpsGenieAPIClient")
+@patch("lib.grafana.api_client.GrafanaAPIClient")
+@patch("sys.exit")
+@patch.dict(
+    "os.environ",
+    {
+        "MIGRATING_FROM": "opsgenie",
+        "OPSGENIE_API_KEY": "test_token",
+        "GRAFANA_URL": "http://test.com",
+        "GRAFANA_USERNAME": "test_user",
+        "GRAFANA_PASSWORD": "test_pass",
+    },
+)
+def test_opsgenie_error_handling(
+    mock_exit, mock_grafana_client_class, mock_opsgenie_client_class
+):
+    mock_opsgenie_instance = mock_opsgenie_client_class.return_value
+    mock_opsgenie_instance.list_users.return_value = [
+        {"id": "USER1", "fullName": "User One", "username": "user1@example.com"}
+    ]
+
+    mock_grafana_instance = mock_grafana_client_class.return_value
+    mock_grafana_instance.create_user_with_random_password.return_value = MockResponse(
+        401
+    )
+
+    import importlib
+
+    import add_users_to_grafana
+
+    importlib.reload(add_users_to_grafana)
+
+    add_users_to_grafana.migrate_opsgenie_users()
+
+    mock_exit.assert_called_once()
+    call_args = mock_exit.call_args[0][0]
+    assert "Invalid username or password" in call_args
+
+
+@patch("lib.opsgenie.api_client.OpsGenieAPIClient")
+@patch("lib.grafana.api_client.GrafanaAPIClient")
+@patch("sys.exit")
+@patch("builtins.print")
+@patch.dict(
+    "os.environ",
+    {
+        "MIGRATING_FROM": "opsgenie",
+        "OPSGENIE_API_KEY": "test_token",
+        "GRAFANA_URL": "http://test.com",
+        "GRAFANA_USERNAME": "test_user",
+        "GRAFANA_PASSWORD": "test_pass",
+    },
+)
+def test_opsgenie_user_already_exists(
+    mock_print, mock_exit, mock_grafana_client_class, mock_opsgenie_client_class
+):
+    mock_opsgenie_instance = mock_opsgenie_client_class.return_value
+    mock_opsgenie_instance.list_users.return_value = [
+        {"id": "USER1", "fullName": "User One", "username": "user1@example.com"}
+    ]
+
+    mock_grafana_instance = mock_grafana_client_class.return_value
+    mock_grafana_instance.create_user_with_random_password.return_value = MockResponse(
+        412
+    )
+
+    import importlib
+
+    import add_users_to_grafana
+
+    importlib.reload(add_users_to_grafana)
+
+    add_users_to_grafana.migrate_opsgenie_users()
+
+    already_exists_message_found = False
+    for call_args in mock_print.call_args_list:
+        if (
+            len(call_args[0]) > 0
+            and isinstance(call_args[0][0], str)
+            and "already exists" in call_args[0][0]
+        ):
+            already_exists_message_found = True
+            break
+
+    assert (
+        already_exists_message_found
+    ), 'Expected "already exists" message not found in print calls'
+    mock_exit.assert_not_called()
