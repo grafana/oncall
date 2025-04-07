@@ -1,0 +1,100 @@
+---
+description: A structured approach to task planning and execution for PlanIt tasks
+globs: 
+alwaysApply: false
+---
+# PlanIt Mode
+
+A structured approach to task planning and execution that emphasizes thorough analysis before action.
+
+## Core Philosophy
+Before diving into solutions:
+1. Take time to understand the full scope of the problem
+2. Look for existing similar solutions in the codebase
+3. Consider different approaches and their tradeoffs
+4. Think about potential edge cases and complications
+5. Question your initial assumptions
+
+## Execution Flow
+When a user message starts with "PlanIt:", ALWAYS follow this exact sequence:
+
+0. STOP AND THINK FIRST
+   - When you see "PlanIt:", this is a signal to pause and analyze
+   - DO NOT jump to conclusions or start planning immediately
+   - Take time to:
+     * Understand the full context
+     * Look for similar existing solutions
+     * Consider different approaches
+     * Question your assumptions
+     * Think about potential complications
+   - Only proceed to planning once you have a thorough understanding
+
+1. Initial Prompt Refinement:
+   - Review and analyze the initial prompt for clarity and completeness
+   - Look for ambiguities or unstated requirements
+   - Consider edge cases and potential complications
+   - Suggest improvements if needed
+   - Seek confirmation before proceeding with any suggested revisions
+
+2. Thoughtful Analysis Phase:
+   Before taking any action:
+   - Analyze task requirements thoroughly
+   - Review relevant parts of the codebase
+   - Look for similar existing solutions
+   - Consider different implementation approaches
+   - Document understanding and assumptions
+   - List potential challenges or edge cases
+   - Confirm understanding with user before proceeding
+
+3. Structured Planning and Progress Tracking:
+   - Create a detailed action plan in `.cursor_tasks.md` using this format:
+     ([Timestamp] should have date and time in hh:mm:ss)
+     ```markdown
+     # Task: [Task Name]
+     Created: [Timestamp]
+
+     ## Action Plan
+     - [ ] Step 1
+     - [ ] Step 2
+       - [ ] Substep 2.1
+       - [ ] Substep 2.2
+     - [ ] Step 3
+
+     ## Progress Notes
+     - [Timestamp] Started implementation of...
+     - [Timestamp] Completed step 1...
+     ```
+   - After creating the plan, STOP and ask the user: "Does this plan look good to you? Should I proceed with implementation?"
+   - Only proceed with implementation after explicit user approval
+   - Update the plan continuously as tasks progress
+   - Document any new steps identified during execution
+
+4. Continuous Learning and Adaptation:
+   - CRITICAL! If you make a mistake or get feedback, create or update cursor rules with your corrections!
+   - Document learnings and improvements
+   - Update approach based on new information
+
+## Best Practices
+1. Never rush to implementation
+2. Question your initial assumptions
+3. Look for existing solutions first
+4. Consider multiple approaches
+5. Think about edge cases early
+6. Maintain clear and specific communication
+7. Provide context for all decisions
+8. Use iterative refinement when needed
+9. Document all significant decisions and changes
+10. Keep the user informed of progress
+11. Seek clarification when requirements are ambiguous
+12. ALWAYS get user approval before starting implementation
+
+## Task Execution Flow
+1. Initial analysis and understanding
+2. Prompt refinement if needed
+3. Thorough exploration of existing solutions
+4. Create/update `.cursor_tasks.md`
+5. GET USER APPROVAL OF PLAN
+6. Execute planned steps
+7. Document progress and learnings
+8. Update plan as needed
+9. Seek user feedback at key points

@@ -1,9 +1,76 @@
+import re
+import typing
+
+from lib.common.report import TAB
 from lib.oncall.api_client import OnCallAPIClient
 from lib.pagerduty.config import (
+    PAGERDUTY_FILTER_INTEGRATION_REGEX,
+    PAGERDUTY_FILTER_TEAM,
     PAGERDUTY_TO_ONCALL_VENDOR_MAP,
     UNSUPPORTED_INTEGRATION_TO_WEBHOOKS,
+    VERBOSE_LOGGING,
 )
 from lib.utils import find_by_id
+
+
+def filter_integrations(
+    integrations: typing.List[typing.Dict[str, typing.Any]],
+) -> typing.List[typing.Dict[str, typing.Any]]:
+    """
+    Filter integrations based on configured filters.
+
+    If multiple filters are specified, an integration only needs to match one of them
+    to be included (OR operation between filters).
+    """
+    if not any([PAGERDUTY_FILTER_TEAM, PAGERDUTY_FILTER_INTEGRATION_REGEX]):
+        return integrations  # No filters specified, return all
+
+    filtered_integrations = []
+    filtered_out = 0
+    filtered_reasons = {}
+
+    for integration in integrations:
+        matches_any_filter = False
+        reasons = []
+
+        # Filter by team
+        if PAGERDUTY_FILTER_TEAM:
+            teams = integration["service"].get("teams", [])
+            if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
+                )
+
+        # Filter by name regex
+        if PAGERDUTY_FILTER_INTEGRATION_REGEX:
+            integration_name = (
+                f"{integration['service']['name']} - {integration['name']}"
+            )
+            if re.match(PAGERDUTY_FILTER_INTEGRATION_REGEX, integration_name):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"Integration regex filter: {PAGERDUTY_FILTER_INTEGRATION_REGEX}"
+                )
+
+        if matches_any_filter:
+            filtered_integrations.append(integration)
+        else:
+            filtered_out += 1
+            filtered_reasons[integration["id"]] = reasons
+
+    if filtered_out > 0:
+        summary = f"Filtered out {filtered_out} integrations"
+        print(summary)
+
+        # Only print detailed reasons in verbose mode
+        if VERBOSE_LOGGING:
+            for integration_id, reasons in filtered_reasons.items():
+                print(f"{TAB}Integration {integration_id}: {', '.join(reasons)}")
+
+    return filtered_integrations
 
 
 def match_integration(integration: dict, oncall_integrations: list[dict]) -> None:
