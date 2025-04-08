@@ -1,5 +1,93 @@
+import re
+import typing
+
+from lib.common.report import TAB
 from lib.oncall.api_client import OnCallAPIClient
+from lib.pagerduty.config import (
+    PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX,
+    PAGERDUTY_FILTER_TEAM,
+    PAGERDUTY_FILTER_USERS,
+    VERBOSE_LOGGING,
+)
 from lib.utils import find_by_id, transform_wait_delay
+
+
+def filter_escalation_policies(
+    policies: typing.List[typing.Dict[str, typing.Any]],
+) -> typing.List[typing.Dict[str, typing.Any]]:
+    """
+    Filter escalation policies based on configured filters.
+
+    If multiple filters are specified, a policy only needs to match one of them
+    to be included (OR operation between filters).
+    """
+    if not any(
+        [
+            PAGERDUTY_FILTER_TEAM,
+            PAGERDUTY_FILTER_USERS,
+            PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX,
+        ]
+    ):
+        return policies  # No filters specified, return all
+
+    filtered_policies = []
+    filtered_out = 0
+    filtered_reasons = {}
+
+    for policy in policies:
+        matches_any_filter = False
+        reasons = []
+
+        # Filter by team
+        if PAGERDUTY_FILTER_TEAM:
+            teams = policy.get("teams", [])
+            if any(team["summary"] == PAGERDUTY_FILTER_TEAM for team in teams):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"No teams found for team filter: {PAGERDUTY_FILTER_TEAM}"
+                )
+
+        # Filter by users
+        if PAGERDUTY_FILTER_USERS:
+            policy_users = set()
+            for rule in policy.get("escalation_rules", []):
+                for target in rule.get("targets", []):
+                    if target["type"] == "user":
+                        policy_users.add(target["id"])
+
+            if any(user_id in policy_users for user_id in PAGERDUTY_FILTER_USERS):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"No users found for user filter: {','.join(PAGERDUTY_FILTER_USERS)}"
+                )
+
+        # Filter by name regex
+        if PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX:
+            if re.match(PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX, policy["name"]):
+                matches_any_filter = True
+            else:
+                reasons.append(
+                    f"Escalation policy regex filter: {PAGERDUTY_FILTER_ESCALATION_POLICY_REGEX}"
+                )
+
+        if matches_any_filter:
+            filtered_policies.append(policy)
+        else:
+            filtered_out += 1
+            filtered_reasons[policy["id"]] = reasons
+
+    if filtered_out > 0:
+        summary = f"Filtered out {filtered_out} escalation policies"
+        print(summary)
+
+        # Only print detailed reasons in verbose mode
+        if VERBOSE_LOGGING:
+            for policy_id, reasons in filtered_reasons.items():
+                print(f"{TAB}Policy {policy_id}: {', '.join(reasons)}")
+
+    return filtered_policies
 
 
 def match_escalation_policy(policy: dict, oncall_escalation_chains: list[dict]) -> None:

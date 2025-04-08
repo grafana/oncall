@@ -22,7 +22,7 @@ def api_call(method: str, base_url: str, path: str, **kwargs) -> requests.Respon
         response.raise_for_status()
     except HTTPError as e:
         if e.response.status_code == 429:
-            cooldown_seconds = int(e.response.headers["Retry-After"])
+            cooldown_seconds = int(e.response.headers.get("Retry-After", 0.2))
             sleep(cooldown_seconds)
             return api_call(method, base_url, path, **kwargs)
         elif e.response.status_code == 400:

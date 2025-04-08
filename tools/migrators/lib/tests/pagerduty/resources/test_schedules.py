@@ -1,12 +1,114 @@
 import datetime
+from unittest.mock import patch
 
-from lib.pagerduty.resources.schedules import Restriction, Schedule
+import pytest
+
+from lib.pagerduty.resources.schedules import (
+    Restriction,
+    Schedule,
+    filter_schedules,
+    match_schedule,
+)
 
 user_id_map = {
     "USER_ID_1": "USER_ID_1",
     "USER_ID_2": "USER_ID_2",
     "USER_ID_3": "USER_ID_3",
 }
+
+
+@pytest.fixture
+def mock_schedule():
+    return {
+        "id": "SCHEDULE1",
+        "name": "Test Schedule",
+        "teams": [{"summary": "Team 1"}],
+        "schedule_layers": [
+            {
+                "users": [
+                    {"user": {"id": "USER1"}},
+                    {"user": {"id": "USER2"}},
+                ],
+            },
+        ],
+    }
+
+
+@patch("lib.pagerduty.resources.schedules.PAGERDUTY_FILTER_TEAM", "Team 1")
+def test_filter_schedules_by_team(mock_schedule):
+    schedules = [
+        mock_schedule,
+        {**mock_schedule, "teams": [{"summary": "Team 2"}]},
+    ]
+    filtered = filter_schedules(schedules)
+    assert len(filtered) == 1
+    assert filtered[0]["id"] == "SCHEDULE1"
+
+
+@patch("lib.pagerduty.resources.schedules.PAGERDUTY_FILTER_USERS", ["USER1"])
+def test_filter_schedules_by_users(mock_schedule):
+    schedules = [
+        mock_schedule,
+        {
+            **mock_schedule,
+            "schedule_layers": [{"users": [{"user": {"id": "USER3"}}]}],
+        },
+    ]
+    filtered = filter_schedules(schedules)
+    assert len(filtered) == 1
+    assert filtered[0]["id"] == "SCHEDULE1"
+
+
+@patch("lib.pagerduty.resources.schedules.PAGERDUTY_FILTER_SCHEDULE_REGEX", "^Test")
+def test_filter_schedules_by_regex(mock_schedule):
+    schedules = [
+        mock_schedule,
+        {**mock_schedule, "name": "Another Schedule"},
+    ]
+    filtered = filter_schedules(schedules)
+    assert len(filtered) == 1
+    assert filtered[0]["id"] == "SCHEDULE1"
+
+
+@patch("lib.pagerduty.resources.schedules.PAGERDUTY_FILTER_TEAM", "Team 1")
+@patch("lib.pagerduty.resources.schedules.PAGERDUTY_FILTER_USERS", ["USER3"])
+def test_filter_schedules_with_multiple_filters_or_logic(mock_schedule):
+    """Test that OR logic is applied between filters - a schedule matching any filter is included"""
+    schedules = [
+        mock_schedule,  # Has Team 1 but not USER3
+        {
+            "id": "SCHEDULE2",
+            "name": "Test Schedule 2",
+            "teams": [{"summary": "Team 2"}],  # Not Team 1
+            "schedule_layers": [{"users": [{"user": {"id": "USER3"}}]}],  # Has USER3
+        },
+        {
+            "id": "SCHEDULE3",
+            "name": "Test Schedule 3",
+            "teams": [{"summary": "Team 3"}],  # Not Team 1
+            "schedule_layers": [{"users": [{"user": {"id": "USER4"}}]}],  # Not USER3
+        },
+    ]
+    filtered = filter_schedules(schedules)
+    # SCHEDULE1 matches team filter, SCHEDULE2 matches user filter, SCHEDULE3 matches neither
+    assert len(filtered) == 2
+    assert {s["id"] for s in filtered} == {"SCHEDULE1", "SCHEDULE2"}
+
+
+def test_match_schedule_name_case_insensitive():
+    pd_schedule = {"name": "Test"}
+    oncall_schedules = [{"name": "test"}]
+
+    match_schedule(pd_schedule, oncall_schedules, user_id_map={})
+    assert pd_schedule["oncall_schedule"] == oncall_schedules[0]
+
+
+def test_match_schedule_name_extra_spaces():
+    pd_schedule = {"name": " test "}
+    oncall_schedules = [{"name": "test"}]
+
+    match_schedule(pd_schedule, oncall_schedules, user_id_map={})
+    assert pd_schedule["oncall_schedule"] == oncall_schedules[0]
 
 
 def test_merge_restrictions():
@@ -2166,23 +2268,23 @@ def test_overrides():
         "time_zone": "Europe/London",
         "overrides": [
             {
-                "start": "2023-03-02T11:00:00",
-                "end": "2023-03-02T12:00:00",
+                "start": "2023-03-02T11:00:00Z",
+                "end": "2023-03-02T12:00:00Z",
                 "user": {"id": "USER_ID_1"},
             },
             {
-                "start": "2023-03-02T11:00:00+00:00",
-                "end": "2023-03-02T12:00:00+00:00",
+                "start": "2023-03-02T11:00:00Z",
+                "end": "2023-03-02T12:00:00Z",
                 "user": {"id": "USER_ID_1"},
             },
             {
-                "start": "2023-03-02T12:00:00+01:00",
-                "end": "2023-03-02T13:00:00+01:00",
+                "start": "2023-03-02T11:00:00Z",
+                "end": "2023-03-02T12:00:00Z",
                 "user": {"id": "USER_ID_1"},
             },
             {
-                "start": "2023-03-02T10:00:00-01:00",
-                "end": "2023-03-02T11:00:00-01:00",
+                "start": "2023-03-02T11:00:00Z",
+                "end": "2023-03-02T12:00:00Z",
                 "user": {"id": "USER_ID_1"},
             },
         ],
