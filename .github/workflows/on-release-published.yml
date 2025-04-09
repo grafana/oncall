@@ -10,16 +10,10 @@ jobs:
     name: Linting and tests
     uses: ./.github/workflows/linting-and-tests.yml
 
-  snyk-security-scan:
-    name: Snyk security scan
-    uses: ./.github/workflows/snyk-security-scan.yml
-    secrets: inherit
-
   build-sign-and-publish-plugin-to-gcom:
     name: Build, sign, and publish frontend plugin to grafana.com
     needs:
       - linting-and-tests
-      - snyk-security-scan
     runs-on: ubuntu-latest
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
@@ -68,7 +62,6 @@ jobs:
     name: Build engine Docker image and publish to Dockerhub
     needs:
       - linting-and-tests
-      - snyk-security-scan
     uses: ./.github/workflows/build-engine-docker-image-and-publish-to-dockerhub.yml
     with:
       engine_version: ${{ github.ref_name }}

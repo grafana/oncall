@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Button, Field, Icon, Input, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { Alert, Button, Field, Icon, Input, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { determineRequiredAuthString, UserActions } from 'helpers/authorization/authorization';
 import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
 import { openErrorNotification } from 'helpers/helpers';
@@ -387,6 +387,19 @@ const _CloudPage = observer((props: CloudPageProps) => {
 
   return (
     <Stack direction="column" gap={StackSize.lg}>
+      <Alert severity="warning" title="">
+        {
+          <>
+            Starting March 24, 2026, push notifications relying on Cloud Connection will no longer be supported for
+            Grafana OnCall OSS.{' '}
+            <a href={'https://grafana.com/docs/oncall/latest/set-up/open-source/'} target="_blank" rel="noreferrer">
+              <Text type="link">
+                <span>Learn more</span>
+              </Text>
+            </a>
+          </>
+        }
+      </Alert>
       <Text.Title level={3}>
         Connect Open Source OnCall and <Text className={styles.cloudOncallName}>Grafana Cloud OnCall</Text>
       </Text.Title>
