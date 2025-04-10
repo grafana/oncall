@@ -22,8 +22,8 @@ class CurrentOrganizationView(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
-        "put": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "get": [RBACPermission.permissions.OTHER_SETTINGS_READ],
+        "put": [RBACPermission.permissions.OTHER_SETTINGS_WRITE],
     }
 
     def get(self, request):
@@ -55,7 +55,7 @@ class OrganizationConfigChecksView(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
+        "get": [RBACPermission.permissions.OTHER_SETTINGS_READ],
     }
 
     def get(self, request):
@@ -69,7 +69,7 @@ class GetTelegramVerificationCode(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "get": [RBACPermission.permissions.INTEGRATIONS_WRITE],
     }
 
     def get(self, request):
@@ -94,7 +94,7 @@ class GetChannelVerificationCode(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "get": [RBACPermission.permissions.INTEGRATIONS_WRITE],
     }
 
     def get(self, request):
@@ -113,7 +113,7 @@ class SetDefaultSlackChannel(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "post": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+        "post": [RBACPermission.permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     def post(self, request):

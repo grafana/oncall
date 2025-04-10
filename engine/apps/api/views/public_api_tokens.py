@@ -21,11 +21,11 @@ class PublicApiTokenView(
     authentication_classes = [PluginAuthentication]
     permission_classes = [IsAuthenticated, RBACPermission]
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.API_KEYS_READ],
-        "list": [RBACPermission.Permissions.API_KEYS_READ],
-        "retrieve": [RBACPermission.Permissions.API_KEYS_READ],
-        "create": [RBACPermission.Permissions.API_KEYS_WRITE],
-        "destroy": [RBACPermission.Permissions.API_KEYS_WRITE],
+        "metadata": [RBACPermission.permissions.API_KEYS_READ],
+        "list": [RBACPermission.permissions.API_KEYS_READ],
+        "retrieve": [RBACPermission.permissions.API_KEYS_READ],
+        "create": [RBACPermission.permissions.API_KEYS_WRITE],
+        "destroy": [RBACPermission.permissions.API_KEYS_WRITE],
     }
 
     model = ApiAuthToken
