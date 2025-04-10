@@ -276,7 +276,7 @@ class Alert(models.Model):
             group_distinction = cls.insert_random_uuid(group_distinction)
 
         if group_distinction is not None:
-            group_distinction = hashlib.md5(str(group_distinction).encode()).hexdigest()
+            group_distinction = hashlib.sha256(str(group_distinction).encode()).hexdigest()
 
         if (
             resolve_condition_template := template_manager.get_attr_template("resolve_condition", alert_receive_channel)
