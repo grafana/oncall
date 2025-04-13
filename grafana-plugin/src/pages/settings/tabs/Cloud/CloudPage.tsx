@@ -390,8 +390,8 @@ const _CloudPage = observer((props: CloudPageProps) => {
       <Alert severity="warning" title="">
         {
           <>
-            Starting March 24, 2026, push notifications relying on Cloud Connection will no longer be supported for
-            Grafana OnCall OSS.{' '}
+            As of March 24, 2026, Cloud Connection features for phone calls, SMS, and push notifications will no longer
+            be supported in Grafana OnCall OSS.{' '}
             <a href={'https://grafana.com/docs/oncall/latest/set-up/open-source/'} target="_blank" rel="noreferrer">
               <Text type="link">
                 <span>Learn more</span>
