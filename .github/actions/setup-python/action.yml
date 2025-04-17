@@ -16,7 +16,7 @@ runs:
       id: setup-python
       uses: actions/setup-python@v5.1.0
       with:
-        python-version: "3.12.3"
+        python-version: "3.12.10"
         cache: "pip"
         cache-dependency-path: ${{ inputs.python-requirements-paths }}
     - name: Install Python dependencies
