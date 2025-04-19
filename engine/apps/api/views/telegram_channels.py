@@ -22,11 +22,11 @@ class TelegramChannelViewSet(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.CHATOPS_READ],
-        "list": [RBACPermission.Permissions.CHATOPS_READ],
-        "retrieve": [RBACPermission.Permissions.CHATOPS_READ],
-        "destroy": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
-        "set_default": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+        "metadata": [RBACPermission.permissions.CHATOPS_READ],
+        "list": [RBACPermission.permissions.CHATOPS_READ],
+        "retrieve": [RBACPermission.permissions.CHATOPS_READ],
+        "destroy": [RBACPermission.permissions.CHATOPS_UPDATE_SETTINGS],
+        "set_default": [RBACPermission.permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     serializer_class = TelegramToOrganizationConnectorSerializer

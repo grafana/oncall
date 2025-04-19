@@ -20,13 +20,13 @@ class ResolutionNoteView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-        "partial_update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-        "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "metadata": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.permissions.ALERT_GROUPS_READ],
+        "create": [RBACPermission.permissions.ALERT_GROUPS_WRITE],
+        "update": [RBACPermission.permissions.ALERT_GROUPS_WRITE],
+        "partial_update": [RBACPermission.permissions.ALERT_GROUPS_WRITE],
+        "destroy": [RBACPermission.permissions.ALERT_GROUPS_WRITE],
     }
 
     model = ResolutionNote

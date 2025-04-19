@@ -56,15 +56,15 @@ class ChannelFilterView(
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "move_to_position": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "convert_from_regex_to_jinja2": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "metadata": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "list": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.permissions.INTEGRATIONS_READ],
+        "create": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "destroy": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "move_to_position": [RBACPermission.permissions.INTEGRATIONS_WRITE],
+        "convert_from_regex_to_jinja2": [RBACPermission.permissions.INTEGRATIONS_WRITE],
     }
 
     queryset = ChannelFilter.objects.none()  # needed for drf-spectacular introspection
