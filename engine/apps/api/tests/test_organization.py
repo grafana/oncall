@@ -20,6 +20,7 @@ mock_env_status = {
         "verification_call": False,
         "verification_sms": False,
     },
+    "mattermost_configured": False,
 }
 
 

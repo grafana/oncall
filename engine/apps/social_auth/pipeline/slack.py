@@ -88,7 +88,3 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
     if settings.FEATURE_MULTIREGION_ENABLED and not settings.UNIFIED_SLACK_APP_ENABLED:
         link_slack_team(str(organization.uuid), slack_team_id)
-
-
-def delete_slack_auth_token(strategy, *args, **kwargs):
-    strategy.request.auth.delete()
