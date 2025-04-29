@@ -49,7 +49,7 @@ jobs:
           persist-credentials: false
 
       - name: Collect Workflow Telemetry
-        uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 #v2
+        uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 #v2.0.0
         with:
           comment_on_pr: false
           proc_trace_chart_show: false
@@ -123,7 +123,7 @@ jobs:
       - name: Get Vault secrets
         if: inputs.run-expensive-tests
         id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@75804962c1ba608148988c1e2dc35fbb0ee21746
+        uses: grafana/shared-workflows/actions/get-vault-secrets@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
         with:
           repo_secrets: |
             GH_APP_ID=github-app:app-id

@@ -35,7 +35,7 @@ jobs:
           engine_version_number: ${{ inputs.engine_version }}
           settings_file_path: engine/settings/base.py
       - name: Build engine Docker image and push to Dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@75804962c1ba608148988c1e2dc35fbb0ee21746
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
         with:
           context: engine/
           push: true
