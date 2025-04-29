@@ -131,7 +131,7 @@ jobs:
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
 
           # Get the list of files changed in the PR using validated refs
-          git diff --name-only "refs/remotes/origin/${SAFE_REF}" "${HEAD_SHA}" > changed_files.txt
+          git diff --name-only "refs/remotes/origin/${SAFE_REF}...${HEAD_SHA}" > changed_files.txt
 
           # Filter for migration files
           grep -E '^.*/migrations/.*\.py$' changed_files.txt > migration_files.txt || true
