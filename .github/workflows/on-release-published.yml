@@ -27,7 +27,7 @@ jobs:
         uses: ./.github/actions/install-frontend-dependencies
       # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
       - name: Get Vault secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@75804962c1ba608148988c1e2dc35fbb0ee21746
         with:
           repo_secrets: |
             GRAFANA_ACCESS_POLICY_TOKEN=grafana_cloud_access_policy_token:value
@@ -38,11 +38,11 @@ jobs:
         with:
           plugin_version_number: ${{ github.ref_name }}
       - name: Authenticate with GCS
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f #v2
         with:
           credentials_json: ${{ env.GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON }}
       - name: Publish plugin artifact to GCS
-        uses: google-github-actions/upload-cloud-storage@v2
+        uses: google-github-actions/upload-cloud-storage@386ab77f37fdf51c0e38b3d229fad286861cc0d0 #v2
         with:
           path: grafana-plugin/${{ steps.build-sign-and-package-plugin.outputs.artifact_filename }}
           destination: grafana-oncall-app/releases
@@ -88,7 +88,7 @@ jobs:
           echo version="${GITHUB_REF_NAME:1}" >> $GITHUB_OUTPUT
       - name: Update oncall Helm chart Chart.yaml
         id: update-helm-chart-pr
-        uses: fjogeleit/yaml-update-action@v0.12.3
+        uses: fjogeleit/yaml-update-action@d98ee6a10a971effea75480e3f315e4dacc89a23 #v0.12.3
         with:
           valueFile: helm/oncall/Chart.yaml
           branch: helm-release/${{ steps.prepare-version-tags.outputs.version }}
@@ -120,7 +120,7 @@ jobs:
       contents: read
     steps:
       - name: Get Vault secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@75804962c1ba608148988c1e2dc35fbb0ee21746
         with:
           repo_secrets: |
             GH_APP_ID=github-app:app-id
@@ -134,7 +134,7 @@ jobs:
           private-key: ${{ env.GH_APP_PRIVATE_KEY }}
 
       - name: Merge pull Request
-        uses: juliangruber/merge-pull-request-action@v1
+        uses: juliangruber/merge-pull-request-action@d4773803fdc1d1fd46801ab0c56c135df9075de8 #v1
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}

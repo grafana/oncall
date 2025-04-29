@@ -26,6 +26,7 @@ jobs:
           # we have one large .whl file which is referenced in the engine Dockerfile.. we need to
           # fetch that file to be able to properly build the image
           lfs: true
+          persist-credentials: false
       - name: Set engine version number in settings file
         if: inputs.engine_version
         uses: ./.github/actions/set-engine-version-in-settings
@@ -34,7 +35,7 @@ jobs:
           engine_version_number: ${{ inputs.engine_version }}
           settings_file_path: engine/settings/base.py
       - name: Build engine Docker image and push to Dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@75804962c1ba608148988c1e2dc35fbb0ee21746
         with:
           context: engine/
           push: true
