@@ -92,6 +92,14 @@ jobs:
         working-directory: grafana-plugin
         run: pnpm playwright install
 
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.5"
+
+      - name: Install Mage
+        run: go install github.com/magefile/mage@v1.15.0
+
       - name: Tilt CI - standard E2E tests
         shell: bash
         env:
