@@ -10,6 +10,7 @@ class ActionSource(IntegerChoices):
     TELEGRAM = 3, "Telegram"
     API = 4, "API"
     BACKSYNC = 5, "Backsync"
+    MATTERMOST = 6, "Mattermost"
 
 
 TASK_DELAY_SECONDS = 1

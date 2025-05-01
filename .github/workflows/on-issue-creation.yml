@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get latest version tag
         id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
+        uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435 #v1.6.0
         with:
           semver_only: true
       - name: Add latest version comment
@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Add "needs triage" label
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions-ecosystem/action-add-labels@18f1af5e3544586314bbe15c0273249c770b2daf #v1.1.3
         with:
           labels: needs triage
 
@@ -54,14 +54,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: issue-form-values
-        uses: stefanbuck/github-issue-parser@v3
+        uses: stefanbuck/github-issue-parser@2ea9b35a8c584529ed00891a8f7e41dc46d0441e #v3.2.1
 
       - run: echo $JSON_STRING
         env:
           JSON_STRING: ${{ steps.issue-form-values.outputs.jsonString }}
 
       - name: Map mobile app product area to appropriate assignees
-        uses: actions-ecosystem/action-add-assignees@v1
+        uses: actions-ecosystem/action-add-assignees@ce5019e63cc4f35aba27308dc88d19c8f3686747 #v1.0.0
         if: contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -70,7 +70,7 @@ jobs:
             dieterbe
 
       - name: Map selected product area(s) to issue labels
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions-ecosystem/action-add-labels@18f1af5e3544586314bbe15c0273249c770b2daf #v1.1.3
         # github actions have a weird ternary operator, see below for more details
         # https://docs.github.com/en/actions/learn-github-actions/expressions#literals:~:text=GitHub%20offers%20ternary%20operator%20like%20behaviour%20that%20you%20can%20use%20in%20expressions
         with:

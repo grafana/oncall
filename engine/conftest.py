@@ -52,6 +52,7 @@ from apps.auth_token.models import (
     ApiAuthToken,
     GoogleOAuth2Token,
     IntegrationBacksyncAuthToken,
+    MattermostAuthToken,
     PluginAuthToken,
     ServiceAccountToken,
     SlackAuthToken,
@@ -327,6 +328,14 @@ def make_slack_token_for_user():
         return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
 
     return _make_slack_token_for_user
+
+
+@pytest.fixture
+def make_mattermost_token_for_user():
+    def _make_mattermost_token_for_user(user):
+        return MattermostAuthToken.create_auth_token(organization=user.organization, user=user)
+
+    return _make_mattermost_token_for_user
 
 
 @pytest.fixture
