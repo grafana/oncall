@@ -691,6 +691,7 @@ SOCIAL_AUTH_STRATEGY = "apps.social_auth.live_setting_django_strategy.LiveSettin
 
 # https://python-social-auth.readthedocs.io/en/latest/configuration/settings.html
 AUTHENTICATION_BACKENDS = [
+    "apps.social_auth.backends.LoginMattermostOAuth2",
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
     "django.contrib.auth.backends.ModelBackend",
@@ -729,14 +730,30 @@ SLACK_IRM_ROOT_COMMAND = os.environ.get("SLACK_IRM_ROOT_COMMAND", "/grafana").ls
 # Controls if slack integration can be installed/uninstalled.
 SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)
 
+# Mattermost
+FEATURE_MATTERMOST_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MATTERMOST_INTEGRATION_ENABLED", default=False)
+MATTERMOST_CLIENT_OAUTH_ID = os.environ.get("MATTERMOST_CLIENT_OAUTH_ID")
+MATTERMOST_CLIENT_OAUTH_SECRET = os.environ.get("MATTERMOST_CLIENT_OAUTH_SECRET")
+MATTERMOST_HOST = os.environ.get("MATTERMOST_HOST")
+MATTERMOST_BOT_TOKEN = os.environ.get("MATTERMOST_BOT_TOKEN")
+MATTERMOST_LOGIN_RETURN_REDIRECT_HOST = os.environ.get("MATTERMOST_LOGIN_RETURN_REDIRECT_HOST", None)
+MATTERMOST_SIGNING_SECRET = os.environ.get("MATTERMOST_SIGNING_SECRET", None)
+
+if FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+    INSTALLED_APPS += ["apps.mattermost"]
+
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
+SOCIAL_AUTH_MATTERMOST_LOGIN_KEY = MATTERMOST_CLIENT_OAUTH_ID
+SOCIAL_AUTH_MATTERMOST_LOGIN_SECRET = MATTERMOST_CLIENT_OAUTH_SECRET
 
 SOCIAL_AUTH_SETTING_NAME_TO_LIVE_SETTING_NAME = {
     "SOCIAL_AUTH_SLACK_LOGIN_KEY": "SLACK_CLIENT_OAUTH_ID",
     "SOCIAL_AUTH_SLACK_LOGIN_SECRET": "SLACK_CLIENT_OAUTH_SECRET",
     "SOCIAL_AUTH_SLACK_INSTALL_FREE_KEY": "SLACK_CLIENT_OAUTH_ID",
     "SOCIAL_AUTH_SLACK_INSTALL_FREE_SECRET": "SLACK_CLIENT_OAUTH_SECRET",
+    "SOCIAL_AUTH_MATTERMOST_LOGIN_KEY": "MATTERMOST_CLIENT_OAUTH_ID",
+    "SOCIAL_AUTH_MATTERMOST_LOGIN_SECRET": "MATTERMOST_CLIENT_OAUTH_SECRET",
 }
 SOCIAL_AUTH_SLACK_INSTALL_FREE_CUSTOM_SCOPE = [
     "bot",
@@ -752,7 +769,8 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
     "apps.social_auth.pipeline.slack.connect_user_to_slack",
     "apps.social_auth.pipeline.slack.populate_slack_identities",
-    "apps.social_auth.pipeline.slack.delete_slack_auth_token",
+    "apps.social_auth.pipeline.mattermost.connect_user_to_mattermost",
+    "apps.social_auth.pipeline.common.delete_auth_token",
 )
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
@@ -863,6 +881,10 @@ EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 EMAIL_BACKEND_INTERNAL_ID = 8
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", EMAIL_BACKEND_INTERNAL_ID)]
+
+MATTERMOST_BACKEND_INTERNAL_ID = 9
+if FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS += [("apps.mattermost.backend.MattermostBackend", MATTERMOST_BACKEND_INTERNAL_ID)]
 
 # Inbound email settings
 INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")

@@ -29,5 +29,6 @@ export interface Organization {
       verification_call: boolean;
       verification_sms: boolean;
     };
+    mattermost_configured: boolean;
   };
 }

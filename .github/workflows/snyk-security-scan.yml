@@ -24,12 +24,12 @@ jobs:
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       - name: Get Vault secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
         with:
           common_secrets: |
             SNYK_TOKEN=snyk_scan_github_action:token
       - name: Install Snyk
-        uses: snyk/actions/setup@master
+        uses: snyk/actions/setup@b98d498629f1c368650224d6d212bf7dfa89e4bf #v0.4.0
       # NOTE: on the snyk monitor and snyk test commands, we are excluding the dev and tools directories
       # because we can't install the requirements.txt files of these directories alongside the main engine
       # requirements.txt (some conflicting dep versions). If we realllly wanted to test these, we should do it
