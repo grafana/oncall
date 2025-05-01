@@ -15,13 +15,17 @@ runs:
     - name: Setup Python
       id: setup-python
       uses: actions/setup-python@v5.1.0
+      env:
+        PYTHON_REQUIREMENTS_PATHS: ${{ inputs.python-requirements-paths }}
       with:
         python-version: "3.12.10"
         cache: "pip"
-        cache-dependency-path: ${{ inputs.python-requirements-paths }}
+        cache-dependency-path: ${{ env.PYTHON_REQUIREMENTS_PATHS }}
     - name: Install Python dependencies
       if: ${{ inputs.install-dependencies == 'true' }}
       shell: bash
+      env:
+        PYTHON_REQUIREMENTS_PATHS: ${{ inputs.python-requirements-paths }}
       run: |
         pip install uv setuptools
-        uv pip sync --system ${{ inputs.python-requirements-paths }}
+        uv pip sync --system ${{ env.PYTHON_REQUIREMENTS_PATHS }}
