@@ -105,15 +105,28 @@ jobs:
         id: extract_base_ref
         shell: bash
         env:
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          RELEASE_TARGET: ${{ github.event.release.target_commitish }}
         run: |
-          # Validate against safe pattern (alphanumeric, underscore, dash, dot, and forward slash only)
-          if [[ ! "${BASE_REF}" =~ ^[a-zA-Z0-9_/.-]+$ ]]; then
-            echo "Invalid branch name pattern detected"
+          # Determine base ref from safe, pre-evaluated env variables
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            BASE_REF="$PR_BASE_REF"
+          elif [[ "$EVENT_NAME" == "release" ]]; then
+            BASE_REF="$RELEASE_TARGET"
+          else
+            echo "Unsupported event: $EVENT_NAME"
             exit 1
           fi
+
+          # Validate against safe pattern (alphanumeric, underscore, dash, dot, and forward slash only)
+          if [[ ! "$BASE_REF" =~ ^[a-zA-Z0-9_/.-]+$ ]]; then
+            echo "Invalid branch name pattern detected: $BASE_REF"
+            exit 1
+          fi
+
           # Store validated ref for later steps
-          echo "base_ref=${BASE_REF}" >> $GITHUB_OUTPUT
+          echo "base_ref=$BASE_REF" >> $GITHUB_OUTPUT
 
       - name: Fetch base branch
         shell: bash
