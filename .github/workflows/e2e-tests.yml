@@ -45,16 +45,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Collect Workflow Telemetry
-        uses: catchpoint/workflow-telemetry-action@v2
+        uses: catchpoint/workflow-telemetry-action@94c3c3d9567a0205de6da68a76c428ce4e769af1 #v2.0.0
         with:
           comment_on_pr: false
           proc_trace_chart_show: false
           proc_trace_table_show: false
 
       - name: Install Kind
-        uses: helm/kind-action@v1.10.0
+        uses: helm/kind-action@0025e74a8c7512023d06dc019c617aa3cf561fde #v1.10.0
         with:
           config: ./dev/kind.yml
           install_only: true
@@ -121,7 +123,7 @@ jobs:
       - name: Get Vault secrets
         if: inputs.run-expensive-tests
         id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
         with:
           repo_secrets: |
             GH_APP_ID=github-app:app-id
