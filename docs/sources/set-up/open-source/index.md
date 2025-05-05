@@ -211,11 +211,40 @@ Refer to the following steps to configure the Telegram integration:
    Alternatively, in case you want to connect Telegram channels to your Grafana OnCall environment, navigate
    to the **ChatOps** tab.
 
-## Grafana OSS-Cloud Setup
+## Mattermost Setup
 
-The benefits of connecting to Grafana Cloud OnCall include:
+The Mattermost integration of the Grafana OnCall is designed for collobarative team work and improved incident response.
 
-- Grafana Cloud OnCall could monitor OSS OnCall uptime using heartbeat
+Refer to the following steps to configure the Mattermost integration:
+
+1. Ensure your Grafana OnCall environment is up and running.
+2. Set `FEATURE_MATTERMOST_INTEGRATION_ENABLED` as "True".
+3. Create a Mattermost bot account [Ref](https://developers.mattermost.com/integrate/reference/bot-accounts/#bot-account-creation)
+   and save the token generated (NOTE: you may need to give the bot admin permissions
+   to make it possible for it to update alert group notifications).
+4. Add the bot to the Mattermost team(s) owning the channels you want to connect to
+   (via Mattermost System console -> User Management -> Teams).
+5. Set the token generated in the `MATTERMOST_BOT_TOKEN` variable on the **ENV Variables** page
+   of your Grafana OnCall instance.
+6. [Create OAuth 2.0 Application In Mattermost](https://developers.mattermost.com/integrate/apps/authentication/oauth2/#register-an-oauth-20-application).
+   The callback url for the OAuth application should be,
+
+   ```text
+    https://<ONCALL_ENGINE_PUBLIC_URL>/api/internal/v1/complete/mattermost-login/
+   ```
+
+   This will allow users to connect their OnCall accounts with Mattermost. The OAuth credentials will be needed later.
+7. Generate a JWT secret for authenticating the incoming event messages from Mattermost
+   and set it as the `MATTERMOST_SIGNING_SECRET` variable on the **ENV Variables** page of your Grafana OnCall instance.
+8. Set the following environment variables too:
+
+   ```text
+    MATTERMOST_CLIENT_OAUTH_ID = << Integrations -> OAuth 2.0 Applications -> Client ID >>
+    MATTERMOST_CLIENT_OAUTH_SECRET = << Integrations -> OAuth 2.0 Applications -> Client Secret >>
+    MATTERMOST_HOST = << Mattermost server URL >>
+    MATTERMOST_LOGIN_RETURN_REDIRECT_HOST = << OnCall external URL >>
+   ```
+
 - SMS for user notifications
 - Phone calls for user notifications.
 
@@ -354,3 +383,4 @@ To configure this feature as such:
 
 Additionally, if you prefer to disable this feature, you can set the `ESCALATION_AUDITOR_ENABLED` environment variable
 to `False`.
+e`.

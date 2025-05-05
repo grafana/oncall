@@ -19,9 +19,11 @@ runs:
     - name: Determine official plugin version
       id: plugin-version
       shell: bash
+      env:
+        PLUGIN_VERSION_NUMBER: ${{ inputs.plugin_version_number }}
       run: |
         # VERY IMPORTANT: chop off the "v".. this tells the oncall plugin that this is an OSS build
-        PLUGIN_VERSION="$(echo ${{ inputs.plugin_version_number }} | sed 's/^v//')"
+        PLUGIN_VERSION="$(echo ${{ env.PLUGIN_VERSION_NUMBER }} | sed 's/^v//')"
         echo version="$PLUGIN_VERSION" >> $GITHUB_OUTPUT
     - name: Determine artifact filename
       shell: bash

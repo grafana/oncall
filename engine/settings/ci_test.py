@@ -57,3 +57,10 @@ EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend"
 #   File "/usr/local/lib/python3.12/site-packages/silk/model_factory.py", line 243, in construct_request_model
 #     request_model = models.Request.objects.create(
 SILK_PROFILER_ENABLED = False
+
+FEATURE_MATTERMOST_INTEGRATION_ENABLED = True
+if FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+    INSTALLED_APPS += ["apps.mattermost"]
+    MATTERMOST_HOST = "http://localhost:8065"
+    MATTERMOST_BOT_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
+    MATTERMOST_SIGNING_SECRET = "f0cb4953bec053e6e616febf2c2392ff60bd02c453a52ab53d9a8b0d0d7284a6"

@@ -13,14 +13,19 @@ from social_core.backends.google import GoogleOAuth2
 from social_django.utils import psa
 from social_django.views import _do_login
 
-from apps.auth_token.auth import GoogleTokenAuthentication, PluginAuthentication, SlackTokenAuthentication
+from apps.auth_token.auth import (
+    GoogleTokenAuthentication,
+    MattermostTokenAuthentication,
+    PluginAuthentication,
+    SlackTokenAuthentication,
+)
 from apps.chatops_proxy.utils import (
     get_installation_link_from_chatops_proxy,
     get_slack_oauth_response_from_chatops_proxy,
 )
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.slack.installation import install_slack_integration
-from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
+from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginMattermostOAuth2, LoginSlackOAuth2V2
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +72,7 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
 
 
 @api_view(["GET"])
-@authentication_classes([GoogleTokenAuthentication, SlackTokenAuthentication])
+@authentication_classes([GoogleTokenAuthentication, SlackTokenAuthentication, MattermostTokenAuthentication])
 @never_cache
 @csrf_exempt
 @psa("social:complete")
@@ -98,7 +103,7 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
         # otherwise it pertains to the InstallSlackOAuth2V2 backend, and we should redirect to the chat-ops page
         return_to = (
             url_builder.user_profile()
-            if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2))
+            if isinstance(request.backend, (LoginMattermostOAuth2, LoginSlackOAuth2V2, GoogleOAuth2))
             else url_builder.chatops()
         )
 

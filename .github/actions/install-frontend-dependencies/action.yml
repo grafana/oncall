@@ -9,13 +9,15 @@ runs:
   using: composite
   steps:
     - name: Install pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
       with:
         version: 9.1.4
     - name: Determine grafana-plugin directory location
       id: grafana-plugin-directory
       shell: bash
-      run: echo "grafana-plugin-directory=${{ inputs.oncall-directory }}/grafana-plugin" >> $GITHUB_OUTPUT
+      env:
+        ONCALL_DIRECTORY: ${{ inputs.oncall-directory }}
+      run: echo "grafana-plugin-directory=${{ env.ONCALL_DIRECTORY }}/grafana-plugin" >> $GITHUB_OUTPUT
     - name: Determine pnpm-lock.yaml location
       id: pnpm-lock-location
       shell: bash

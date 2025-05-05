@@ -8,4 +8,5 @@ export enum UserSettingsTab {
   PersonalWebhookInfo,
   MSTeamsInfo,
   MobileAppConnection,
+  MattermostInfo,
 }
