@@ -601,7 +601,7 @@ when broker.type != rabbitmq, we do not need to include rabbitmq environment var
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}
-  {{- $smtpTLS:=.Values.oncall.smtp.tls | default true | toString | title | quote }}
+  {{- $smtpTLS:=.Values.oncall.smtp.tls | default false | toString | title | quote }}
   {{- $smtpSSL:=.Values.oncall.smtp.ssl | default false | toString | title | quote }}
   {{- if eq $smtpTLS "\"True\"" }}
   {{- if eq $smtpSSL "\"True\"" }}
