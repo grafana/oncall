@@ -142,7 +142,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     name: IntegrationTemplateOptions.Grouping.key,
     displayName: 'Grouping',
     description:
-      'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheasheet to customize your template.',
+      'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheatsheet to customize your template.',
     type: 'plain',
   },
   acknowledge_condition_template: {
