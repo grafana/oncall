@@ -50,8 +50,8 @@ def sample_services():
                 "escalation_rules": [
                     {
                         "targets": [
-                            {"type": "user", "id": "U123"},
-                            {"type": "user", "id": "U456"},
+                            {"type": "user_reference", "id": "U123"},
+                            {"type": "user_reference", "id": "U456"},
                         ]
                     }
                 ]
@@ -63,7 +63,7 @@ def sample_services():
             "type": "service",
             "teams": [{"summary": "DevOps Team"}],
             "escalation_policy": {
-                "escalation_rules": [{"targets": [{"type": "user", "id": "U789"}]}]
+                "escalation_rules": [{"targets": [{"type": "user_reference", "id": "U789"}]}]
             },
         },
         {
