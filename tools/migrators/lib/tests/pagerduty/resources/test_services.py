@@ -203,7 +203,8 @@ def test_fetch_services(mock_session):
 
     # Verify API call
     mock_session.list_all.assert_called_once_with(
-        "services", params={"include[]": ["integrations", "teams", "escalation_policies"]}
+        "services",
+        params={"include[]": ["integrations", "teams", "escalation_policies"]},
     )
 
     # Verify results
