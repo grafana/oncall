@@ -50,8 +50,8 @@ def sample_services():
                 "escalation_rules": [
                     {
                         "targets": [
-                            {"type": "user", "id": "U123"},
-                            {"type": "user", "id": "U456"},
+                            {"type": "user_reference", "id": "U123"},
+                            {"type": "user_reference", "id": "U456"},
                         ]
                     }
                 ]
@@ -63,7 +63,9 @@ def sample_services():
             "type": "service",
             "teams": [{"summary": "DevOps Team"}],
             "escalation_policy": {
-                "escalation_rules": [{"targets": [{"type": "user", "id": "U789"}]}]
+                "escalation_rules": [
+                    {"targets": [{"type": "user_reference", "id": "U789"}]}
+                ]
             },
         },
         {
@@ -201,7 +203,8 @@ def test_fetch_services(mock_session):
 
     # Verify API call
     mock_session.list_all.assert_called_once_with(
-        "services", params={"include[]": ["integrations", "teams"]}
+        "services",
+        params={"include[]": ["integrations", "teams", "escalation_policies"]},
     )
 
     # Verify results
@@ -220,7 +223,9 @@ def test_fetch_services_without_includes(mock_session):
     )
 
     # Verify API call with no includes
-    mock_session.list_all.assert_called_once_with("services", params={})
+    mock_session.list_all.assert_called_once_with(
+        "services", params={"include[]": ["escalation_policies"]}
+    )
 
     # Verify results
     assert len(services) == 1

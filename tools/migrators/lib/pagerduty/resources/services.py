@@ -49,7 +49,7 @@ def filter_services(services: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             if service.get("escalation_policy"):
                 for rule in service["escalation_policy"].get("escalation_rules", []):
                     for target in rule.get("targets", []):
-                        if target["type"] == "user":
+                        if target["type"] == "user_reference":
                             service_users.add(target["id"])
 
             if not any(user_id in service_users for user_id in PAGERDUTY_FILTER_USERS):
@@ -163,6 +163,7 @@ def fetch_services(
     if include_teams:
         include_params.append("teams")
 
+    include_params.append("escalation_policies")
     params = {}
     if include_params:
         params["include[]"] = include_params
@@ -570,7 +571,7 @@ def _migrate_technical_service(
         if errors:
             service.migration_errors = errors
             service.preserved = False
-            print(TAB + format_service(service, False))
+            print(TAB + format_service(service, True))
             return None
 
         if dry_run:
@@ -589,7 +590,7 @@ def _migrate_technical_service(
     except Exception as e:
         service.migration_errors = str(e)
         service.preserved = False
-        print(TAB + format_service(service, False))
+        print(TAB + format_service(service, True))
         return None
 
 
@@ -624,7 +625,7 @@ def _migrate_business_service(
         if errors:
             service.migration_errors = errors
             service.preserved = False
-            print(TAB + format_service(service, False))
+            print(TAB + format_service(service, True))
             return None
 
         if dry_run:
@@ -643,7 +644,7 @@ def _migrate_business_service(
     except Exception as e:
         service.migration_errors = str(e)
         service.preserved = False
-        print(TAB + format_service(service, False))
+        print(TAB + format_service(service, True))
         return None
 
 
