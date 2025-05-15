@@ -18,7 +18,7 @@ charset-normalizer==3.3.2
     #   requests
 distlib==0.3.8
     # via virtualenv
-django==4.2.20
+django==4.2.21
     # via
     #   -c requirements.txt
     #   django-stubs
@@ -36,6 +36,8 @@ djangorestframework-stubs[compatible-mypy]==3.14.2
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
+exceptiongroup==1.2.2
+    # via pytest
 execnet==2.1.1
     # via pytest-xdist
 factory-boy==2.12.0
@@ -125,6 +127,12 @@ toml==0.10.2
     # via
     #   -c requirements.txt
     #   pre-commit
+tomli==2.2.1
+    # via
+    #   -c requirements.txt
+    #   django-stubs
+    #   mypy
+    #   pytest
 types-beautifulsoup4==4.12.0.5
     # via -r requirements-dev.in
 types-html5lib==1.1.11.20240106
@@ -148,6 +156,7 @@ types-urllib3==1.26.25.14
 typing-extensions==4.9.0
     # via
     #   -c requirements.txt
+    #   asgiref
     #   celery-types
     #   django-filter-stubs
     #   django-stubs
