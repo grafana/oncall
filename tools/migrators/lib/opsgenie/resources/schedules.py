@@ -13,15 +13,21 @@ from lib.opsgenie.config import (
 )
 from lib.utils import dt_to_oncall_datetime, duration_to_frequency_and_interval
 
-
 def filter_schedules(schedules: list[dict]) -> list[dict]:
     """Apply filters to schedules."""
     if OPSGENIE_FILTER_TEAM:
         filtered_schedules = []
         for s in schedules:
-            if s["ownerTeam"]["id"] == OPSGENIE_FILTER_TEAM:
+            if (
+                "ownerTeam" in s and
+                s["ownerTeam"] is not None and
+                s["ownerTeam"].get("id") == OPSGENIE_FILTER_TEAM
+            ):
                 filtered_schedules.append(s)
+            else:
+                logger.warning(f"Skipping schedule '{s.get('name', 'unknown')}' with missing or mismatched ownerTeam")
         schedules = filtered_schedules
+        
 
     if OPSGENIE_FILTER_USERS:
         filtered_schedules = []
