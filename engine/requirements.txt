@@ -75,7 +75,7 @@ deprecated==1.2.14
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-semantic-conventions
-django==4.2.20
+django==4.2.22
     # via
     #   -r requirements.in
     #   django-add-default-value
@@ -441,7 +441,7 @@ sqlparse==0.5.0
     #   django-silk
 toml==0.10.2
     # via django-migration-linter
-tornado==6.4.2
+tornado==6.5.1
     # via python-telegram-bot
 tqdm==4.66.3
     # via django-mirage-field
