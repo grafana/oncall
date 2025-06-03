@@ -17,11 +17,14 @@ jobs:
   #
   # see https://github.com/actions/create-github-app-token/issues/66 for more details
   call-update-helm-repo:
-    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
+    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@64b1c8260d69a9b1d9a186df25c51358b92f7662
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
     with:
       charts_dir: helm
       cr_configfile: helm/cr.yaml
       ct_configfile: helm/ct.yaml
     secrets:
-      github_app_id: ${{ secrets.GH_APP_ID }}
-      github_app_pem: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      vault_repo_secret_name: grafana-oncall-app
