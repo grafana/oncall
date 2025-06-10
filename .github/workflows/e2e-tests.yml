@@ -9,25 +9,6 @@ on:
       browsers:
         required: true
         type: string
-      run-expensive-tests:
-        description: >
-          Whether or not to run Playwright tests that're annotated as "@expensive"
-          (ex. tests that incur costs such as sending SMSes via Twilio/Mailslurp)
-        required: true
-        type: boolean
-    secrets:
-      # NOTE: these are only required for the "expensive" e2e tests, which are only run via
-      # a daily GitHub Actions cron job (see .github/workflows/daily-e2e-tests.yml)
-      TWILIO_ACCOUNT_SID:
-        required: false
-      TWILIO_AUTH_TOKEN:
-        required: false
-      TWILIO_PHONE_NUMBER:
-        required: false
-      TWILIO_VERIFY_SID:
-        required: false
-      MAILSLURP_API_KEY:
-        required: false
 
 jobs:
   end-to-end-tests:
@@ -111,7 +92,6 @@ jobs:
         working-directory: grafana-plugin
         run: pnpm playwright install
 
-      # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
         uses: actions/setup-go@v4
         with:
@@ -119,54 +99,6 @@ jobs:
 
       - name: Install Mage
         run: go install github.com/magefile/mage@v1.15.0
-
-      - name: Get Vault secrets
-        if: inputs.run-expensive-tests
-        id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
-        with:
-          repo_secrets: |
-            GH_APP_ID=github-app:app-id
-            GH_APP_INSTALLATION_ID=github-app:app-installation-id
-            GH_APP_PRIVATE_KEY=github-app:private-key
-
-      - name: Generate Github App token
-        if: inputs.run-expensive-tests
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ env.GH_APP_ID }}
-          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
-          owner: grafana
-          repositories: "ops-devenv,gops-labels"
-
-      - name: Clone other repos needed for cross-plugin e2e tests
-        if: inputs.run-expensive-tests
-        shell: bash
-        run: |
-          cd ..
-          git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
-          git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
-
-      - name: Tilt CI - Expensive E2E tests
-        if: inputs.run-expensive-tests
-        shell: bash
-        env:
-          E2E_TESTS_CMD: "cd ../../grafana-plugin && pnpm test:e2e-expensive"
-          GRAFANA_VERSION: ${{ inputs.grafana_version }}
-          GF_FEATURE_TOGGLES_ENABLE: "externalServiceAccounts"
-          ONCALL_API_URL: "http://oncall-dev-engine:8080"
-          GRAFANA_ADMIN_USERNAME: "irm"
-          GRAFANA_ADMIN_PASSWORD: "irm"
-          BROWSERS: ${{ inputs.browsers }}
-          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          # wrapping single quotes are required to prevent stripping leading "+" from the number
-          TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
-          TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-        run: cd ../ops-devenv && tilt ci gops-labels oncall
-      # ---------- Expensive e2e tests steps end -----------
 
       - name: Tilt CI - standard E2E tests
         shell: bash
