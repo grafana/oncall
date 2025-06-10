@@ -8,20 +8,15 @@ on:
       - helm/oncall/Chart.yaml
 
 jobs:
-  # NOTE: unfortunately we need to store GH_APP_ID and GH_APP_PRIVATE_KEY as repository secrets
-  # (even though we already store them in Vault), because GitHub does not allow passing the `token` output
-  # of the `actions/create-github-app-token` action ACROSS jobs.
-  #
-  # Because grafana/helm-charts/.github/workflows/update-helm-repo.yaml is a reusable workflow, and not a composite
-  # action, there is no way to run job steps before the reusable workflow to do so within the same job.
-  #
-  # see https://github.com/actions/create-github-app-token/issues/66 for more details
   call-update-helm-repo:
-    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
+    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@64b1c8260d69a9b1d9a186df25c51358b92f7662
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
     with:
       charts_dir: helm
       cr_configfile: helm/cr.yaml
       ct_configfile: helm/ct.yaml
     secrets:
-      github_app_id: ${{ secrets.GH_APP_ID }}
-      github_app_pem: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      vault_repo_secret_name: grafana-oncall-app

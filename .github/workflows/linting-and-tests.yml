@@ -107,11 +107,14 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          MERGE_BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref }}
           RELEASE_TARGET: ${{ github.event.release.target_commitish }}
         run: |
           # Determine base ref from safe, pre-evaluated env variables
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             BASE_REF="$PR_BASE_REF"
+          elif [[ "$EVENT_NAME" == "merge_group" ]]; then
+            BASE_REF="$MERGE_BASE_REF"
           elif [[ "$EVENT_NAME" == "release" ]]; then
             BASE_REF="$RELEASE_TARGET"
           else
