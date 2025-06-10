@@ -120,7 +120,7 @@ jobs:
       contents: read
     steps:
       - name: Get Vault secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
+        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets-v1.2.0
         with:
           repo_secrets: |
             GH_APP_ID=github-app:app-id
@@ -132,6 +132,8 @@ jobs:
         with:
           app-id: ${{ env.GH_APP_ID }}
           private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+          owner: grafana
+          repositories: "oncall"
 
       - name: Merge pull Request
         uses: juliangruber/merge-pull-request-action@d4773803fdc1d1fd46801ab0c56c135df9075de8 #v1.1.1
