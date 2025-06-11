@@ -47,6 +47,25 @@ spec:
           {{- with .Values.telegramPolling.extraVolumeMounts }}
           volumeMounts: {{- . | toYaml | nindent 12 }}
           {{- end }}
+      {{- with .Values.telegramPolling.nodeSelector }}
+      nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telegramPolling.affinity }}
+      affinity:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telegramPolling.tolerations }}
+      tolerations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telegramPolling.topologySpreadConstraints }}
+      topologySpreadConstraints:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.telegramPolling.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       {{- with .Values.telegramPolling.extraVolumes }}
       volumes: {{- . | toYaml | nindent 8 }}
       {{- end }}
