@@ -450,14 +450,19 @@ def _transform_service(
     is_technical = isinstance(service, TechnicalService)
     service_type = "service" if is_technical else "business_service"
 
+    service_name = re.sub("[^-a-zA-Z0-9.]", "-", service.name)
+    service_name = re.sub(
+        "-+", "-", service_name
+    )  # Collapse multiple dashes to single dash
+    service_name = re.sub(
+        "^-+|-+$", "", service_name
+    )  # Remove leading and trailing dashes
     # Create the base component structure
     component = {
         "apiVersion": "servicemodel.ext.grafana.com/v1alpha1",
         "kind": "Component",
         "metadata": {
-            "name": service.name.lower().replace(
-                " ", "-"
-            ),  # Convert to k8s-friendly name
+            "name": service_name.lower(),  # Convert to k8s-friendly name
             "annotations": {"pagerduty.com/service-id": service.id},
         },
         "spec": {"type": service_type, "description": service.description},

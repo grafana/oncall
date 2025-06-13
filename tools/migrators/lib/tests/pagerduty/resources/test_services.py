@@ -324,6 +324,48 @@ def test_transform_business_service(business_service):
     )
 
 
+@pytest.mark.parametrize(
+    "input_name,expected_name",
+    [
+        # Basic cases
+        ("Simple Service", "simple-service"),
+        ("Test_Service", "test-service"),
+        ("Service.Name", "service.name"),
+        # Edge cases that would cause issues with old logic
+        ("  Leading spaces", "leading-spaces"),
+        ("Trailing spaces  ", "trailing-spaces"),
+        ("  Both sides  ", "both-sides"),
+        ("Multiple   spaces", "multiple-spaces"),
+        # Special characters
+        ("Service@Name", "service-name"),
+        ("Service!@#$%Name", "service-name"),
+        ("Service(with)parens", "service-with-parens"),
+        # Mixed cases
+        ("  Service@Name  ", "service-name"),
+        ("##Service Name##", "service-name"),
+        ("!!!Service!!!Name!!!", "service-name"),
+    ],
+)
+def test_service_name_normalization(input_name, expected_name):
+    """Test service name normalization handles various edge cases correctly."""
+    # Create a mock technical service
+    service = Mock(spec=TechnicalService)
+    service.name = input_name
+    service.description = "Test description"
+    service.id = "P123456"
+    service.status = "active"
+    service.html_url = "https://pagerduty.com/services/P123456"
+    service.self_url = "https://api.pagerduty.com/services/P123456"
+
+    # Transform the service
+    component = _transform_service(service)
+
+    # Check that the name was normalized correctly
+    assert (
+        component["metadata"]["name"] == expected_name
+    ), f"Expected '{expected_name}' for input '{input_name}', got '{component['metadata']['name']}'"
+
+
 def test_validate_component():
     """Test component validation."""
     # Test valid component
