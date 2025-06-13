@@ -451,10 +451,10 @@ def _transform_service(
     service_type = "service" if is_technical else "business_service"
 
     service_name = (
-        re.sub('([^-a-zA-Z0-9 .])', '-', service.name)
-        .removesuffix('-')
-        .removeprefix('-')
-        .replace(' ', '-')
+        re.sub("([^-a-zA-Z0-9 .])", "-", service.name)
+        .removesuffix("-")
+        .removeprefix("-")
+        .replace(" ", "-")
     )
     # Create the base component structure
     component = {
