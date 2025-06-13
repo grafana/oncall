@@ -450,12 +450,13 @@ def _transform_service(
     is_technical = isinstance(service, TechnicalService)
     service_type = "service" if is_technical else "business_service"
 
-    service_name = (
-        re.sub("([^-a-zA-Z0-9 .])", "-", service.name)
-        .removesuffix("-")
-        .removeprefix("-")
-        .replace(" ", "-")
-    )
+    service_name = re.sub("[^-a-zA-Z0-9.]", "-", service.name)
+    service_name = re.sub(
+        "-+", "-", service_name
+    )  # Collapse multiple dashes to single dash
+    service_name = re.sub(
+        "^-+|-+$", "", service_name
+    )  # Remove leading and trailing dashes
     # Create the base component structure
     component = {
         "apiVersion": "servicemodel.ext.grafana.com/v1alpha1",
