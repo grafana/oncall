@@ -22,6 +22,7 @@ jobs:
           fetch-depth: 0
       # yamllint disable rule:line-length
       # publish-technical-documentation-release/v2.2.4
+      # yamllint disable rule:line-length
       - uses: grafana/writers-toolkit/publish-technical-documentation-release@publish-technical-documentation-release/v2 # zizmor: ignore[unpinned-uses]
         # yamllint enable rule:line-length
         with:
@@ -29,3 +30,4 @@ jobs:
           release_branch_regexp: "^release-(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
           release_branch_with_patch_regexp: "^release-(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
           website_directory: content/docs/oncall
+      # yamllint enable rule:line-length
