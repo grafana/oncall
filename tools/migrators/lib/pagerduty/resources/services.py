@@ -461,7 +461,7 @@ def _transform_service(
         "apiVersion": "servicemodel.ext.grafana.com/v1alpha1",
         "kind": "Component",
         "metadata": {
-            "name": service_name.lower(), # Convert to k8s-friendly name
+            "name": service_name.lower(),  # Convert to k8s-friendly name
             "annotations": {"pagerduty.com/service-id": service.id},
         },
         "spec": {"type": service_type, "description": service.description},
