@@ -18,7 +18,7 @@ runs:
       env:
         PYTHON_REQUIREMENTS_PATHS: ${{ inputs.python-requirements-paths }}
       with:
-        python-version: "3.12.10"
+        python-version: "3.12.11"
         cache: "pip"
         cache-dependency-path: ${{ env.PYTHON_REQUIREMENTS_PATHS }}
     - name: Install Python dependencies

@@ -107,36 +107,3 @@ jobs:
               "version": "${{ steps.prepare-version-tags.outputs.version }}",
               "appVersion": "${{ steps.prepare-version-tags.outputs.app-version }}"
             }
-
-  merge-helm-release-pr:
-    name: Merge Helm release PR
-    needs:
-      - create-helm-release-pr
-    runs-on: ubuntu-latest
-    # These permissions are needed to assume roles from Github's OIDC.
-    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Get Vault secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets-v1.2.0
-        with:
-          repo_secrets: |
-            GH_APP_ID=github-app:app-id
-            GH_APP_PRIVATE_KEY=github-app:private-key
-
-      - name: Generate Github App token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ env.GH_APP_ID }}
-          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
-          owner: grafana
-          repositories: "oncall"
-
-      - name: Merge pull Request
-        uses: juliangruber/merge-pull-request-action@d4773803fdc1d1fd46801ab0c56c135df9075de8 #v1.1.1
-        with:
-          github-token: ${{ steps.generate-token.outputs.token }}
-          number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}
