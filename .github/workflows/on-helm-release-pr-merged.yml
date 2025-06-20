@@ -19,4 +19,4 @@ jobs:
       cr_configfile: helm/cr.yaml
       ct_configfile: helm/ct.yaml
     secrets:
-      vault_repo_secret_name: grafana-oncall-app
+      vault_repo_secret_name: github-app

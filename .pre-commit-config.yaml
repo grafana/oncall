@@ -110,3 +110,4 @@ repos:
         name: yamllint
         entry: yamllint -c .yamllint.yml
         types: [yaml]
+        args: [--no-warnings]
