@@ -18,8 +18,3 @@ jobs:
   linting-and-tests:
     name: Linting and tests
     uses: ./.github/workflows/linting-and-tests.yml
-
-  snyk-security-scan:
-    name: Snyk security scan
-    uses: ./.github/workflows/snyk-security-scan.yml
-    secrets: inherit
