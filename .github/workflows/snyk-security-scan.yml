@@ -1,49 +1,17 @@
-name: Snyk security scan
-
+name: Snyk Monitor Scanning
 on:
-  workflow_call:
+ release:
+   types: [published] 
+ push:
+    branches:
+      - 'main' 
+ workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  snyk-security-scan:
-    name: Snyk security scan
-    runs-on: ubuntu-latest
-    # see this PR regarding the permissions needed for this workflow
-    # https://github.com/snyk/actions/pull/79
-    permissions:
-      # required for all workflows
-      security-events: write
-      # only required for workflows in private repositories
-      actions: read
-      contents: read
-      # required for Vault secrets
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: ./.github/actions/setup-python
-      - name: Install frontend dependencies
-        uses: ./.github/actions/install-frontend-dependencies
-      - name: Get Vault secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@b7d33d6a98dc9cf332674c6cdebe92b8bcb05670 #v0.3.0
-        with:
-          common_secrets: |
-            SNYK_TOKEN=snyk_scan_github_action:token
-      - name: Install Snyk
-        uses: snyk/actions/setup@b98d498629f1c368650224d6d212bf7dfa89e4bf #v0.4.0
-      # NOTE: on the snyk monitor and snyk test commands, we are excluding the dev and tools directories
-      # because we can't install the requirements.txt files of these directories alongside the main engine
-      # requirements.txt (some conflicting dep versions). If we realllly wanted to test these, we should do it
-      # as a seperate job and setup a separate Python env w/ just the deps of those projects. Since these projects
-      # are really just dev/internal scripts we don't really need to worry about them for now
-      - name: snyk monitor
-        # https://docs.snyk.io/snyk-cli/commands/monitor
-        run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools
-      - name: snyk test
-        # https://docs.snyk.io/snyk-cli/commands/test
-        # yamllint disable rule:line-length
-        run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all --show-vulnerable-paths=all
-        # yamllint enable rule:line-length
-      # TODO: setup snyk container monitor & snyk container test
-      # will require building the docker image and storing it in the local docker registry..
-      # will need to refactor .github/workflows/build-engine-docker-image-and-publish-to-dockerhub.yml
-      # to be a composable action instead of a workflow
+  snyk-scan-ci:
+    uses: 'grafana/security-github-actions/.github/workflows/snyk_monitor.yml@main'
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
