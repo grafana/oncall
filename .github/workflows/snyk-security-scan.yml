@@ -1,17 +1,17 @@
 name: Snyk Monitor Scanning
 on:
  release:
-   types: [published] 
+  types: [published]
  push:
-    branches:
-      - 'main' 
+  branches:
+   - 'main'
  workflow_dispatch:
 
 permissions:
-  contents: read
+ contents: read
 
 jobs:
-  snyk-scan-ci:
-    uses: 'grafana/security-github-actions/.github/workflows/snyk_monitor.yml@main'
-    secrets:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+ snyk-scan-ci:
+  uses: 'grafana/security-github-actions/.github/workflows/snyk_monitor.yml@main'
+  secrets:
+   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
