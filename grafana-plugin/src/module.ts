@@ -21,15 +21,15 @@ if (isUseProfileExtensionPointEnabled()) {
   const extensionPointId = PluginExtensionPoints.UserProfileTab;
 
   if (plugin.addComponent) {
-    // v11
+    // v11+ (including v12)
     plugin.addComponent({
       title: IRM_TAB,
       description: 'IRM settings',
       component: MobileAppConnectionWrapper,
       targets: [extensionPointId],
     });
-  } else {
-    // v10
+  } else if ('configureExtensionComponent' in plugin) {
+    // v10 only (configureExtensionComponent removed in v12)
     // eslint-disable-next-line
     plugin.configureExtensionComponent({
       component: MobileAppConnectionWrapper,
@@ -43,10 +43,10 @@ if (isUseProfileExtensionPointEnabled()) {
 function isUseProfileExtensionPointEnabled(): boolean {
   return (
     isCurrentGrafanaVersionEqualOrGreaterThan({ minMajor: 10, minMinor: 3 }) &&
-    'configureExtensionComponent' in plugin &&
     PluginExtensionPoints != null &&
     'UserProfileTab' in PluginExtensionPoints &&
-    !getIsIrmPluginPresent()
+    !getIsIrmPluginPresent() &&
+    !!(plugin.addComponent || 'configureExtensionComponent' in plugin)
   );
 }
 
