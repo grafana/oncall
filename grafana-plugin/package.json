@@ -153,7 +153,7 @@
     "eslint-plugin-import": "^2.29.1",
     "immutability-helper": "^3.1.1",
     "linkify-react": "^4.1.3",
-    "linkifyjs": "^4.1.3",
+    "linkifyjs": "^4.3.2",
     "mobx": "6.12.0",
     "mobx-react": "9.1.0",
     "object-hash": "^3.0.0",

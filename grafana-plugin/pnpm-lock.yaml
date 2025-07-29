@@ -88,10 +88,10 @@ importers:
         version: 3.1.1
       linkify-react:
         specifier: ^4.1.3
-        version: 4.1.3(linkifyjs@4.1.3)(react@18.2.0)
+        version: 4.1.3(linkifyjs@4.3.2)(react@18.2.0)
       linkifyjs:
-        specifier: ^4.1.3
-        version: 4.1.3
+        specifier: ^4.3.2
+        version: 4.3.2
       mobx:
         specifier: 6.12.0
         version: 6.12.0
@@ -194,7 +194,7 @@ importers:
         version: 0.2.36(@swc/core@1.7.22(@swc/helpers@0.5.12))
       '@testing-library/dom':
         specifier: latest
-        version: 10.4.0
+        version: 10.4.1
       '@testing-library/jest-dom':
         specifier: ^6.4.2
         version: 6.5.0
@@ -203,7 +203,7 @@ importers:
         version: 14.3.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@testing-library/user-event':
         specifier: ^14.4.3
-        version: 14.5.2(@testing-library/dom@10.4.0)
+        version: 14.5.2(@testing-library/dom@10.4.1)
       '@types/dompurify':
         specifier: ^2.3.4
         version: 2.4.0
@@ -1408,8 +1408,8 @@ packages:
   '@tanstack/virtual-core@3.10.6':
     resolution: {integrity: sha512-1giLc4dzgEKLMx5pgKjL6HlG5fjZMgCjzlKAlpr7yoUtetVPELgER1NtephAI910nMwfPTHNyWKSFmJdHkz2Cw==}
 
-  '@testing-library/dom@10.4.0':
-    resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
+  '@testing-library/dom@10.4.1':
+    resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
     engines: {node: '>=18'}
 
   '@testing-library/dom@9.3.4':
@@ -4191,8 +4191,8 @@ packages:
       linkifyjs: ^4.0.0
       react: '>= 15.0.0'
 
-  linkifyjs@4.1.3:
-    resolution: {integrity: sha512-auMesunaJ8yfkHvK4gfg1K0SaKX/6Wn9g2Aac/NwX+l5VdmFZzo/hdPGxEOETj+ryRa4/fiOPjeeKURSAJx1sg==}
+  linkifyjs@4.3.2:
+    resolution: {integrity: sha512-NT1CJtq3hHIreOianA8aSXn6Cw0JzYOuDQbOrSPe7gqFnCpKP++MQe3ODgO3oh2GJFORkAAdqredOa60z63GbA==}
 
   lint-staged@10.5.4:
     resolution: {integrity: sha512-EechC3DdFic/TdOPgj/RB3FicqE6932LTHCUm0Y2fsD9KGlLB+RwJl2q1IYBIvEsKzDOgn0D4gll+YxG5RsrKg==}
@@ -4777,6 +4777,9 @@ packages:
 
   picocolors@1.0.1:
     resolution: {integrity: sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==}
+
+  picocolors@1.1.1:
+    resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
   picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
@@ -6593,13 +6596,13 @@ snapshots:
   '@babel/code-frame@7.24.7':
     dependencies:
       '@babel/highlight': 7.24.7
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   '@babel/code-frame@7.26.2':
     dependencies:
       '@babel/helper-validator-identifier': 7.25.9
       js-tokens: 4.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   '@babel/compat-data@7.25.4': {}
 
@@ -6684,7 +6687,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.24.7
       chalk: 2.4.2
       js-tokens: 4.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   '@babel/parser@7.25.6':
     dependencies:
@@ -8037,15 +8040,15 @@ snapshots:
 
   '@tanstack/virtual-core@3.10.6': {}
 
-  '@testing-library/dom@10.4.0':
+  '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.24.7
       '@babel/runtime': 7.27.0
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
-      chalk: 4.1.2
       dom-accessibility-api: 0.5.16
       lz-string: 1.5.0
+      picocolors: 1.1.1
       pretty-format: 27.5.1
 
   '@testing-library/dom@9.3.4':
@@ -8077,9 +8080,9 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  '@testing-library/user-event@14.5.2(@testing-library/dom@10.4.0)':
+  '@testing-library/user-event@14.5.2(@testing-library/dom@10.4.1)':
     dependencies:
-      '@testing-library/dom': 10.4.0
+      '@testing-library/dom': 10.4.1
 
   '@tootallnate/once@2.0.0': {}
 
@@ -11473,12 +11476,12 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
-  linkify-react@4.1.3(linkifyjs@4.1.3)(react@18.2.0):
+  linkify-react@4.1.3(linkifyjs@4.3.2)(react@18.2.0):
     dependencies:
-      linkifyjs: 4.1.3
+      linkifyjs: 4.3.2
       react: 18.2.0
 
-  linkifyjs@4.1.3: {}
+  linkifyjs@4.3.2: {}
 
   lint-staged@10.5.4:
     dependencies:
@@ -12047,6 +12050,8 @@ snapshots:
 
   picocolors@1.0.1: {}
 
+  picocolors@1.1.1: {}
+
   picomatch@2.3.1: {}
 
   picomatch@4.0.2: {}
@@ -12130,7 +12135,7 @@ snapshots:
   postcss@8.4.43:
     dependencies:
       nanoid: 3.3.8
-      picocolors: 1.0.1
+      picocolors: 1.1.1
       source-map-js: 1.2.0
 
   prefix-style@2.0.1: {}
@@ -13743,7 +13748,7 @@ snapshots:
     dependencies:
       browserslist: 4.23.3
       escalade: 3.2.0
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   update-check@1.5.4:
     dependencies:
