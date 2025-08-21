@@ -43,11 +43,6 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-Object.defineProperty(window, 'location', {
-  configurable: true,
-  value: { reload: jest.fn() },
-});
-
 Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
   value: class ResizeObserver {
