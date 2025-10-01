@@ -36,7 +36,7 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery==5.3.6
+celery[redis]==5.3.6
     # via -r requirements.in
 certifi==2025.4.26
     # via
@@ -48,7 +48,7 @@ cffi==1.17.1
     #   django-sns-view
 charset-normalizer==3.4.2
     # via requests
-click==8.2.1
+click==8.1.8
     # via
     #   celery
     #   click-didyoumean
@@ -77,7 +77,7 @@ deprecated==1.2.18
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-semantic-conventions
-django==4.2.24
+django==4.2.25
     # via
     #   -r requirements.in
     #   django-add-default-value
@@ -99,7 +99,7 @@ django==4.2.24
     #   social-auth-app-django
 django-add-default-value==0.10.0
     # via -r requirements.in
-django-anymail==12.0
+django-anymail[amazon-ses]==12.0
     # via -r requirements.in
 django-cors-headers==3.7.0
     # via -r requirements.in
@@ -154,7 +154,7 @@ firebase-admin==5.4.0
     # via fcm-django
 flask==3.1.1
     # via slack-export-viewer
-google-api-core==2.25.0
+google-api-core[grpc]==2.25.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -227,7 +227,10 @@ idna==3.7
     #   -r requirements.in
     #   requests
 importlib-metadata==8.0.0
-    # via opentelemetry-api
+    # via
+    #   flask
+    #   markdown
+    #   opentelemetry-api
 inflection==0.5.1
     # via drf-spectacular
 itsdangerous==2.2.0
@@ -421,10 +424,6 @@ rsa==4.9.1
     # via google-auth
 s3transfer==0.13.0
     # via boto3
-setuptools==80.9.0
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.17.0
     # via
     #   apscheduler
@@ -459,6 +458,7 @@ twilio==6.37.0
 typing-extensions==4.14.0
     # via
     #   asgiref
+    #   drf-spectacular
     #   opentelemetry-sdk
     #   pyopenssl
     #   referencing
