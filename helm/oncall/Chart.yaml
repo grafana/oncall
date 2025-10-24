@@ -10,7 +10,7 @@ dependencies:
     repository: https://charts.jetstack.io
     condition: cert-manager.enabled
   - name: mariadb
-    version: 23.2.1
+    version: 12.2.5
     repository: https://charts.bitnami.com/bitnami
     condition: mariadb.enabled
   - name: postgresql
