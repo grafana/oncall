@@ -8,6 +8,8 @@ apscheduler==3.6.3
     # via python-telegram-bot
 asgiref==3.8.1
     # via django
+async-timeout==5.0.1
+    # via redis
 attrs==25.3.0
     # via
     #   jsonschema
@@ -75,7 +77,7 @@ deprecated==1.2.18
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-semantic-conventions
-django==4.2.22
+django==4.2.25
     # via
     #   -r requirements.in
     #   django-add-default-value
@@ -446,6 +448,8 @@ sqlparse==0.5.3
     #   django-silk
 toml==0.10.2
     # via django-migration-linter
+tomli==2.2.1
+    # via autopep8
 tornado==6.5.1
     # via python-telegram-bot
 tqdm==4.67.1
@@ -454,6 +458,7 @@ twilio==6.37.0
     # via -r requirements.in
 typing-extensions==4.14.0
     # via
+    #   asgiref
     #   opentelemetry-sdk
     #   pyopenssl
     #   referencing
