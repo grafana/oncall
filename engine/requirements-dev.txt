@@ -18,7 +18,7 @@ charset-normalizer==3.4.2
     #   requests
 distlib==0.3.9
     # via virtualenv
-django==4.2.25
+django==4.2.26
     # via
     #   -c requirements.txt
     #   django-stubs
