@@ -131,7 +131,7 @@ services:
   flower:
     container_name: flower
     labels: *oncall-labels
-    image: mher/flower:1.2.0
+    image: mher/flower:1.2.0@sha256:99b838ee6c06957c96212d091325f358351bd2d29780b444a6c5ed737b5d8990
     environment:
       # TODO: make this work properly w/ BROKER_TYPE env var
       CELERY_BROKER_URL: "redis://redis:6379/0"
@@ -172,7 +172,7 @@ services:
   redis:
     container_name: redis
     labels: *oncall-labels
-    image: redis:7.0.15
+    image: redis:7.0.15@sha256:352c1fdadc91926edda08f45aeb3f27f37194c2f14101229c0523a11195c96e3
     restart: always
     ports:
       - "6379:6379"
@@ -195,7 +195,7 @@ services:
   rabbitmq:
     container_name: rabbitmq
     labels: *oncall-labels
-    image: "rabbitmq:3.12.0-management"
+    image: "rabbitmq:3.12.0-management@sha256:b9c34b175e27032178edcaa05b7d71a76f2a6d88004f407aef3304f0cdf55967"
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
@@ -223,7 +223,7 @@ services:
   mysql:
     container_name: mysql
     labels: *oncall-labels
-    image: mysql:8.0.32
+    image: mysql:8.0.32@sha256:f496c25da703053a6e0717f1d52092205775304ea57535cc9fcaa6f35867800b
     command: >-
       --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci --max_connections=1024
@@ -251,7 +251,7 @@ services:
   mysql_to_create_grafana_db:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
-    image: mysql:8.0.32
+    image: mysql:8.0.32@sha256:f496c25da703053a6e0717f1d52092205775304ea57535cc9fcaa6f35867800b
     command: >-
       bash -c "mysql -h mysql -uroot -pempty
       -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
@@ -264,7 +264,7 @@ services:
   postgres:
     container_name: postgres
     labels: *oncall-labels
-    image: postgres:14.4
+    image: postgres:14.4@sha256:9ceb24f8c5f15c053d973a3610866f473690875dc13eb3282b45302189321040
     restart: always
     environment:
       POSTGRES_DB: oncall_local_dev
@@ -291,7 +291,7 @@ services:
   postgres_to_create_grafana_db:
     container_name: postgres_to_create_grafana_db
     labels: *oncall-labels
-    image: postgres:14.4
+    image: postgres:14.4@sha256:9ceb24f8c5f15c053d973a3610866f473690875dc13eb3282b45302189321040
     command: >-
       bash -c "PGPASSWORD=empty psql -U postgres
       -h postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'grafana'\" | grep -q 1 || PGPASSWORD=empty psql
@@ -305,7 +305,7 @@ services:
   prometheus:
     container_name: prometheus
     labels: *oncall-labels
-    image: prom/prometheus
+    image: prom/prometheus@sha256:49214755b6153f90a597adcbff0252cc61069f8ab69ce8411285cd4a560e8038
     volumes:
       - ./dev/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:

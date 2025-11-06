@@ -15,7 +15,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       # publish-technical-documentation/v1.2.0
       - uses: grafana/writers-toolkit/publish-technical-documentation@39cdc38767184996e25d611923f8ce697e33bc70
         with:

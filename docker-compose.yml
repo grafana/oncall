@@ -16,7 +16,7 @@ x-environment: &oncall-environment
 
 services:
   engine:
-    image: grafana/oncall
+    image: grafana/oncall@sha256:314c0b4e995fd683d40dea30a4b8b9677f35a20b676d601df35d38331a70600d
     restart: always
     ports:
       - "8080:8080"
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
 
   celery:
-    image: grafana/oncall
+    image: grafana/oncall@sha256:314c0b4e995fd683d40dea30a4b8b9677f35a20b676d601df35d38331a70600d
     restart: always
     command: sh -c "./celery_with_exporter.sh"
     environment: *oncall-environment
@@ -44,7 +44,7 @@ services:
         condition: service_healthy
 
   oncall_db_migration:
-    image: grafana/oncall
+    image: grafana/oncall@sha256:314c0b4e995fd683d40dea30a4b8b9677f35a20b676d601df35d38331a70600d
     command: python manage.py migrate --noinput
     environment: *oncall-environment
     volumes:
@@ -54,7 +54,7 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis:7.0.15
+    image: redis:7.0.15@sha256:352c1fdadc91926edda08f45aeb3f27f37194c2f14101229c0523a11195c96e3
     restart: always
     expose:
       - 6379
@@ -72,7 +72,7 @@ services:
       retries: 10
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus@sha256:49214755b6153f90a597adcbff0252cc61069f8ab69ce8411285cd4a560e8038
     hostname: prometheus
     restart: always
     ports:
