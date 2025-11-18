@@ -97,7 +97,7 @@
     "eslint-webpack-plugin": "^4.0.1",
     "express": "^4.21.2",
     "fork-ts-checker-webpack-plugin": "^8.0.0",
-    "glob": "^10.2.7",
+    "glob": "^11.1.0",
     "identity-obj-proxy": "3.0.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
