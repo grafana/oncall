@@ -13,7 +13,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
       - name: Get latest version tag
         id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435 #v1.6.0
@@ -35,7 +35,7 @@ jobs:
     name: Add "needs triage" label
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
       - name: Add "needs triage" label
         uses: actions-ecosystem/action-add-labels@18f1af5e3544586314bbe15c0273249c770b2daf #v1.1.3
         with:
@@ -52,7 +52,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
       - id: issue-form-values
         uses: stefanbuck/github-issue-parser@2ea9b35a8c584529ed00891a8f7e41dc46d0441e #v3.2.1
 

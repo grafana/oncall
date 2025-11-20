@@ -17,13 +17,13 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
       # yamllint disable rule:line-length
       # publish-technical-documentation-release/v2.2.4
       # yamllint disable rule:line-length
-      - uses: grafana/writers-toolkit/publish-technical-documentation-release@publish-technical-documentation-release/v2 # zizmor: ignore[unpinned-uses]
+      - uses: grafana/writers-toolkit/publish-technical-documentation-release@8cc658b604c6e05c275af30163a1c7728dfe19b2 # publish-technical-documentation-release/v2 # zizmor: ignore[unpinned-uses]
         # yamllint enable rule:line-length
         with:
           release_tag_regexp: "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"

@@ -21,7 +21,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           # we have one large .whl file which is referenced in the engine Dockerfile.. we need to
           # fetch that file to be able to properly build the image

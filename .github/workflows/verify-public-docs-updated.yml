@@ -15,6 +15,6 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'pr:no public docs')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v1
       - name: Public documentation checker
         run: ./.github/verify-public-docs-updated.sh

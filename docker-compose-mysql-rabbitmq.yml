@@ -22,7 +22,7 @@ x-environment: &oncall-environment
 
 services:
   engine:
-    image: grafana/oncall
+    image: grafana/oncall@sha256:314c0b4e995fd683d40dea30a4b8b9677f35a20b676d601df35d38331a70600d
     restart: always
     ports:
       - "8080:8080"
@@ -39,7 +39,7 @@ services:
         condition: service_started
 
   celery:
-    image: grafana/oncall
+    image: grafana/oncall@sha256:314c0b4e995fd683d40dea30a4b8b9677f35a20b676d601df35d38331a70600d
     restart: always
     command: sh -c "./celery_with_exporter.sh"
     environment: *oncall-environment
@@ -54,7 +54,7 @@ services:
         condition: service_started
 
   oncall_db_migration:
-    image: grafana/oncall
+    image: grafana/oncall@sha256:314c0b4e995fd683d40dea30a4b8b9677f35a20b676d601df35d38331a70600d
     command: python manage.py migrate --noinput
     environment: *oncall-environment
     depends_on:
@@ -64,7 +64,7 @@ services:
         condition: service_healthy
 
   mysql:
-    image: mysql:8.0.32
+    image: mysql:8.0.32@sha256:f496c25da703053a6e0717f1d52092205775304ea57535cc9fcaa6f35867800b
     command: >-
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -87,7 +87,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7.0.15
+    image: redis:7.0.15@sha256:352c1fdadc91926edda08f45aeb3f27f37194c2f14101229c0523a11195c96e3
     restart: always
     expose:
       - 6379
@@ -98,7 +98,7 @@ services:
           cpus: "0.1"
 
   rabbitmq:
-    image: "rabbitmq:3.12.0-management"
+    image: "rabbitmq:3.12.0-management@sha256:b9c34b175e27032178edcaa05b7d71a76f2a6d88004f407aef3304f0cdf55967"
     restart: always
     hostname: rabbitmq
     volumes:
@@ -119,7 +119,7 @@ services:
       retries: 3
 
   mysql_to_create_grafana_db:
-    image: mysql:8.0.32
+    image: mysql:8.0.32@sha256:f496c25da703053a6e0717f1d52092205775304ea57535cc9fcaa6f35867800b
     command: >-
       bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err}
       -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"

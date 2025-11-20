@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       - name: Build, lint and test frontend
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: "Check out code"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" # v4
       - name: "Build website"
         # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
         # that no refs to external content can be used as these refs will not resolve in the
@@ -59,14 +59,14 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     services:
       rabbit_test:
-        image: rabbitmq:3.12.0
+        image: rabbitmq:3.12.0@sha256:f895715b160004e9c305b5809c20c8b1b3aef07bbe2c8127a2df6f70134301e3
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:8.0.32
+        image: mysql:8.0.32@sha256:f496c25da703053a6e0717f1d52092205775304ea57535cc9fcaa6f35867800b
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -74,7 +74,7 @@ jobs:
           - 3306:3306
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Lint migrations
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR code
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
           # Fetch all history so we can compare with the base branch
           fetch-depth: 0
@@ -182,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 #v4.2.0
         with:
           version: v3.8.0
@@ -195,8 +195,8 @@ jobs:
     name: "Backend Tests: Plugin"
     runs-on: ubuntu-latest-16-cores
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: "1.21.5"
       - run: cd grafana-plugin && go test ./pkg/...
@@ -211,14 +211,14 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
-        image: rabbitmq:3.12.0
+        image: rabbitmq:3.12.0@sha256:f895715b160004e9c305b5809c20c8b1b3aef07bbe2c8127a2df6f70134301e3
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:8.0.32
+        image: mysql:8.0.32@sha256:f496c25da703053a6e0717f1d52092205775304ea57535cc9fcaa6f35867800b
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -226,7 +226,7 @@ jobs:
           - 3306:3306
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Wait for MySQL to be ready
@@ -250,14 +250,14 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
-        image: rabbitmq:3.12.0
+        image: rabbitmq:3.12.0@sha256:f895715b160004e9c305b5809c20c8b1b3aef07bbe2c8127a2df6f70134301e3
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
         ports:
           - 5672:5672
       postgresql_test:
-        image: postgres:14.4
+        image: postgres:14.4@sha256:9ceb24f8c5f15c053d973a3610866f473690875dc13eb3282b45302189321040
         env:
           POSTGRES_DB: oncall_local_dev
           POSTGRES_PASSWORD: local_dev_pwd
@@ -271,7 +271,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Test Django migrations work from blank slate
@@ -294,7 +294,7 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       redis_test:
-        image: redis:7.0.15
+        image: redis:7.0.15@sha256:352c1fdadc91926edda08f45aeb3f27f37194c2f14101229c0523a11195c96e3
         ports:
           - 6379:6379
         options: >-
@@ -304,7 +304,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Test Django migrations work from blank slate
@@ -319,7 +319,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
@@ -333,7 +333,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: mypy Static Type Checking

@@ -25,7 +25,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
 
@@ -58,7 +58,7 @@ jobs:
 
       - name: Use cached plugin frontend build
         id: cache-plugin-frontend
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: grafana-plugin/dist
           key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/pnpm.lock') }}
@@ -79,7 +79,7 @@ jobs:
 
       - name: Cache Playwright binaries/dependencies
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: "~/.cache/ms-playwright"
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
@@ -93,7 +93,7 @@ jobs:
         run: pnpm playwright install
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: "1.21.5"
 
@@ -109,18 +109,18 @@ jobs:
 
       - name: Setup Pages
         if: failure()
-        uses: actions/configure-pages@v2
+        uses: actions/configure-pages@c5a3e1159e0cbdf0845eb8811bd39e39fc3099c2 # v2
 
       - name: Upload artifact
         if: failure()
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: ./grafana-plugin/playwright-report/
 
       - name: Deploy to GitHub Pages
         if: failure()
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@13b55b33dd8996121833dbc1db458c793a334630 # v3
         with:
           preview: true
 

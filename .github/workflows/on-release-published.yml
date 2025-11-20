@@ -22,7 +22,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
@@ -80,7 +80,7 @@ jobs:
       helm_release_pr_number: ${{ fromJSON(steps.update-helm-chart-pr.outputs.pull_request).number }}
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Prepare version tags
         id: prepare-version-tags
         run: |

@@ -9,7 +9,7 @@ jobs:
     name: Triage stale pull requests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # v8
         with:
           # docs - https://github.com/actions/stale
           # only triage pull requests
@@ -32,7 +32,7 @@ jobs:
     name: Triage stale issues
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # v8
         with:
           # docs - https://github.com/actions/stale
           # only triage issues
