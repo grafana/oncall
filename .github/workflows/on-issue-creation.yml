@@ -61,7 +61,7 @@ jobs:
           JSON_STRING: ${{ steps.issue-form-values.outputs.jsonString }}
 
       - name: Map mobile app product area to appropriate assignees
-        uses: actions-ecosystem/action-add-assignees@ce5019e63cc4f35aba27308dc88d19c8f3686747 #v1.0.0
+        uses: actions-ecosystem/action-add-assignees@a5b84af721c4a621eb9c7a4a95ec20a90d0b88e9 # v1.0.1
         if: contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
