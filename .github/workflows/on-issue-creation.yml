@@ -23,7 +23,7 @@ jobs:
         # GitHub recommends pinning actions to a commit SHA.
         # To get a newer version, you will need to update the SHA.
         # You can also reference a tag or branch, but the action may change without warning.
-        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        uses: peter-evans/create-or-update-comment@cf1a4a2020fa08820c81f4127c6aad2fa212beb8
         with:
           issue-number: ${{ github.event.issue.number }}
           body: >
