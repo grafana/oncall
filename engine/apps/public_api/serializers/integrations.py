@@ -123,7 +123,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
-            validated_data = self._add_service_label_if_needed(organization, validated_data)
         user = self.context["request"].user
         with transaction.atomic():
             try:
