@@ -1,8 +1,8 @@
 import typing
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 from rest_framework import exceptions
 from rest_framework.test import APIRequestFactory
 
@@ -83,7 +83,7 @@ def check_common_inputs() -> tuple[dict[str, typing.Any], str]:
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_missing_org():
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
@@ -97,7 +97,7 @@ def test_grafana_authentication_missing_org():
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_no_org_grafana_url():
     grafana_url = "http://grafana.test"
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
@@ -108,7 +108,7 @@ def test_grafana_authentication_no_org_grafana_url():
     request = APIRequestFactory().get("/", **headers)
 
     request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true"
-    httpretty.register_uri(httpretty.POST, request_sync_url, status=404)
+    responses.add(responses.POST, request_sync_url, status=404)
 
     with pytest.raises(exceptions.Throttled) as exc:
         GrafanaServiceAccountAuthentication().authenticate(request)
@@ -117,7 +117,7 @@ def test_grafana_authentication_no_org_grafana_url():
 
 @pytest.mark.parametrize("grafana_url", ["null;", "foo", ""])
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_invalid_grafana_url(grafana_url):
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
@@ -133,7 +133,7 @@ def test_grafana_authentication_invalid_grafana_url(grafana_url):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_permissions_call_fails(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
 
@@ -152,7 +152,7 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
         GrafanaServiceAccountAuthentication().authenticate(request)
     assert exc.value.detail == "Invalid token."
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "GET"
     expected_url = f"{organization.grafana_url}/api/access-control/user/permissions"
     assert last_request.url == expected_url
@@ -162,7 +162,7 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("grafana_url", ["http://grafana.test", "http://grafana.test/"])
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_existing_token(
     make_organization, make_service_account_for_organization, make_token_for_service_account, grafana_url
 ):
@@ -190,7 +190,7 @@ def test_grafana_authentication_existing_token(
     assert user.role == LegacyAccessControlRole.NONE
     assert auth_token == token
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "GET"
     expected_url = f"{organization.grafana_url}/api/access-control/user/permissions"
     assert last_request.url == expected_url
@@ -199,7 +199,7 @@ def test_grafana_authentication_existing_token(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_token_created(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
     token_string = "glsa_the-token"
@@ -228,18 +228,18 @@ def test_grafana_authentication_token_created(make_organization):
     assert user.permissions == [{"action": p} for p in permissions]
     assert auth_token.service_account == user.service_account
 
-    perms_request, user_request = httpretty.latest_requests()
+    perms_request, user_request = responses.calls
     for req in (perms_request, user_request):
-        assert req.method == "GET"
-        assert req.headers["Authorization"] == f"Bearer {token_string}"
+        assert req.request.method == "GET"
+        assert req.request.headers["Authorization"] == f"Bearer {token_string}"
     perms_url = f"{organization.grafana_url}/api/access-control/user/permissions"
-    assert perms_request.url == perms_url
+    assert perms_request.request.url == perms_url
     user_url = f"{organization.grafana_url}/api/user"
-    assert user_request.url == user_url
+    assert user_request.request.url == user_url
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_token_created_older_grafana(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
     token_string = "glsa_the-token"
@@ -267,7 +267,7 @@ def test_grafana_authentication_token_created_older_grafana(make_organization):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_token_reuse_service_account(make_organization, make_service_account_for_organization):
     organization = make_organization(grafana_url="http://grafana.test")
     service_account = make_service_account_for_organization(organization)
@@ -295,7 +295,7 @@ def test_grafana_authentication_token_reuse_service_account(make_organization, m
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_grafana_authentication_token_setup_org_if_missing(make_organization):
     grafana_url = "http://grafana.test"
     token_string = "glsa_the-token"
@@ -311,7 +311,7 @@ def test_grafana_authentication_token_setup_org_if_missing(make_organization):
     setup_service_account_api_mocks(grafana_url, permissions)
 
     request_sync_url = f"{grafana_url}/api/plugins/{PluginID.ONCALL}/resources/plugin/sync?wait=true&force=true"
-    httpretty.register_uri(httpretty.POST, request_sync_url)
+    responses.add(responses.POST, request_sync_url)
 
     assert Organization.objects.filter(grafana_url=grafana_url).count() == 0
 

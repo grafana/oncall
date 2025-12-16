@@ -1,8 +1,8 @@
 import json
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 from requests.exceptions import RequestException
 from rest_framework import status
 
@@ -15,7 +15,7 @@ from common.incident_api.client import (
 )
 
 
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_create_incident_expected_request():
     stack_url = "https://foobar.grafana.net"
     api_token = "asdfasdfasdfasdf"
@@ -27,8 +27,7 @@ def test_create_incident_expected_request():
             "incidentID": "123",
         },
     }
-    mock_response = httpretty.Response(json.dumps(response_data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=response_data, status=status.HTTP_200_OK)
 
     title = "title"
     severity = "severity"
@@ -39,7 +38,7 @@ def test_create_incident_expected_request():
 
     assert data == response_data["incident"]
     assert response.status_code == status.HTTP_200_OK
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.headers["Authorization"] == f"Bearer {api_token}"
     assert last_request.method == "POST"
     assert last_request.url == url
@@ -56,7 +55,7 @@ def test_create_incident_expected_request():
 
     assert data == response_data["incident"]
     assert response.status_code == status.HTTP_200_OK
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert json.loads(last_request.body) == {
         "title": title,
         "severity": DEFAULT_INCIDENT_SEVERITY,
@@ -66,7 +65,7 @@ def test_create_incident_expected_request():
     }
 
 
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_get_incident_expected_request():
     stack_url = "https://foobar.grafana.net"
     api_token = "asdfasdfasdfasdf"
@@ -79,20 +78,19 @@ def test_get_incident_expected_request():
             "incidentID": incident_id,
         },
     }
-    mock_response = httpretty.Response(json.dumps(response_data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=response_data, status=status.HTTP_200_OK)
 
     data, response = client.get_incident(incident_id)
 
     assert data == response_data["incident"]
     assert response.status_code == status.HTTP_200_OK
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.headers["Authorization"] == f"Bearer {api_token}"
     assert last_request.method == "POST"
     assert last_request.url == url
 
 
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_get_severities_expected_request():
     stack_url = "https://foobar.grafana.net"
     api_token = "asdfasdfasdfasdf"
@@ -105,21 +103,20 @@ def test_get_severities_expected_request():
             {"severityID": "def", "orgID": "1", "displayLabel": "Critical", "level": 1},
         ],
     }
-    mock_response = httpretty.Response(json.dumps(response_data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=response_data, status=status.HTTP_200_OK)
 
     data, response = client.get_severities()
 
     assert data == response_data["severities"]
     assert response.status_code == status.HTTP_200_OK
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.headers["Authorization"] == f"Bearer {api_token}"
     assert last_request.method == "POST"
     assert last_request.url == url
     assert json.loads(last_request.body) == {}
 
 
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_add_activity_expected_request():
     stack_url = "https://foobar.grafana.net"
     api_token = "asdfasdfasdfasdf"
@@ -141,14 +138,13 @@ def test_add_activity_expected_request():
             "body": content,
         },
     }
-    mock_response = httpretty.Response(json.dumps(response_data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=response_data, status=status.HTTP_200_OK)
 
     data, response = client.add_activity(incident_id, content)
 
     assert data == response_data["activityItem"]
     assert response.status_code == status.HTTP_200_OK
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.headers["Authorization"] == f"Bearer {api_token}"
     assert last_request.method == "POST"
     assert last_request.url == url
@@ -168,7 +164,7 @@ def test_add_activity_expected_request():
         ("api/v1/ActivityService.AddActivity", "add_activity", ("incident-id", "content")),
     ],
 )
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_error_handling(endpoint, client_method_name, args):
     stack_url = "https://foobar.grafana.net"
     api_token = "asdfasdfasdfasdf"
@@ -178,8 +174,7 @@ def test_error_handling(endpoint, client_method_name, args):
         "error": "There was an error",
     }
     for error_code in (status.HTTP_400_BAD_REQUEST, status.HTTP_500_INTERNAL_SERVER_ERROR):
-        mock_response = httpretty.Response(json.dumps(response_data), status=error_code)
-        httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+        responses.add(responses.POST, url, json=response_data, status=error_code)
         with pytest.raises(IncidentAPIException) as excinfo:
             client_method = getattr(client, client_method_name)
             client_method(*args)
@@ -187,6 +182,7 @@ def test_error_handling(endpoint, client_method_name, args):
         assert excinfo.value.msg == response_data["error"]
         assert excinfo.value.url == url
         assert excinfo.value.method == "POST"
+        responses.reset()
 
 
 @pytest.mark.parametrize(
@@ -198,7 +194,6 @@ def test_error_handling(endpoint, client_method_name, args):
         ("api/v1/ActivityService.AddActivity", "add_activity", ("incident-id", "content")),
     ],
 )
-@httpretty.activate(verbose=True, allow_net_connect=False)
 def test_unexpected_error_handling(endpoint, client_method_name, args):
     stack_url = "https://foobar.grafana.net"
     api_token = "asdfasdfasdfasdf"

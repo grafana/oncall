@@ -48,8 +48,6 @@ faker==37.3.0
     #   factory-boy
 filelock==3.18.0
     # via virtualenv
-httpretty==1.1.4
-    # via -r requirements-dev.in
 identify==2.6.12
     # via pre-commit
 idna==3.7
@@ -110,6 +108,8 @@ requests==2.32.4
     # via
     #   -c requirements.txt
     #   djangorestframework-stubs
+responses==0.25.8
+    # via -r requirements-dev.in
 sqlparse==0.5.3
     # via
     #   -c requirements.txt

@@ -1,5 +1,5 @@
-import httpretty
 import pytest
+import responses
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -108,7 +108,7 @@ def test_create_integration(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_create_integration_via_service_account(
     make_organization,
     make_service_account_for_organization,
