@@ -6,7 +6,7 @@ appdirs==1.4.4
     # via django-migration-linter
 apscheduler==3.6.3
     # via python-telegram-bot
-asgiref==3.8.1
+asgiref==3.11.0
     # via django
 attrs==25.3.0
     # via
@@ -75,7 +75,7 @@ deprecated==1.2.18
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-semantic-conventions
-django==4.2.26
+django==4.2.27
     # via
     #   -r requirements.in
     #   django-add-default-value
@@ -453,7 +453,10 @@ tqdm==4.67.1
 twilio==6.37.0
     # via -r requirements.in
 typing-extensions==4.14.0
-    # via opentelemetry-sdk
+    # via
+    #   opentelemetry-sdk
+    #   pyopenssl
+    #   referencing
 tzdata==2025.2
     # via
     #   celery
@@ -465,7 +468,7 @@ uritemplate==4.2.0
     # via
     #   drf-spectacular
     #   google-api-python-client
-urllib3==1.26.19
+urllib3==2.6.2
     # via
     #   -r requirements.in
     #   botocore
