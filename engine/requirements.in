@@ -2,7 +2,7 @@ babel==2.12.1
 beautifulsoup4==4.12.2
 celery[redis]==5.3.6
 cryptography==44.0.1
-django==4.2.26
+django==4.2.27
 django-add-default-value==0.10.0
 django-anymail[amazon-ses]==12.0
 django-cors-headers==3.7.0
@@ -57,7 +57,7 @@ slack-export-viewer==1.1.4
 slack_sdk==3.21.3
 social-auth-app-django==5.4.1
 twilio~=6.37.0
-urllib3==1.26.19
+urllib3==1.26.20
 uwsgi==2.0.28
 whitenoise==5.3.0
 google-api-python-client==2.122.0
