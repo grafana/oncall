@@ -808,7 +808,8 @@ def test_user_get_own_telegram_verification_code_with_telegram_connected(
     client = APIClient()
     make_telegram_user_connector(tester)
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": tester.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(url, format="json", **make_user_auth_headers(tester, token))
     assert response.status_code == expected_status
 
 
@@ -867,7 +868,8 @@ def test_user_get_own_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": tester.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(url, format="json", **make_user_auth_headers(tester, token))
     assert response.status_code == expected_status
 
 
@@ -894,7 +896,8 @@ def test_user_get_another_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": other_user.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(url, format="json", **make_user_auth_headers(tester, token))
     assert response.status_code == expected_status
 
 
@@ -1042,7 +1045,8 @@ def test_admin_can_get_own_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": user.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -1058,7 +1062,8 @@ def test_admin_can_get_another_user_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": first_user.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -1280,7 +1285,8 @@ def test_user_can_get_own_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": user.public_primary_key})
 
-    response = client.get(f"{url}", format="json", **make_user_auth_headers(user, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(f"{url}", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
 
 
@@ -1298,7 +1304,8 @@ def test_user_cant_get_another_user_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": first_user.public_primary_key})
 
-    response = client.get(f"{url}", format="json", **make_user_auth_headers(second_user, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(f"{url}", format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -1584,7 +1591,8 @@ def test_viewer_cant_get_own_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": user.public_primary_key})
 
-    response = client.get(f"{url}", format="json", **make_user_auth_headers(user, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(f"{url}", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -1600,7 +1608,8 @@ def test_viewer_cant_get_another_user_telegram_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": first_user.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
+    with patch("apps.telegram.client.TelegramClient.get_bot_username", return_value="test_bot_username"):
+        response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 

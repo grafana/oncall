@@ -2,9 +2,9 @@ import logging
 from typing import Optional, Tuple, Union
 
 from django.conf import settings
-from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
-from telegram.error import BadRequest, InvalidToken, TelegramError, Unauthorized
-from telegram.utils.request import Request
+from telegram import Bot, InlineKeyboardMarkup, Message
+from telegram.constants import ParseMode
+from telegram.error import BadRequest, Forbidden, InvalidToken, TelegramError
 
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
@@ -12,6 +12,7 @@ from apps.telegram.exceptions import AlertGroupTelegramMessageDoesNotExist
 from apps.telegram.models import TelegramMessage
 from apps.telegram.renderers.keyboard import TelegramKeyboardRenderer
 from apps.telegram.renderers.message import TelegramMessageRenderer
+from apps.telegram.utils import run_async
 from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,10 @@ class TelegramClient:
         if self.token is None:
             raise InvalidToken()
 
+        # In v20+, Bot initialization is simpler, no Request needed
+        # Connection pooling and timeouts are handled internally
+        self.api_client = Bot(self.token)
+
     class BadRequestMessage:
         CHAT_NOT_FOUND = "Chat not found"
         MESSAGE_IS_NOT_MODIFIED = "Message is not modified"
@@ -39,15 +44,22 @@ class TelegramClient:
         INVALID_TOKEN = "Invalid token"
         USER_IS_DEACTIVATED = "Forbidden: user is deactivated"
 
-    @property
-    def api_client(self) -> Bot:
-        return Bot(self.token, request=Request(read_timeout=15))
+    def get_bot_info(self):
+        """
+        Get bot information (name, username, etc.)
+        In v20+, bot properties require async get_me() call
+        """
+        return run_async(self.api_client.get_me())
+
+    def get_bot_username(self):
+        return run_async(self.api_client.get_me()).username
 
     def is_chat_member(self, chat_id: Union[int, str]) -> bool:
         try:
-            self.api_client.get_chat(chat_id=chat_id)
+            # Bot methods are now async in v20+
+            run_async(self.api_client.get_chat(chat_id=chat_id))
             return True
-        except Unauthorized:
+        except Forbidden:
             return False
 
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
@@ -60,18 +72,18 @@ class TelegramClient:
                 "api/v3/webhook/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST
             )
         # avoid unnecessary set_webhook calls to make sure Telegram rate limits are not exceeded
-        webhook_info = self.api_client.get_webhook_info()
+        webhook_info = run_async(self.api_client.get_webhook_info())
         if webhook_info.url == webhook_url:
             return
 
-        self.api_client.set_webhook(webhook_url, allowed_updates=self.ALLOWED_UPDATES)
+        run_async(self.api_client.set_webhook(webhook_url, allowed_updates=self.ALLOWED_UPDATES))
 
     def delete_webhook(self):
-        webhook_info = self.api_client.get_webhook_info()
+        webhook_info = run_async(self.api_client.get_webhook_info())
         if webhook_info.url == "":
             return
 
-        self.api_client.delete_webhook()
+        run_async(self.api_client.delete_webhook())
 
     def send_message(
         self,
@@ -99,16 +111,22 @@ class TelegramClient:
         reply_to_message_id: Optional[int] = None,
     ) -> Message:
         try:
-            message = self.api_client.send_message(
-                chat_id=chat_id,
-                text=text,
-                reply_markup=keyboard,
-                reply_to_message_id=reply_to_message_id,
-                parse_mode=self.PARSE_MODE,
-                disable_web_page_preview=False,
+            # Bot methods are now async in v20+
+            message = run_async(
+                self.api_client.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    reply_markup=keyboard,
+                    reply_to_message_id=reply_to_message_id,
+                    parse_mode=self.PARSE_MODE,
+                    # Note: disable_web_page_preview removed in v20+,
+                    # link previews are controlled via LinkPreviewOptions if needed
+                )
             )
         except BadRequest as e:
-            logger.warning(f"Telegram BadRequest: {e.message}")
+            # Error message access may have changed - try common patterns
+            error_msg = getattr(e, "message", str(e))
+            logger.warning(f"Telegram BadRequest: {error_msg}")
             raise
 
         return message
@@ -128,13 +146,15 @@ class TelegramClient:
         text: str,
         keyboard: Optional[InlineKeyboardMarkup] = None,
     ) -> Union[Message, bool]:
-        return self.api_client.edit_message_text(
-            chat_id=chat_id,
-            message_id=message_id,
-            text=text,
-            reply_markup=keyboard,
-            parse_mode=self.PARSE_MODE,
-            disable_web_page_preview=False,
+        # Bot methods are now async in v20+
+        return run_async(
+            self.api_client.edit_message_text(
+                chat_id=chat_id,
+                message_id=message_id,
+                text=text,
+                reply_markup=keyboard,
+                parse_mode=self.PARSE_MODE,
+            )
         )
 
     @staticmethod
@@ -186,4 +206,7 @@ class TelegramClient:
 
     @staticmethod
     def error_message_is(error: TelegramError, messages: list[str]) -> bool:
-        return error.message.lower() in (m.lower() for m in messages)
+        # Error message access may have changed in v20+
+        # Try common patterns: .message, .args[0], str()
+        error_msg = getattr(error, "message", None) or (error.args[0] if error.args else str(error))
+        return error_msg.lower() in (m.lower() for m in messages)

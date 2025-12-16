@@ -667,7 +667,7 @@ class UserView(
         new_code.save()
 
         telegram_client = TelegramClient()
-        bot_username = telegram_client.api_client.username
+        bot_username = telegram_client.get_bot_username()
         bot_link = f"https://t.me/{bot_username}"
 
         return Response(
