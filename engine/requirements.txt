@@ -366,7 +366,7 @@ pyjwt==2.10.1
     # via
     #   social-auth-core
     #   twilio
-pymdown-extensions==10.0
+pymdown-extensions==10.16.1
     # via -r requirements.in
 pymysql==1.1.1
     # via -r requirements.in
@@ -430,10 +430,6 @@ rsa==4.9.1
     # via google-auth
 s3transfer==0.13.0
     # via boto3
-setuptools==80.9.0
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.17.0
     # via
     #   django-rest-polymorphic
