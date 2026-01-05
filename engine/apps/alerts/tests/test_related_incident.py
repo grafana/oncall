@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy, RelatedIncident
 from apps.alerts.tasks.declare_incident import (
@@ -72,7 +72,7 @@ def test_declare_incident_default_route(setup_alert_group_and_escalation_step):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_ok(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
 
@@ -105,7 +105,7 @@ def test_declare_incident_ok(setup_alert_group_and_escalation_step):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_set_severity(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
     severity = "critical"
@@ -120,7 +120,7 @@ def test_declare_incident_set_severity(setup_alert_group_and_escalation_step):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_set_severity_from_label(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
     expected_severity = "minor"
@@ -143,7 +143,7 @@ def test_declare_incident_set_severity_from_label(setup_alert_group_and_escalati
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_invalid_severity_fallback(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
     severity = "INVALID"
@@ -166,7 +166,7 @@ def test_declare_incident_invalid_severity_fallback(setup_alert_group_and_escala
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_attach_alert_group(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, existing_open_incident = setup_alert_group_and_escalation_step(
         already_declared_incident=True
@@ -191,7 +191,7 @@ def test_declare_incident_attach_alert_group(setup_alert_group_and_escalation_st
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_resolved_update(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, existing_open_incident = setup_alert_group_and_escalation_step(
         already_declared_incident=True
@@ -226,7 +226,7 @@ def test_declare_incident_resolved_update(setup_alert_group_and_escalation_step)
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_declare_incident_attach_alert_group_skip_incident_update(
     setup_alert_group_and_escalation_step, make_alert_group
 ):
@@ -261,7 +261,7 @@ def test_declare_incident_attach_alert_group_skip_incident_update(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_get_existing_incident_error(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, existing_open_incident = setup_alert_group_and_escalation_step(
         already_declared_incident=True
@@ -295,7 +295,7 @@ def test_get_existing_incident_error(setup_alert_group_and_escalation_step):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_attach_alert_group_error(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, existing_open_incident = setup_alert_group_and_escalation_step(
         already_declared_incident=True
@@ -322,7 +322,7 @@ def test_attach_alert_group_error(setup_alert_group_and_escalation_step):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_create_incident_error(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
 

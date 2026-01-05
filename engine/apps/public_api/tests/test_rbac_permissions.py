@@ -1,8 +1,7 @@
-import json
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
@@ -119,7 +118,7 @@ def test_rbac_permissions(
     ],
 )
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_service_account_auth(
     make_organization,
     make_service_account_for_organization,
@@ -160,9 +159,9 @@ def test_service_account_auth(
             if give_perm:
                 permissions = {perm.value: "value" for perm in required_perms}
                 expected = status.HTTP_200_OK
-            mock_response = httpretty.Response(status=200, body=json.dumps(permissions))
             perms_url = f"{organization.grafana_url}/api/access-control/user/permissions"
-            httpretty.register_uri(httpretty.GET, perms_url, responses=[mock_response])
+            responses.reset()
+            responses.add(responses.GET, perms_url, json=permissions, status=200)
 
             # iterate over all viewset actions, making an API request for each,
             # using the user's token and confirming the response status code

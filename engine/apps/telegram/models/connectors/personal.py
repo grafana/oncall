@@ -138,7 +138,7 @@ class TelegramToUserConnector(models.Model):
                     message_type=TelegramMessage.FORMATTING_ERROR,
                     alert_group=alert_group,
                 )
-            except error.Unauthorized as e:
+            except error.Forbidden as e:
                 if TelegramClient.error_message_is(e, [TelegramClient.UnauthorizedMessage.BOT_WAS_BLOCKED_BY_USER]):
                     TelegramToUserConnector.create_telegram_notification_error(
                         alert_group,
@@ -200,7 +200,7 @@ class TelegramToUserConnector(models.Model):
                 message_type=TelegramMessage.LINK_TO_CHANNEL_MESSAGE_WITHOUT_TITLE,
                 alert_group=alert_group,
             )
-        except error.Unauthorized as e:
+        except error.Forbidden as e:
             if TelegramClient.error_message_is(e, [TelegramClient.UnauthorizedMessage.BOT_WAS_BLOCKED_BY_USER]):
                 TelegramToUserConnector.create_telegram_notification_error(
                     alert_group,
