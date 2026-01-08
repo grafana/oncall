@@ -430,10 +430,6 @@ rsa==4.9.1
     # via google-auth
 s3transfer==0.13.0
     # via boto3
-setuptools==80.9.0
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.17.0
     # via
     #   django-rest-polymorphic
@@ -475,7 +471,7 @@ uritemplate==4.2.0
     # via
     #   drf-spectacular
     #   google-api-python-client
-urllib3==2.6.0
+urllib3==2.6.3
     # via
     #   -r requirements.in
     #   botocore
