@@ -1,7 +1,7 @@
 import json
 
-import httpretty
 import pytest
+import responses
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -239,7 +239,7 @@ def test_create_webhook_nested_data(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_create_webhook_via_service_account(
     make_organization,
     make_service_account_for_organization,

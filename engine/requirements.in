@@ -2,7 +2,7 @@ babel==2.12.1
 beautifulsoup4==4.12.2
 celery[redis]==5.3.6
 cryptography==44.0.1
-django==4.2.24
+django==4.2.27
 django-add-default-value==0.10.0
 django-anymail[amazon-ses]==12.0
 django-cors-headers==3.7.0
@@ -35,6 +35,7 @@ icalendar==5.0.10
 jinja2==3.1.6
 lxml==5.2.2
 markdown2==2.4.10
+nest-asyncio==1.6.0
 opentelemetry-sdk==1.26.0
 opentelemetry-api==1.26.0
 opentelemetry-exporter-otlp-proto-grpc==1.26.0
@@ -48,7 +49,7 @@ psutil==5.9.4
 psycopg2==2.9.3
 pymdown-extensions==10.0
 PyMySQL==1.1.1
-python-telegram-bot==13.13
+python-telegram-bot==22.5
 recurring-ical-events==2.1.0
 redis==5.0.1
 regex==2024.7.24
@@ -57,7 +58,7 @@ slack-export-viewer==1.1.4
 slack_sdk==3.21.3
 social-auth-app-django==5.4.1
 twilio~=6.37.0
-urllib3==1.26.19
+urllib3==2.6.0
 uwsgi==2.0.28
 whitenoise==5.3.0
 google-api-python-client==2.122.0

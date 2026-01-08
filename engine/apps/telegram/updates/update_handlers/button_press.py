@@ -8,7 +8,7 @@ from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.telegram.models import TelegramMessage, TelegramToUserConnector
 from apps.telegram.renderers.keyboard import CODE_TO_ACTION_MAP, Action
 from apps.telegram.updates.update_handlers import UpdateHandler
-from apps.telegram.utils import CallbackQueryFactory
+from apps.telegram.utils import CallbackQueryFactory, run_async
 from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,8 @@ class ButtonPressHandler(UpdateHandler):
         data = self.update.callback_query.data
         action_context = self._get_action_context(data)
         if action_context is None:
-            self.update.callback_query.answer(NOT_FOUND_ERROR, show_alert=True)
+            # callback_query.answer() is async in v20+
+            run_async(self.update.callback_query.answer(NOT_FOUND_ERROR, show_alert=True))
             return
 
         fn, fn_kwargs = self._map_action_context_to_fn(action_context)
@@ -46,7 +47,8 @@ class ButtonPressHandler(UpdateHandler):
             fn(user=user, action_source=ActionSource.TELEGRAM, **fn_kwargs)
             logger.info(f"User {user} triggered '{fn.__name__}'")
         else:
-            self.update.callback_query.answer(PERMISSION_DENIED, show_alert=True)
+            # callback_query.answer() is async in v20+
+            run_async(self.update.callback_query.answer(PERMISSION_DENIED, show_alert=True))
             logger.info(f"User {user} has no permission to trigger '{fn.__name__}'")
 
     def _get_alert_group_from_message(self) -> Optional[AlertGroup]:

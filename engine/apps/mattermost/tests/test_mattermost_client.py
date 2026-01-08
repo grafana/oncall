@@ -1,9 +1,8 @@
-import json
 from unittest.mock import Mock, patch
 
-import httpretty
 import pytest
 import requests
+import responses
 from django.conf import settings
 from rest_framework import status
 
@@ -19,18 +18,17 @@ def test_mattermost_client_initialization():
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_get_channel_by_id_ok(make_mattermost_get_channel_response):
     client = MattermostClient("abcd")
     data = make_mattermost_get_channel_response()
     url = "{}/api/v4/channels/{}".format(settings.MATTERMOST_HOST, data["id"])
 
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.GET, url, responses=[mock_response])
+    responses.add(responses.GET, url, json=data, status=status.HTTP_200_OK)
 
     channel_response = client.get_channel_by_id(data["id"])
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "GET"
     assert last_request.url == url
     assert channel_response.channel_id == data["id"]
@@ -40,18 +38,17 @@ def test_get_channel_by_id_ok(make_mattermost_get_channel_response):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_get_user_ok(make_mattermost_get_user_response):
     client = MattermostClient("abcd")
     data = make_mattermost_get_user_response()
     url = "{}/api/v4/users/{}".format(settings.MATTERMOST_HOST, data["id"])
 
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.GET, url, responses=[mock_response])
+    responses.add(responses.GET, url, json=data, status=status.HTTP_200_OK)
 
     mattermost_user = client.get_user(data["id"])
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "GET"
     assert last_request.url == url
     assert mattermost_user.user_id == data["id"]
@@ -122,18 +119,17 @@ def test_check_response_failures(client_method, params, method):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_create_post_ok(make_mattermost_post_response):
     client = MattermostClient("abcd")
     data = make_mattermost_post_response()
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
 
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=data, status=status.HTTP_200_OK)
 
     mattermost_post = client.create_post(data["id"], {})
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "POST"
     assert last_request.url == url
     assert mattermost_post.post_id == data["id"]
@@ -142,18 +138,17 @@ def test_create_post_ok(make_mattermost_post_response):
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_update_post_ok(make_mattermost_post_response):
     client = MattermostClient("abcd")
     data = make_mattermost_post_response()
     url = "{}/api/v4/posts/{}".format(settings.MATTERMOST_HOST, data["id"])
 
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.PUT, url, responses=[mock_response])
+    responses.add(responses.PUT, url, json=data, status=status.HTTP_200_OK)
 
     mattermost_post = client.update_post(data["id"], {})
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "PUT"
     assert last_request.url == url
     assert mattermost_post.post_id == data["id"]

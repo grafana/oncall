@@ -1,6 +1,8 @@
 import logging
 import re
 
+from telegram import MessageOriginChannel
+
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramToOrganizationConnector
 from apps.telegram.tasks import send_log_and_actions_message
@@ -48,7 +50,20 @@ class ChannelToGroupForwardHandler(UpdateHandler):
     def process_update(self) -> None:
         telegram_client = TelegramClient()
 
-        if self.update.message.forward_signature is None:
+        # In v20+, forward_from_chat, forward_from_message_id, and forward_signature
+        # are replaced with forward_origin (MessageOriginChannel)
+        if self.update.message.forward_origin is None:
+            # Message is not forwarded - shouldn't happen for this handler, but skip
+            return
+
+        # Only process messages forwarded from channels
+        if not isinstance(self.update.message.forward_origin, MessageOriginChannel):
+            return
+
+        # Check if "Sign messages" is enabled
+        # In v20+, forward_signature is replaced with author_signature in MessageOriginChannel
+        # If author_signature is None, "Sign messages" is not enabled
+        if self.update.message.forward_origin.author_signature is None:
             telegram_client.send_raw_message(
                 chat_id=self.update.message.chat.id,
                 text=SIGN_MESSAGES_NOT_ENABLED,
@@ -56,11 +71,14 @@ class ChannelToGroupForwardHandler(UpdateHandler):
             )
             return
 
-        channel_chat_id = self.update.message.forward_from_chat.id
-        channel_message_id = self.update.message.forward_from_message_id
+        channel_chat_id = self.update.message.forward_origin.chat.id
+        channel_message_id = self.update.message.forward_origin.message_id
         group_message_id = self.update.message.message_id
 
-        if self.update.message.forward_signature != telegram_client.api_client.first_name:
+        # In v20+, bot info needs to be fetched asynchronously
+        # Check if the forward signature matches the bot name
+        bot_info = telegram_client.get_bot_info()
+        if self.update.message.forward_origin.author_signature != bot_info.first_name:
             return
 
         try:

@@ -1,7 +1,7 @@
 import json
 
-import httpretty
 import pytest
+import responses
 from rest_framework import status
 
 from common.cloud_auth_api.client import CloudAuthApiClient, CloudAuthApiException
@@ -18,7 +18,7 @@ def configure_cloud_auth_api_client(settings):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("response_status_code", [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED])
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_request_signed_token(make_organization, make_user_for_organization, response_status_code):
     mock_auth_token = ",mnasdlkjlakjoqwejroiqwejr"
     mock_response_text = "error message"
@@ -36,8 +36,7 @@ def test_request_signed_token(make_organization, make_user_for_organization, res
         return CloudAuthApiClient().request_signed_token(user, scopes, extra_claims)
 
     url = f"{GRAFANA_CLOUD_AUTH_API_URL}/v1/sign"
-    mock_response = httpretty.Response(json.dumps({"data": {"token": mock_auth_token}}), status=response_status_code)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json={"data": {"token": mock_auth_token}}, status=response_status_code)
 
     if response_status_code != status.HTTP_200_OK:
         with pytest.raises(CloudAuthApiException) as excinfo:
@@ -50,7 +49,7 @@ def test_request_signed_token(make_organization, make_user_for_organization, res
     else:
         assert _make_request() == mock_auth_token
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "POST"
     assert last_request.url == url
 

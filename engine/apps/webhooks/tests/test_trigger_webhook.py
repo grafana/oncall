@@ -2,9 +2,9 @@ import json
 from datetime import timedelta
 from unittest.mock import call, patch
 
-import httpretty
 import pytest
 import requests
+import responses
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroupExternalID, AlertGroupLogRecord, EscalationPolicy
@@ -180,7 +180,7 @@ def test_execute_webhook_integration_filter_matching(
 ALERT_GROUP_PUBLIC_PRIMARY_KEY = "IXJ47FKMYYJ5U"
 
 
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 @pytest.mark.parametrize(
     "data,expected_request_data,request_post_kwargs",
     [
@@ -232,8 +232,7 @@ def test_execute_webhook_ok(
     )
 
     templated_url = f"https://example.com/{alert_group.public_primary_key}/"
-    mock_response = httpretty.Response(json.dumps({"response": 200}))
-    httpretty.register_uri(httpretty.POST, templated_url, responses=[mock_response])
+    responses.add(responses.POST, templated_url, json={"response": 200}, status=200)
 
     with patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8"):
         with patch(
@@ -250,7 +249,7 @@ def test_execute_webhook_ok(
     )
 
     # assert the request was made to the webhook as we expected
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "POST"
     assert last_request.url == templated_url
     assert last_request.headers["some-header"] == alert_group.public_primary_key

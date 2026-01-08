@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-from telegram import CallbackQuery, Chat, Message, Update, User
+from telegram import CallbackQuery, Chat, Message, MessageOriginChannel, Update, User
 
 from apps.telegram.client import TelegramClient
 from apps.telegram.renderers.keyboard import Action
@@ -26,15 +26,19 @@ def generate_update(message_text: str) -> Update:
 def generate_channel_verification_code_message(verification_code: str, discussion_group_chat_id: str) -> Update:
     user = User(id=0, first_name="Test", is_bot=False)
     chat = Chat(id=discussion_group_chat_id, type=Chat.PRIVATE)
-    channel = Chat(id=0, type=Chat.CHANNEL)
+    channel = MessageOriginChannel(
+        chat=Chat(id=0, type=Chat.CHANNEL),
+        message_id=0,
+        date=datetime.now(),
+        author_signature="the-signature",
+    )
     message = Message(
         message_id=0,
         text=verification_code,
         chat=chat,
         from_user=user,
         date=datetime.now(),
-        forward_from_chat=channel,
-        forward_signature="the-signature",
+        forward_origin=channel,
     )
     update = Update(update_id=0, message=message)
     return update
@@ -136,11 +140,9 @@ def test_button_press_handler_non_existing_alert_group(
     make_telegram_user_connector(user_1, telegram_chat_id=chat_id)
 
     update = generate_button_press_ack_message(chat_id, 1234)
-    update_data = update.callback_query.data
     handler = ButtonPressHandler(update=update)
 
-    with patch.object(update, "callback_query", autospec=True) as mock_callback_query:
-        mock_callback_query.data = update_data
+    with patch("telegram.CallbackQuery.answer") as mock_callback_query_answer:
         handler.process_update()
 
-    mock_callback_query.answer.assert_called_once_with(NOT_FOUND_ERROR, show_alert=True)
+    mock_callback_query_answer.assert_awaited_once_with(NOT_FOUND_ERROR, show_alert=True)

@@ -1,8 +1,8 @@
 import json
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
@@ -20,7 +20,7 @@ from apps.mattermost.tasks import (
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_on_create_alert_async_success(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -37,8 +37,7 @@ def test_on_create_alert_async_success(
 
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
     data = make_mattermost_post_response()
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=data, status=status.HTTP_200_OK)
 
     on_create_alert_async(alert_pk=alert.pk)
 
@@ -91,7 +90,7 @@ def test_on_create_alert_async_skip_post_for_no_channel(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 @pytest.mark.parametrize("status_code", [400, 401])
 def test_on_create_alert_async_mattermost_api_failure(
     make_organization_and_user,
@@ -110,8 +109,7 @@ def test_on_create_alert_async_mattermost_api_failure(
 
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
     data = make_mattermost_post_response_failure(status_code=status_code)
-    mock_response = httpretty.Response(json.dumps(data), status=status_code)
-    httpretty.register_uri(httpretty.POST, url, status=status_code, responses=[mock_response])
+    responses.add(responses.POST, url, json=data, status=status_code)
 
     on_create_alert_async(alert_pk=alert.pk)
 
@@ -120,7 +118,7 @@ def test_on_create_alert_async_mattermost_api_failure(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_on_alert_group_action_triggered_async_success(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -142,12 +140,11 @@ def test_on_alert_group_action_triggered_async_success(
 
     url = "{}/api/v4/posts/{}".format(settings.MATTERMOST_HOST, mattermost_message.post_id)
     data = make_mattermost_post_response()
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.PUT, url, responses=[mock_response])
+    responses.add(responses.PUT, url, json=data, status=status.HTTP_200_OK)
 
     on_alert_group_action_triggered_async(ack_log_record.pk)
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "PUT"
     assert last_request.url == url
 
@@ -158,7 +155,7 @@ def test_on_alert_group_action_triggered_async_success(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_on_alert_group_action_triggered_async_fails_without_alert_group_message(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -179,7 +176,7 @@ def test_on_alert_group_action_triggered_async_fails_without_alert_group_message
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 @pytest.mark.parametrize("status_code", [400, 401])
 def test_on_alert_group_action_triggered_async_failure(
     make_organization_and_user,
@@ -202,8 +199,7 @@ def test_on_alert_group_action_triggered_async_failure(
 
     url = "{}/api/v4/posts/{}".format(settings.MATTERMOST_HOST, mattermost_message.post_id)
     data = make_mattermost_post_response_failure(status_code=status_code)
-    mock_response = httpretty.Response(json.dumps(data), status=status_code)
-    httpretty.register_uri(httpretty.PUT, url, status=status_code, responses=[mock_response])
+    responses.add(responses.PUT, url, json=data, status=status_code)
 
     if status_code != 401:
         with pytest.raises(MattermostAPIException):
@@ -211,13 +207,13 @@ def test_on_alert_group_action_triggered_async_failure(
     else:
         on_alert_group_action_triggered_async(ack_log_record.pk)
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "PUT"
     assert last_request.url == url
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_notify_user_about_alert_async_success(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -247,8 +243,7 @@ def test_notify_user_about_alert_async_success(
 
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
     data = make_mattermost_post_response()
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=data, status=status.HTTP_200_OK)
 
     notify_user_about_alert_async(
         user_pk=user.pk, alert_group_pk=alert_group.pk, notification_policy_pk=user_notification_policy.pk
@@ -371,7 +366,7 @@ def test_notify_user_about_alert_async_mattermost_message_does_not_exist(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_notify_user_about_alert_async_mattermost_user_does_not_exist(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -397,8 +392,7 @@ def test_notify_user_about_alert_async_mattermost_user_does_not_exist(
 
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
     data = make_mattermost_post_response()
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    responses.add(responses.POST, url, json=data, status=status.HTTP_200_OK)
 
     notify_user_about_alert_async(
         user_pk=user.pk, alert_group_pk=alert_group.pk, notification_policy_pk=user_notification_policy.pk
@@ -413,7 +407,7 @@ def test_notify_user_about_alert_async_mattermost_user_does_not_exist(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 @pytest.mark.parametrize("status_code", [400, 401])
 def test_notify_user_about_alert_async_api_failure(
     make_organization_and_user,
@@ -442,8 +436,7 @@ def test_notify_user_about_alert_async_api_failure(
 
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
     data = make_mattermost_post_response_failure(status_code=status_code)
-    mock_response = httpretty.Response(json.dumps(data), status=status_code)
-    httpretty.register_uri(httpretty.POST, url, status=status_code, responses=[mock_response])
+    responses.add(responses.POST, url, json=data, status=status_code)
 
     if status_code != 401:
         with pytest.raises(MattermostAPIException):
@@ -460,7 +453,7 @@ def test_notify_user_about_alert_async_api_failure(
             == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_API_UNAUTHORIZED
         )
 
-    last_request = httpretty.last_request()
+    last_request = responses.calls[-1].request
     assert last_request.method == "POST"
     assert last_request.url == url
 

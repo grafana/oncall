@@ -82,7 +82,7 @@ class GetTelegramVerificationCode(APIView):
             existing_verification_code.delete()
         new_code = TelegramChannelVerificationCode.objects.create(organization=organization, author=user)
         telegram_client = TelegramClient()
-        bot_username = telegram_client.api_client.username
+        bot_username = telegram_client.get_bot_username()
         bot_link = f"https://t.me/{bot_username}"
         return Response(
             {"telegram_code": str(new_code.uuid_with_org_uuid), "bot_link": bot_link}, status=status.HTTP_200_OK

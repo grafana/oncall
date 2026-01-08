@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -740,7 +740,7 @@ def test_alert_group_unsilence(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 def test_actions_disabled_for_service_accounts(
     make_organization,
     make_service_account_for_organization,

@@ -1,3 +1,5 @@
+from telegram import MessageOriginChannel
+
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramChannelVerificationCode, TelegramToOrganizationConnector
 from apps.telegram.updates.update_handlers import UpdateHandler
@@ -35,8 +37,21 @@ class ChannelVerificationCodeHandler(UpdateHandler):
     def process_update(self) -> None:
         telegram_client = TelegramClient()
 
-        channel_chat_id = self.update.message.forward_from_chat.id
-        channel_name = self.update.message.forward_from_chat.title
+        # In v20+, forward_from_chat and forward_signature are replaced with forward_origin
+        if self.update.message.forward_origin is None:
+            telegram_client.send_raw_message(
+                chat_id=self.update.message.chat.id,
+                text=VERIFICATION_FAILED_SIGN_MESSAGES_NOT_ENABLED,
+                reply_to_message_id=self.update.message.message_id,
+            )
+            return
+
+        # Only process messages forwarded from channels
+        if not isinstance(self.update.message.forward_origin, MessageOriginChannel):
+            return
+
+        channel_chat_id = self.update.message.forward_origin.chat.id
+        channel_name = self.update.message.forward_origin.chat.title
         discussion_group_chat_id = self.update.message.chat.id
         discussion_group_name = self.update.message.chat.title
         verification_code = self.update.message.text
@@ -50,8 +65,9 @@ class ChannelVerificationCodeHandler(UpdateHandler):
             )
             return
 
-        # check if "Sign messages" is enabled
-        if self.update.message.forward_signature is None:
+        # In v20+, forward_signature is replaced with author_signature in MessageOriginChannel
+        # If author_signature is None, "Sign messages" is not enabled
+        if self.update.message.forward_origin.author_signature is None:
             telegram_client.send_raw_message(
                 chat_id=self.update.message.chat.id,
                 text=VERIFICATION_FAILED_SIGN_MESSAGES_NOT_ENABLED,

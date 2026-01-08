@@ -1,13 +1,14 @@
 import datetime
 import hashlib
 import hmac
+import io
 import json
 from base64 import b64encode
 from textwrap import dedent
 from unittest.mock import ANY, Mock, patch
 
-import httpretty
 import pytest
+import responses
 from anymail.inbound import AnymailInboundMessage
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -479,7 +480,7 @@ def test_amazon_ses_pass(create_alert_mock, settings, make_organization, make_al
 
 
 @patch.object(create_alert, "delay")
-@httpretty.activate(verbose=True, allow_net_connect=True)
+@responses.activate
 @pytest.mark.django_db
 def test_amazon_ses_validated_s3_pass(mock_create_alert, settings, make_organization, make_alert_receive_channel):
     settings.INBOUND_EMAIL_ESP = "amazon_ses_validated,mailgun"
@@ -505,25 +506,19 @@ def test_amazon_ses_validated_s3_pass(mock_create_alert, settings, make_organiza
         s3=True,
     )
 
-    httpretty.register_uri(httpretty.GET, SIGNING_CERT_URL, body=CERTIFICATE)
-    httpretty.register_uri(
-        httpretty.HEAD,
-        "https://test-s3-bucket.s3.us-east-2.amazonaws.com/test-object-key",
-        responses=[httpretty.Response(body="")],
-    )
-    httpretty.register_uri(
-        httpretty.GET,
-        "https://test-s3-bucket.s3.us-east-2.amazonaws.com/test-object-key",
-        responses=[httpretty.Response(body=content)],
-    )
+    responses.add(responses.GET, SIGNING_CERT_URL, body=CERTIFICATE)
 
     client = APIClient()
-    response = client.post(
-        reverse("integrations:inbound_email_webhook"),
-        data=sns_payload,
-        headers=sns_headers,
-        format="json",
-    )
+    with patch(
+        "anymail.webhooks.amazon_ses.AmazonSESInboundWebhookView.download_s3_object",
+        return_value=io.BytesIO(content.encode("utf-8")),
+    ) as mock_download_s3_object:
+        response = client.post(
+            reverse("integrations:inbound_email_webhook"),
+            data=sns_payload,
+            headers=sns_headers,
+            format="json",
+        )
 
     assert response.status_code == status.HTTP_200_OK
     mock_create_alert.assert_called_once_with(
@@ -541,13 +536,14 @@ def test_amazon_ses_validated_s3_pass(mock_create_alert, settings, make_organiza
         received_at=ANY,
     )
 
-    assert len(httpretty.latest_requests()) == 3
-    assert (httpretty.latest_requests()[0].method, httpretty.latest_requests()[0].path) == (
-        "GET",
-        "/SimpleNotificationService-example.pem",
+    assert len(responses.calls) == 1
+    request = responses.calls[0].request
+    assert request.method == "GET"
+    assert request.url == SIGNING_CERT_URL
+    mock_download_s3_object.assert_called_once_with(
+        bucket_name="test-s3-bucket",
+        object_key="test-object-key",
     )
-    assert (httpretty.latest_requests()[1].method, httpretty.latest_requests()[1].path) == ("HEAD", "/test-object-key")
-    assert (httpretty.latest_requests()[2].method, httpretty.latest_requests()[2].path) == ("GET", "/test-object-key")
 
 
 @patch("requests.get", return_value=Mock(content=CERTIFICATE))

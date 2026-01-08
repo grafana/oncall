@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-import httpretty
 import pytest
+import responses
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -150,7 +150,7 @@ def test_create_resolution_note(
 
 
 @pytest.mark.django_db
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 @patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 def test_create_resolution_note_via_service_account(
     mock_send_update_resolution_note_signal,

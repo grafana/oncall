@@ -1,7 +1,7 @@
 from unittest.mock import call, patch
 
-import httpretty
 import pytest
+import responses
 from django.conf import settings
 from requests.auth import HTTPBasicAuth
 
@@ -241,7 +241,7 @@ def test_make_request(make_organization, make_custom_webhook):
         webhook.make_request("url", {"foo": "bar"})
 
 
-@httpretty.activate(verbose=True, allow_net_connect=False)
+@responses.activate
 @pytest.mark.django_db
 def test_make_request_bad_redirect(make_organization, make_custom_webhook):
     if settings.DANGEROUS_WEBHOOKS_ENABLED:
@@ -251,8 +251,7 @@ def test_make_request_bad_redirect(make_organization, make_custom_webhook):
     webhook = make_custom_webhook(organization=organization, http_method="POST")
 
     url = "http://example.com"
-    response = httpretty.Response(body="Redirect", status=302, location="127.0.0.1")
-    httpretty.register_uri(httpretty.POST, url, responses=[response])
+    responses.add(responses.POST, url, body="Redirect", status=302, headers={"location": "http://127.0.0.1"})
 
     with pytest.raises(InvalidWebhookUrl):
         webhook.make_request(url, {})
