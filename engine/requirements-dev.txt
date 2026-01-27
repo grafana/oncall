@@ -152,7 +152,7 @@ tzdata==2025.2
     # via
     #   -c requirements.txt
     #   faker
-urllib3==2.6.0
+urllib3==2.6.3
     # via
     #   -c requirements.txt
     #   requests

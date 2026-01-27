@@ -1,9 +1,10 @@
-FROM python:3.12.11-alpine3.21
+FROM python:3.12.11-alpine3.21@sha256:aed27d7387bcf51a8f43b4a5b998857591c7933caa405920267ad42fb609a6d5
 
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
+RUN pip install -U pip
 RUN python3 -m pip install -r requirements.txt
 
 COPY . .

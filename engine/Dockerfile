@@ -1,4 +1,4 @@
-FROM python:3.12.11-alpine3.21 AS base
+FROM python:3.12.11-alpine3.21@sha256:aed27d7387bcf51a8f43b4a5b998857591c7933caa405920267ad42fb609a6d5 AS base
 ARG TARGETPLATFORM
 
 # Create a group and user to run an app
@@ -27,7 +27,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     && rm grpcio-1.64.1-cp312-cp312-linux_aarch64.whl; \
     fi
 
-RUN pip install uv setuptools
+RUN pip install -U uv setuptools pip
 
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527
