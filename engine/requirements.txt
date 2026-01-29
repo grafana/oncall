@@ -202,7 +202,7 @@ googleapis-common-protos==1.70.0
     #   opentelemetry-exporter-otlp-proto-grpc
 gprof2dot==2025.4.14
     # via django-silk
-grpcio==1.64.1
+grpcio==1.76.0
     # via
     #   -r requirements.in
     #   google-api-core
@@ -350,7 +350,7 @@ protobuf==4.25.8
     #   proto-plus
 psutil==5.9.4
     # via -r requirements.in
-psycopg2==2.9.3
+psycopg2==2.9.11
     # via -r requirements.in
 pyasn1==0.6.1
     # via
@@ -481,7 +481,7 @@ urllib3==2.6.3
     #   botocore
     #   django-anymail
     #   requests
-uwsgi==2.0.28
+uwsgi==2.0.31
     # via -r requirements.in
 vine==5.1.0
     # via

@@ -60,7 +60,7 @@ six==1.17.0
     # via
     #   kubernetes
     #   python-dateutil
-urllib3==2.6.0
+urllib3==2.6.3
     # via
     #   kubernetes
     #   pdpyras

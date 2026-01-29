@@ -18,9 +18,14 @@ runs:
       env:
         PYTHON_REQUIREMENTS_PATHS: ${{ inputs.python-requirements-paths }}
       with:
-        python-version: "3.12.11"
+        python-version: "3.13.11"
         cache: "pip"
         cache-dependency-path: ${{ env.PYTHON_REQUIREMENTS_PATHS }}
+    - name: Install system dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libxml2-dev libxslt1-dev python3-dev
     - name: Install Python dependencies
       if: ${{ inputs.install-dependencies == 'true' }}
       shell: bash
