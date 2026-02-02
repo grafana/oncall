@@ -2,7 +2,7 @@ import logging
 
 import telegram.error
 from django.core.management.base import BaseCommand
-from telegram.ext import CallbackQueryHandler, Filters, MessageHandler, Updater
+from telegram.ext import CallbackQueryHandler, MessageHandler, Updater, filters
 
 from apps.telegram.client import TelegramClient
 from apps.telegram.updates.update_manager import UpdateManager
@@ -24,7 +24,7 @@ def start_telegram_polling():
     callback_handler = CallbackQueryHandler(handle_message)
 
     # register the message handler function with the dispatcher
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
+    updater.dispatcher.add_handler(MessageHandler(filters.TEXT, handle_message))
     updater.dispatcher.add_handler(callback_handler)
 
     # start the long polling loop
