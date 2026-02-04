@@ -176,7 +176,7 @@ detached_integrations:
 # Celery workers pods configuration
 celery:
   replicaCount: 1
-  worker_queue: "default,critical,long,slack,telegram,webhook,celery,grafana,retry"
+  worker_queue: "default,critical,long,slack,telegram,zoom,webhook,celery,grafana,retry"
   worker_concurrency: "1"
   worker_max_tasks_per_child: "100"
   worker_beat_enabled: "True"
@@ -334,6 +334,43 @@ oncall:
     existingSecret: ""
     # The key in the secret containing Telegram token
     tokenKey: ""
+  # Zoom configures the Grafana OnCall Zoom Team Chat integration.
+  zoom:
+    # Enable the Zoom Team Chat integration for the OnCall Engine.
+    enabled: false
+    # clientId configures the Zoom app OAuth2 client ID.
+    # marketplace.zoom.us/develop/apps -> Your App -> App Credentials -> Client ID
+    clientId: ~
+    # clientSecret configures the Zoom app OAuth2 client secret.
+    # marketplace.zoom.us/develop/apps -> Your App -> App Credentials -> Client Secret
+    clientSecret: ~
+    # accountId configures the Zoom account ID (for Server-to-Server OAuth apps)
+    # Leave empty for User-managed apps
+    accountId: ~
+    # botJid configures the Zoom bot JID
+    # marketplace.zoom.us/develop/apps -> Your App -> Features -> Team Chat -> Bot JID
+    botJid: ~
+    # webhookSecretToken configures the Zoom webhook secret token
+    # marketplace.zoom.us/develop/apps -> Your App -> Features -> Webhook -> Secret Token
+    webhookSecretToken: ~
+    # Use existing secret for clientId, clientSecret, accountId, botJid and webhookSecretToken.
+    existingSecret: ""
+    # The key in the secret containing OAuth2 client ID
+    clientIdKey: ""
+    # The key in the secret containing OAuth2 client secret
+    clientSecretKey: ""
+    # The key in the secret containing account ID
+    accountIdKey: ""
+    # The key in the secret containing bot JID
+    botJidKey: ""
+    # The key in the secret containing webhook secret token
+    webhookSecretTokenKey: ""
+    # OnCall external URL for Zoom OAuth redirect
+    redirectHost: ~
+    # Zoom message footer text
+    messageFooter: ~
+    # Zoom message footer icon URL
+    messageFooterIcon: ~
   smtp:
     enabled: true
     host: ~

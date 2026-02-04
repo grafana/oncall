@@ -205,7 +205,7 @@ detached_integrations_service:
 
 This will run an integrations-only service listening by default in port 30003.
 
-### Set up Slack and Telegram
+### Set up Slack, Telegram, and Zoom
 
 You can set up Slack connection via following variables:
 
@@ -242,6 +242,36 @@ To use Telegram long polling instead of webhook use:
 ```yaml
 telegramPolling:
   enabled: true
+```
+
+To set up Zoom Team Chat integration use:
+
+```yaml
+oncall:
+  zoom:
+    enabled: true
+    clientId: ~           # Zoom app OAuth2 client ID
+    clientSecret: ~       # Zoom app OAuth2 client secret
+    accountId: ~          # Zoom account ID (for Server-to-Server OAuth apps, leave empty for User-managed apps)
+    botJid: ~             # Zoom bot JID
+    webhookSecretToken: ~ # Zoom webhook secret token
+    redirectHost: ~       # OnCall external URL for Zoom OAuth redirect
+    messageFooter: ~      # Custom footer text for Zoom messages
+    messageFooterIcon: ~  # Custom footer icon URL for Zoom messages
+```
+
+For existing secrets:
+
+```yaml
+oncall:
+  zoom:
+    enabled: true
+    existingSecret: "my-zoom-secret"
+    clientIdKey: "client-id"
+    clientSecretKey: "client-secret"
+    accountIdKey: "account-id"
+    botJidKey: "bot-jid"
+    webhookSecretTokenKey: "webhook-secret"
 ```
 
 ### Set up external access

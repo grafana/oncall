@@ -22,6 +22,8 @@ import { LabelStore } from 'models/label/label';
 import { LoaderStore } from 'models/loader/loader';
 import { MattermostStore } from 'models/mattermost/mattermost';
 import { MattermostChannelStore } from 'models/mattermost/mattermost_channel';
+import { ZoomStore } from 'models/zoom/zoom';
+import { ZoomChannelStore } from 'models/zoom/zoom_channel';
 import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
@@ -86,6 +88,8 @@ export class RootBaseStore {
   slackChannelStore = new SlackChannelStore(this);
   mattermostStore = new MattermostStore(this);
   mattermostChannelStore = new MattermostChannelStore(this);
+  zoomStore = new ZoomStore(this);
+  zoomChannelStore = new ZoomChannelStore(this);
   heartbeatStore = new HeartbeatStore(this);
   scheduleStore = new ScheduleStore(this);
   userGroupStore = new UserGroupStore(this);

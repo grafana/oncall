@@ -100,6 +100,7 @@ export const DOCS_SERVICE_ACCOUNTS = 'https://grafana.com/docs/grafana/latest/ad
 export const DOCS_ONCALL_OSS_INSTALL =
   'https://grafana.com/docs/oncall/latest/set-up/open-source/#install-grafana-oncall-oss';
 export const DOCS_MATTERMOST_SETUP = 'https://grafana.com/docs/oncall/latest/manage/notify/mattermost/';
+export const DOCS_ZOOM_SETUP = 'https://grafana.com/docs/oncall/latest/manage/notify/zoom/';
 
 export const generateAssignToTeamInputDescription = (objectName: string): string =>
   `Assigning to a team allows you to filter ${objectName} and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details.`;

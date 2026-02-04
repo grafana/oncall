@@ -12,6 +12,7 @@ import { MSTeamsSettings } from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSetting
 import { MattermostSettings } from 'pages/settings/tabs/ChatOps/tabs/MattermostSettings/MattermostSettings';
 import { SlackSettings } from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import { TelegramSettings } from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
+import { ZoomSettings } from 'pages/settings/tabs/ChatOps/tabs/ZoomSettings/ZoomSettings';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -24,6 +25,7 @@ export enum ChatOpsTab {
   Telegram = 'Telegram',
   MSTeams = 'MSTeams',
   Mattermost = 'Mattermost',
+  Zoom = 'Zoom',
 }
 interface ChatOpsProps extends AppRootProps, WithStoreProps, Themeable2 {}
 interface ChatOpsState {
@@ -95,7 +97,8 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
       store.hasFeature(AppFeature.Slack) ||
       store.hasFeature(AppFeature.Telegram) ||
       store.hasFeature(AppFeature.MsTeams) ||
-      store.hasFeature(AppFeature.Mattermost)
+      store.hasFeature(AppFeature.Mattermost) ||
+      store.hasFeature(AppFeature.Zoom)
     );
   }
 
@@ -151,6 +154,14 @@ const Tabs = (props: TabsProps) => {
           </Stack>
         </VerticalTab>
       )}
+      {store.hasFeature(AppFeature.Zoom) && (
+        <VerticalTab id={ChatOpsTab.Zoom}>
+          <Stack>
+            <Icon name="message" />
+            Zoom
+          </Stack>
+        </VerticalTab>
+      )}
     </VerticalTabsBar>
   );
 };
@@ -169,6 +180,7 @@ const TabsContent = (props: TabsContentProps) => {
       {store.hasFeature(AppFeature.Telegram) && activeTab === ChatOpsTab.Telegram && <TelegramSettings />}
       {store.hasFeature(AppFeature.MsTeams) && activeTab === ChatOpsTab.MSTeams && <MSTeamsSettings />}
       {store.hasFeature(AppFeature.Mattermost) && activeTab === ChatOpsTab.Mattermost && <MattermostSettings />}
+      {store.hasFeature(AppFeature.Zoom) && activeTab === ChatOpsTab.Zoom && <ZoomSettings />}
     </>
   );
 };

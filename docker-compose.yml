@@ -3,11 +3,11 @@ x-environment: &oncall-environment
   BROKER_TYPE: redis
   BASE_URL: $DOMAIN
   SECRET_KEY: $SECRET_KEY
-  FEATURE_PROMETHEUS_EXPORTER_ENABLED: ${FEATURE_PROMETHEUS_EXPORTER_ENABLED:-false}
+  FEATURE_PROMETHEUS_EXPORTER_ENABLED: ${FEATURE_PROMETHEUS_EXPORTER_ENABLED:-true}
   PROMETHEUS_EXPORTER_SECRET: ${PROMETHEUS_EXPORTER_SECRET:-}
   REDIS_URI: redis://redis:6379/0
   DJANGO_SETTINGS_MODULE: settings.hobby
-  CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,mattermost,webhook,retry,celery,grafana"
+  CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,mattermost,zoom,webhook,retry,celery,grafana"
   CELERY_WORKER_CONCURRENCY: "1"
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"

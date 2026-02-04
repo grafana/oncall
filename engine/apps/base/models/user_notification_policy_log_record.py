@@ -111,7 +111,11 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_IN_MATTERMOST_ALERT_GROUP_MESSAGE_NOT_FOUND,
         ERROR_NOTIFICATION_IN_MATTERMOST_API_TOKEN_INVALID,
         ERROR_NOTIFICATION_IN_MATTERMOST_API_UNAUTHORIZED,
-    ) = range(34)
+        ERROR_NOTIFICATION_IN_ZOOM_USER_NOT_IN_ZOOM,
+        ERROR_NOTIFICATION_IN_ZOOM_ALERT_GROUP_MESSAGE_NOT_FOUND,
+        ERROR_NOTIFICATION_IN_ZOOM_API_TOKEN_INVALID,
+        ERROR_NOTIFICATION_IN_ZOOM_API_UNAUTHORIZED,
+    ) = range(38)
 
     # for this errors we want to send message to general log channel
     ERRORS_TO_SEND_IN_SLACK_CHANNEL = [
@@ -332,6 +336,26 @@ class UserNotificationPolicyLogRecord(models.Model):
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_MATTERMOST_USER_NOT_IN_MATTERMOST
             ):
                 result += f"failed to notify {user_verbal} in Mattermost, because {user_verbal} is not in Mattermost"
+            elif (
+                self.notification_error_code
+                == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_ZOOM_USER_NOT_IN_ZOOM
+            ):
+                result += f"failed to notify {user_verbal} in Zoom, because {user_verbal} is not linked to Zoom"
+            elif (
+                self.notification_error_code
+                == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_ZOOM_ALERT_GROUP_MESSAGE_NOT_FOUND
+            ):
+                result += f"failed to notify {user_verbal} in Zoom, because the alert group message was not found"
+            elif (
+                self.notification_error_code
+                == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_ZOOM_API_TOKEN_INVALID
+            ):
+                result += f"failed to notify {user_verbal} in Zoom due to invalid API token"
+            elif (
+                self.notification_error_code
+                == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_ZOOM_API_UNAUTHORIZED
+            ):
+                result += f"failed to notify {user_verbal} in Zoom due to unauthorized API access"
             else:
                 # TODO: handle specific backend errors
                 try:

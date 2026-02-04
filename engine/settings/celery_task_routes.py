@@ -193,4 +193,9 @@ CELERY_TASK_ROUTES = {
     "apps.mattermost.tasks.on_create_alert_async": {"queue": "mattermost"},
     "apps.mattermost.tasks.on_alert_group_action_triggered_async": {"queue": "mattermost"},
     "apps.mattermost.tasks.notify_user_about_alert_async": {"queue": "mattermost"},
+    # ZOOM
+    "apps.zoom.tasks.on_create_alert_async": {"queue": "zoom"},
+    "apps.zoom.tasks.on_alert_group_action_triggered_async": {"queue": "zoom"},
+    "apps.zoom.tasks.notify_user_about_alert_async": {"queue": "zoom"},
+    "apps.zoom.tasks.update_zoom_message_async": {"queue": "zoom"},
 }

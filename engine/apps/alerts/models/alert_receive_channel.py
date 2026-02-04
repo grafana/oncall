@@ -79,6 +79,9 @@ class AlertmanagerV2LegacyTemplates(typing.TypedDict):
     telegram_title_template: str | None
     telegram_message_template: str | None
     telegram_image_url_template: str | None
+    zoom_title_template: str | None
+    zoom_message_template: str | None
+    zoom_image_url_template: str | None
     messaging_backends_templates: MessagingBackendTemplates | None
 
 
@@ -314,6 +317,10 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     telegram_title_template = models.TextField(null=True, default=None)
     telegram_message_template = models.TextField(null=True, default=None)
     telegram_image_url_template = models.TextField(null=True, default=None)
+
+    zoom_title_template = models.TextField(null=True, default=None)
+    zoom_message_template = models.TextField(null=True, default=None)
+    zoom_image_url_template = models.TextField(null=True, default=None)
 
     source_link_template = models.TextField(null=True, default=None)
     grouping_id_template = models.TextField(null=True, default=None)
@@ -628,6 +635,11 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 "title": self.telegram_title_template,
                 "message": self.telegram_message_template,
                 "image_url": self.telegram_image_url_template,
+            },
+            "zoom": {
+                "title": self.zoom_title_template,
+                "message": self.zoom_message_template,
+                "image_url": self.zoom_image_url_template,
             },
         }
 

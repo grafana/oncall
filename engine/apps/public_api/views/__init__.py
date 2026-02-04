@@ -16,6 +16,7 @@ from .schedules import OnCallScheduleChannelView  # noqa: F401
 from .shift_swap import ShiftSwapViewSet  # noqa: F401
 from .slack_channels import SlackChannelView  # noqa: F401
 from .teams import TeamView  # noqa: F401
+from .zoom_channels import ZoomChannelView  # noqa: F401
 from .user_groups import UserGroupView  # noqa: F401
 from .users import UserView  # noqa: F401
 from .webhooks import WebhooksView  # noqa: F401

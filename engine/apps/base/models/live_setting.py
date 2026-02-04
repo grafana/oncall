@@ -86,6 +86,11 @@ class LiveSetting(models.Model):
         "MATTERMOST_BOT_TOKEN",
         "MATTERMOST_LOGIN_RETURN_REDIRECT_HOST",
         "MATTERMOST_SIGNING_SECRET",
+        "ZOOM_CLIENT_ID",
+        "ZOOM_CLIENT_SECRET",
+        "ZOOM_BOT_JID",
+        "ZOOM_WEBHOOK_SECRET_TOKEN",
+        "ZOOM_LOGIN_RETURN_REDIRECT_HOST",
     )
 
     DESCRIPTIONS = {
@@ -223,6 +228,26 @@ class LiveSetting(models.Model):
             "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
             "' target='_blank'>instruction</a> for details how to set up Mattermost. "
         ),
+        "ZOOM_CLIENT_ID": (
+            "Zoom Team Chat App OAuth Client ID. "
+            "You can get it from the Zoom App Marketplace after creating a Team Chat App."
+        ),
+        "ZOOM_CLIENT_SECRET": (
+            "Zoom Team Chat App OAuth Client Secret. "
+            "You can get it from the Zoom App Marketplace after creating a Team Chat App."
+        ),
+        "ZOOM_BOT_JID": (
+            "Zoom Bot JID from Team Chat Subscription. "
+            "Found in Features -> Surface -> Team Chat Subscription section of your Zoom App."
+        ),
+        "ZOOM_WEBHOOK_SECRET_TOKEN": (
+            "Zoom Secret Token for webhook verification. "
+            "Found in Features -> Access -> Token section of your Zoom App."
+        ),
+        "ZOOM_LOGIN_RETURN_REDIRECT_HOST": (
+            "Externally available URL for Zoom OAuth redirect. "
+            "Used for user account linking flow."
+        ),
     }
 
     SECRET_SETTING_NAMES = (
@@ -244,6 +269,9 @@ class LiveSetting(models.Model):
         "MATTERMOST_CLIENT_OAUTH_ID",
         "MATTERMOST_CLIENT_OAUTH_SECRET",
         "MATTERMOST_BOT_TOKEN",
+        "ZOOM_CLIENT_ID",
+        "ZOOM_CLIENT_SECRET",
+        "ZOOM_WEBHOOK_SECRET_TOKEN",
     )
 
     def __str__(self):

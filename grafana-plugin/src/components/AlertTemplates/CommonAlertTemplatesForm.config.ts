@@ -138,6 +138,36 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
     type: 'image',
   },
+  zoom_title_template: {
+    name: IntegrationTemplateOptions.ZoomTitle.key,
+    displayName: 'Zoom title',
+    description: '',
+    additionalData: {
+      chatOpsName: 'zoom',
+      chatOpsDisplayName: 'Zoom',
+    },
+    type: 'plain',
+  },
+  zoom_message_template: {
+    name: IntegrationTemplateOptions.ZoomMessage.key,
+    displayName: 'Zoom message',
+    description: '',
+    additionalData: {
+      chatOpsName: 'zoom',
+      chatOpsDisplayName: 'Zoom',
+    },
+    type: 'plain',
+  },
+  zoom_image_url_template: {
+    name: IntegrationTemplateOptions.ZoomImage.key,
+    displayName: 'Zoom image url',
+    description: '',
+    additionalData: {
+      chatOpsName: 'zoom',
+      chatOpsDisplayName: 'Zoom',
+    },
+    type: 'image',
+  },
   grouping_id_template: {
     name: IntegrationTemplateOptions.Grouping.key,
     displayName: 'Grouping',

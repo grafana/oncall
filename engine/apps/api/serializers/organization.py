@@ -87,10 +87,14 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         mattermost_configured = not LiveSetting.objects.filter(
             name__startswith="MATTERMOST", error__isnull=False
         ).exists()
+        zoom_configured = not LiveSetting.objects.filter(
+            name__startswith="ZOOM", error__isnull=False
+        ).exists()
         return {
             "telegram_configured": telegram_configured,
             "phone_provider": asdict(phone_provider_config),
             "mattermost_configured": mattermost_configured,
+            "zoom_configured": zoom_configured,
         }
 
 
@@ -116,10 +120,12 @@ class CurrentOrganizationConfigChecksSerializer(serializers.ModelSerializer):
 
     def get_is_chatops_connected(self, obj):
         msteams_backend = get_messaging_backend_from_id("MSTEAMS")
+        zoom_backend = get_messaging_backend_from_id("ZOOM")
         return bool(
             obj.slack_team_identity_id is not None  # slack is connected
             or obj.telegram_channel.exists()  # telegram is connected
             or (msteams_backend and msteams_backend.is_configured_for_organization(obj))  # msteams is connected
+            or (zoom_backend and zoom_backend.is_configured_for_organization(obj))  # zoom is connected
         )
 
     def get_is_integration_chatops_connected(self, obj):
@@ -130,4 +136,5 @@ class CurrentOrganizationConfigChecksSerializer(serializers.ModelSerializer):
             )
             or obj.alert_receive_channels.filter(channel_filters__notify_in_telegram=True).exists()
             or obj.alert_receive_channels.filter(channel_filters__notification_backends__MSTEAMS__enabled=True).exists()
+            or obj.alert_receive_channels.filter(channel_filters__notification_backends__ZOOM__enabled=True).exists()
         )

@@ -16,6 +16,7 @@ import { PersonalWebhookConnector } from './PersonalWebhookConnector';
 import { PhoneConnector } from './PhoneConnector';
 import { SlackConnector } from './SlackConnector';
 import { TelegramConnector } from './TelegramConnector';
+import { ZoomConnector } from './ZoomConnector';
 
 interface ConnectorsProps {
   id: ApiSchemas['User']['pk'];
@@ -33,6 +34,7 @@ export const Connectors: FC<ConnectorsProps> = observer((props) => {
       {store.hasFeature(AppFeature.PersonalWebhook) && <PersonalWebhookConnector {...props} />}
       {store.hasFeature(AppFeature.Mattermost) && <MattermostConnector {...props} />}
       {store.hasFeature(AppFeature.MsTeams) && <MSTeamsConnector {...props} />}
+      {store.hasFeature(AppFeature.Zoom) && <ZoomConnector {...props} />}
       <Legend>Calendar export</Legend>
       <ICalConnector {...props} />
     </>

@@ -19,6 +19,7 @@ router.register(r"escalation_policies", views.EscalationPolicyView, basename="es
 router.register(r"alerts", views.AlertView, basename="alerts")
 router.register(r"alert_groups", views.AlertGroupView, basename="alert_groups")
 router.register(r"slack_channels", views.SlackChannelView, basename="slack_channels")
+router.register(r"zoom_channels", views.ZoomChannelView, basename="zoom_channels")
 router.register(r"personal_notification_rules", views.PersonalNotificationView, basename="personal_notification_rules")
 router.register(r"resolution_notes", views.ResolutionNoteView, basename="resolution_notes")
 router.register(r"actions", views.ActionView, basename="actions")

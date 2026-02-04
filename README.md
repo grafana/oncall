@@ -37,7 +37,7 @@ Developer-friendly incident response with brilliant Slack integration.
 - Collect and analyze alerts from multiple monitoring systems
 - On-call rotations based on schedules
 - Automatic escalations
-- Phone calls, SMS, Slack, Telegram notifications
+- Phone calls, SMS, Slack, Telegram, Zoom Team Chat notifications
 
 ## Getting Started
 
@@ -116,7 +116,7 @@ We prepared multiple environments:
    as defined above: `admin`/`admin`
 
 7. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up
-   Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
+   Slack, Telegram, Zoom Team Chat, Twilio or SMS/calls through Grafana Cloud.
 
 ## Troubleshooting
 

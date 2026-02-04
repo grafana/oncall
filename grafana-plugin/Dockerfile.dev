@@ -1,6 +1,8 @@
 FROM node:20.15.1-alpine
 
+RUN npm install -g pnpm
+
 WORKDIR /etc/app
 ENV PATH /etc/app/node_modules/.bin:$PATH
 
-CMD ["pnpm", "start"]
+CMD ["pnpm", "dev"]

@@ -8,3 +8,4 @@ from .schedule_export_auth_token import ScheduleExportAuthToken  # noqa: F401
 from .service_account_token import ServiceAccountToken  # noqa: F401
 from .slack_auth_token import SlackAuthToken  # noqa: F401
 from .user_schedule_export_auth_token import UserScheduleExportAuthToken  # noqa: F401
+from .zoom_auth_token import ZoomAuthToken  # noqa: F401

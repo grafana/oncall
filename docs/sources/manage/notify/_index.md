@@ -10,6 +10,7 @@ keywords:
   - Slack
   - MS Teams
   - Telegram
+  - Zoom
   - Phone
 canonical: https://grafana.com/docs/oncall/latest/manage/notify/
 aliases:
@@ -26,8 +27,8 @@ refs:
 
 # Notifications
 
-Grafana OnCall directly supports the export of alert notifications to some popular messaging applications like Slack and
-Telegram.
+Grafana OnCall directly supports the export of alert notifications to some popular messaging applications like Slack,
+Telegram, and Zoom Team Chat.
 You can use [Outgoing webhooks](ref:outgoing-webhooks) for applications that aren't directly supported.
 
 To configure supported messaging apps, refer to the following topics:

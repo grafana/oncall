@@ -37,6 +37,17 @@ if not settings.DETACHED_INTEGRATIONS_SERVER:
 urlpatterns: list[URLPattern | URLResolver] = [
     *paths_to_work_even_when_maintenance_mode_is_active,
     path("api/gi/v1/", include("apps.api_for_grafana_incident.urls", namespace="api-gi")),
+]
+
+# Add Zoom webhook route BEFORE api-internal to prevent it from being caught by webhooks/<pk>
+if getattr(settings, 'FEATURE_ZOOM_INTEGRATION_ENABLED', False):
+    from apps.zoom.views import ZoomWebhookView
+    urlpatterns += [
+        path("api/internal/v1/webhooks/zoom", ZoomWebhookView.as_view(), name="zoom-webhook-legacy"),
+        path("api/internal/v1/webhooks/zoom/", ZoomWebhookView.as_view(), name="zoom-webhook-legacy-slash"),
+    ]
+
+urlpatterns += [
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
     path("api/internal/v1/", include("social_django.urls", namespace="social")),
     path("api/internal/v1/plugin/", include("apps.grafana_plugin.urls", namespace="grafana-plugin")),
@@ -66,6 +77,13 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/mattermost/", include("apps.mattermost.urls")),
+    ]
+
+if getattr(settings, 'FEATURE_ZOOM_INTEGRATION_ENABLED', False):
+    from apps.zoom.urls import urlpatterns as zoom_urlpatterns
+    urlpatterns += [
+        path("api/internal/v1/zoom/", include((zoom_urlpatterns, "zoom"), namespace="zoom-internal")),
+        path("zoom/", include((zoom_urlpatterns, "zoom"), namespace="zoom")),
     ]
 
 if settings.IS_OPEN_SOURCE:
