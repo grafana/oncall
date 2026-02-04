@@ -49,7 +49,7 @@ class AlertGroupZoomRepresentative(AlertGroupAbstractRepresentative):
 
     def on_alert_group_action(self, alert_group: AlertGroup):
         """Update Zoom message when an alert group action is triggered."""
-        from apps.zoom.models import ZoomMessage
+        from apps.zoom.models import ZoomMessage, ZoomUser
 
         logger.info(f"Update Zoom message for alert_group {alert_group.pk}")
         
@@ -61,15 +61,35 @@ class AlertGroupZoomRepresentative(AlertGroupAbstractRepresentative):
             logger.warning(f"No Zoom message found for alert group {alert_group.pk}")
             return
 
-        # Render the updated message (returns dict with header, sub_header, body)
+        # Get action user info from log_record for Zoom API identity and mention
+        action_user_name = None
+        action_user_jid = None
+        
+        if self.log_record.author:
+            action_user_name = self.log_record.author.username
+            # Try to get Zoom user_jid for the action user
+            try:
+                zoom_user = ZoomUser.objects.get(user=self.log_record.author)
+                # Construct user_jid from zoom_user_id (format: user_id@xmpp.zoom.us)
+                action_user_jid = f"{zoom_user.zoom_user_id.lower()}@xmpp.zoom.us"
+                logger.info(f"Using action user's Zoom JID: {action_user_jid}")
+            except ZoomUser.DoesNotExist:
+                logger.warning(f"No ZoomUser found for user {self.log_record.author.pk}, will use account_id")
+
+        # Render the updated message with action user info for mention
         renderer = ZoomMessageRenderer(alert_group)
-        message_content = renderer.render_alert_group_message()
+        message_content = renderer.render_alert_group_message(
+            action_user_name=action_user_name,
+            action_user_jid=action_user_jid,
+        )
 
         try:
             client = ZoomClient()
+            # Pass user_jid for Zoom API identity (same as Zoom interactive action logic)
             client.update_message_with_body(
                 message_id=zoom_message.message_id,
                 channel_id=zoom_message.channel_id,
+                user_jid=action_user_jid,
                 header_text=message_content.get("header", "OnCall Alert"),
                 sub_header_text=message_content.get("sub_header"),
                 body=message_content.get("body", []),
