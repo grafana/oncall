@@ -24,6 +24,7 @@ from .constants import (
     MATTERMOST_AUTH_TOKEN_NAME,
     SCHEDULE_EXPORT_TOKEN_NAME,
     SLACK_AUTH_TOKEN_NAME,
+    ZOOM_AUTH_TOKEN_NAME,
 )
 from .exceptions import InvalidToken
 from .models import (
@@ -36,6 +37,7 @@ from .models import (
     ServiceAccountToken,
     SlackAuthToken,
     UserScheduleExportAuthToken,
+    ZoomAuthToken,
 )
 
 logger = logging.getLogger(__name__)
@@ -286,6 +288,11 @@ class MattermostTokenAuthentication(_SocialAuthTokenAuthentication[MattermostAut
 class GoogleTokenAuthentication(_SocialAuthTokenAuthentication[GoogleOAuth2Token]):
     token_query_param_name = GOOGLE_OAUTH2_AUTH_TOKEN_NAME
     model = GoogleOAuth2Token
+
+
+class ZoomTokenAuthentication(_SocialAuthTokenAuthentication[ZoomAuthToken]):
+    token_query_param_name = ZOOM_AUTH_TOKEN_NAME
+    model = ZoomAuthToken
 
 
 class ScheduleExportAuthentication(BaseAuthentication):

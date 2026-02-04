@@ -24,6 +24,10 @@ enum MattermostError {
   MATTERMOST_AUTH_FETCH_USER_ERROR = 'failed_to_fetch_user',
 }
 
+enum ZoomError {
+  ZOOM_AUTH_FETCH_USER_ERROR = 'failed_to_fetch_user',
+}
+
 interface UserFormProps {
   onHide: () => void;
   id: ApiSchemas['User']['pk'] | 'new';
@@ -58,10 +62,24 @@ function getMattermostErrorMessage(mattermostError: MattermostError) {
   return <>Couldn't connect your Mattermost account.</>;
 }
 
+function getZoomErrorMessage(zoomError: ZoomError) {
+  if (zoomError === ZoomError.ZOOM_AUTH_FETCH_USER_ERROR) {
+    return (
+      <>
+        Couldn't connect your Zoom account. Failed to fetch user information from Zoom. Please check your Zoom ENV
+        variable values and retry.
+      </>
+    );
+  }
+
+  return <>Couldn't connect your Zoom account.</>;
+}
+
 const UserAlerts: React.FC = () => {
   const queryParams = useQueryParams();
   const [showGoogleConnectAlert, setShowGoogleConnectAlert] = useState<GoogleError | undefined>();
   const [showMattermostConnectAlert, setshowMattermostConnectAlert] = useState<MattermostError | undefined>();
+  const [showZoomConnectAlert, setShowZoomConnectAlert] = useState<ZoomError | undefined>();
 
   const styles = useStyles2(getStyles);
 
@@ -73,6 +91,10 @@ const UserAlerts: React.FC = () => {
     setshowMattermostConnectAlert(undefined);
   }, []);
 
+  const handleCloseZoomAlert = useCallback(() => {
+    setShowZoomConnectAlert(undefined);
+  }, []);
+
   useEffect(() => {
     if (queryParams.get('google_error')) {
       setShowGoogleConnectAlert(queryParams.get('google_error') as GoogleError);
@@ -82,10 +104,14 @@ const UserAlerts: React.FC = () => {
       setshowMattermostConnectAlert(queryParams.get('mattermost_error') as MattermostError);
 
       LocationHelper.update({ mattermost_error: undefined }, 'partial');
+    } else if (queryParams.get('zoom_error')) {
+      setShowZoomConnectAlert(queryParams.get('zoom_error') as ZoomError);
+
+      LocationHelper.update({ zoom_error: undefined }, 'partial');
     }
   }, []);
 
-  if (!showGoogleConnectAlert && !showMattermostConnectAlert) {
+  if (!showGoogleConnectAlert && !showMattermostConnectAlert && !showZoomConnectAlert) {
     return null;
   }
 
@@ -99,6 +125,16 @@ const UserAlerts: React.FC = () => {
           title="Mattermost integration error"
         >
           {getMattermostErrorMessage(showMattermostConnectAlert)}
+        </Alert>
+      </div>
+    );
+  }
+
+  if (showZoomConnectAlert) {
+    return (
+      <div className={cx('alerts-container')}>
+        <Alert className={cx('alert')} onRemove={handleCloseZoomAlert} severity="error" title="Zoom integration error">
+          {getZoomErrorMessage(showZoomConnectAlert)}
         </Alert>
       </div>
     );
@@ -152,6 +188,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     showMsTeamsConnectionTab,
     showGoogleCalendarTab,
     showMattermostConnectionTab,
+    showZoomConnectionTab,
   ] = [
     !isDesktopOrLaptop,
     isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
@@ -161,6 +198,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
     isCurrent && store.hasFeature(AppFeature.GoogleOauth2),
     isCurrent && store.hasFeature(AppFeature.Mattermost) && !storeUser.messaging_backends.MATTERMOST,
+    isCurrent && store.hasFeature(AppFeature.Zoom) && !storeUser.messaging_backends.ZOOM,
   ];
 
   const title = (
@@ -191,6 +229,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
             showMsTeamsConnectionTab={showMsTeamsConnectionTab}
             showGoogleCalendarTab={showGoogleCalendarTab}
             showMattermostConnectionTab={showMattermostConnectionTab}
+            showZoomConnectionTab={showZoomConnectionTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

@@ -26,6 +26,9 @@ export const IntegrationTemplateOptions = {
   TelegramTitle: new KeyValuePair('telegram_title_template', 'Title'),
   TelegramMessage: new KeyValuePair('telegram_message_template', 'Message'),
   TelegramImage: new KeyValuePair('telegram_image_url_template', 'Image'),
+  ZoomTitle: new KeyValuePair('zoom_title_template', 'Title'),
+  ZoomMessage: new KeyValuePair('zoom_message_template', 'Message'),
+  ZoomImage: new KeyValuePair('zoom_image_url_template', 'Image'),
   MobileAppTitle: new KeyValuePair('mobile_app_title_template', 'Title'),
   MobileAppMessage: new KeyValuePair('mobile_app_message_template', 'Message'),
 
@@ -33,6 +36,7 @@ export const IntegrationTemplateOptions = {
   Slack: new KeyValuePair('Slack', 'Slack'),
   MSTeams: new KeyValuePair('Microsoft Teams', 'Microsoft Teams'),
   Telegram: new KeyValuePair('Telegram', 'Telegram'),
+  Zoom: new KeyValuePair('Zoom', 'Zoom'),
 };
 
 export const LabelTemplateOptions = {

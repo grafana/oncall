@@ -27,6 +27,7 @@ class ChatOpsTypePlug(enum.Enum):
     SLACK = "slack"
     TELEGRAM = "telegram"
     MATTERMOST = "mattermost"
+    ZOOM = "zoom"
 
 
 def write_chatops_insight_log(author: "User", event_name: ChatOpsEvent, chatops_type: str, **kwargs):

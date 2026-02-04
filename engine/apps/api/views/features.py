@@ -29,6 +29,7 @@ class Feature(enum.StrEnum):
     SERVICE_DEPENDENCIES = "service_dependencies"
     PERSONAL_WEBHOOK = "personal_webhook"
     MATTERMOST = "mattermost"
+    ZOOM = "zoom"
 
 
 class FeaturesAPIView(APIView):
@@ -83,5 +84,8 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
             enabled_features.append(Feature.MATTERMOST)
+
+        if getattr(settings, 'FEATURE_ZOOM_INTEGRATION_ENABLED', False):
+            enabled_features.append(Feature.ZOOM)
 
         return enabled_features

@@ -9,4 +9,5 @@ export enum UserSettingsTab {
   MSTeamsInfo,
   MobileAppConnection,
   MattermostInfo,
+  ZoomInfo,
 }

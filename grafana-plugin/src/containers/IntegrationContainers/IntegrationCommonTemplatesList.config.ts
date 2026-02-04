@@ -122,6 +122,26 @@ export const commonTemplatesToRender: TemplateBlock[] = [
     ],
   },
   {
+    name: 'Zoom',
+    contents: [
+      {
+        name: 'zoom_title_template',
+        label: 'Title',
+        height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+      {
+        name: 'zoom_message_template',
+        label: 'Message',
+        height: MONACO_INPUT_HEIGHT_TALL,
+      },
+      {
+        name: 'zoom_image_url_template',
+        label: 'Image',
+        height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+    ],
+  },
+  {
     name: 'Email',
     contents: [
       {

@@ -146,6 +146,9 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
       case IntegrationTemplateOptions.TelegramTitle.key:
       case IntegrationTemplateOptions.TelegramMessage.key:
       case IntegrationTemplateOptions.TelegramImage.key:
+      case IntegrationTemplateOptions.ZoomTitle.key:
+      case IntegrationTemplateOptions.ZoomMessage.key:
+      case IntegrationTemplateOptions.ZoomImage.key:
       case IntegrationTemplateOptions.EmailTitle.key:
       case IntegrationTemplateOptions.EmailMessage.key:
       case IntegrationTemplateOptions.MobileAppTitle.key:

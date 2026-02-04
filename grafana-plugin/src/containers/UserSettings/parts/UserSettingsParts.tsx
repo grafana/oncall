@@ -15,6 +15,7 @@ import { GoogleCalendar } from 'containers/UserSettings/parts/tabs/GoogleCalenda
 import { MSTeamsInfo } from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo';
 import { MattermostInfo } from 'containers/UserSettings/parts/tabs/MattermostInfo/MattermostInfo';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
+import { ZoomInfo } from 'containers/UserSettings/parts/tabs/ZoomInfo/ZoomInfo';
 import { PersonalWebhookInfo } from 'containers/UserSettings/parts/tabs/PersonalWebhookInfo/PersonalWebhookInfo';
 import { PhoneVerification } from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import { TelegramInfo } from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
@@ -34,6 +35,7 @@ interface TabsProps {
   showPersonalWebhookConnectionTab: boolean;
   showMsTeamsConnectionTab: boolean;
   showMattermostConnectionTab: boolean;
+  showZoomConnectionTab: boolean;
 }
 
 export const Tabs = ({
@@ -47,6 +49,7 @@ export const Tabs = ({
   showPersonalWebhookConnectionTab,
   showMsTeamsConnectionTab,
   showMattermostConnectionTab,
+  showZoomConnectionTab,
 }: TabsProps) => {
   const getTabClickHandler = useCallback(
     (tab: UserSettingsTab) => {
@@ -145,6 +148,15 @@ export const Tabs = ({
           data-testid="tab-mattermost"
         />
       )}
+      {showZoomConnectionTab && (
+        <Tab
+          active={activeTab === UserSettingsTab.ZoomInfo}
+          label="Zoom Connection"
+          key={UserSettingsTab.ZoomInfo}
+          onChangeTab={getTabClickHandler(UserSettingsTab.ZoomInfo)}
+          data-testid="tab-zoom"
+        />
+      )}
     </TabsBar>
   );
 };
@@ -193,6 +205,7 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
       {activeTab === UserSettingsTab.PersonalWebhookInfo && <PersonalWebhookInfo />}
       {activeTab === UserSettingsTab.MSTeamsInfo && <MSTeamsInfo />}
       {activeTab === UserSettingsTab.MattermostInfo && <MattermostInfo />}
+      {activeTab === UserSettingsTab.ZoomInfo && <ZoomInfo />}
     </TabContent>
   );
 

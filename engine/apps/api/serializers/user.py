@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
+from apps.api.serializers.zoom import ZoomUserIdentitySerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
@@ -75,6 +76,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
 
     telegram_configuration = TelegramToUserConnectorSerializer(source="telegram_connection", read_only=True)
+    zoom_user_identity = ZoomUserIdentitySerializer(read_only=True)
 
     messaging_backends = serializers.SerializerMethodField()
 
@@ -93,6 +95,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         "telegram_connection",
         "organization",
         "slack_user_identity",
+        "zoom_user_identity",
         "mobileappauthtoken",
         "google_oauth2_user",
     ]
@@ -116,6 +119,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "verified_phone_number",
             "slack_user_identity",
             "telegram_configuration",
+            "zoom_user_identity",
             "messaging_backends",
             "notification_chain_verbal",
             "cloud_connection_status",

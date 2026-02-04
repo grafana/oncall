@@ -6,12 +6,12 @@ from social_core.backends.oauth import BaseOAuth2
 from social_core.backends.slack import SlackOAuth2
 from social_core.utils import handle_http_errors
 
-from apps.auth_token.constants import MATTERMOST_AUTH_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
-from apps.auth_token.models import GoogleOAuth2Token, MattermostAuthToken, SlackAuthToken
+from apps.auth_token.constants import MATTERMOST_AUTH_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME, ZOOM_AUTH_TOKEN_NAME
+from apps.auth_token.models import GoogleOAuth2Token, MattermostAuthToken, SlackAuthToken, ZoomAuthToken
 from apps.mattermost.client import MattermostClient
 from apps.mattermost.exceptions import MattermostAPIException, MattermostAPITokenInvalid
 
-from .exceptions import UserLoginOAuth2MattermostException
+from .exceptions import UserLoginOAuth2MattermostException, UserLoginOAuth2ZoomException
 
 # Scopes for slack user token.
 # It is main purpose - retrieve user data in SlackOAuth2V2 but we are using it in legacy code or weird Slack api cases.
@@ -280,3 +280,91 @@ class LoginMattermostOAuth2(BaseOAuth2):
         )
         params["state"] = token_string
         return params
+
+
+ZOOM_LOGIN_BACKEND = "zoom-login"
+
+
+class LoginZoomOAuth2(BaseOAuth2):
+    """
+    OAuth2 backend for Zoom user authentication.
+
+    Reference: https://developers.zoom.us/docs/integrations/oauth/
+    """
+    name = ZOOM_LOGIN_BACKEND
+
+    REDIRECT_STATE = False
+    """
+    Remove redirect state because we lose session during redirects
+    """
+
+    STATE_PARAMETER = False
+    """
+    keep `False` to avoid having `BaseOAuth2` check the `state` query param against a session value
+    """
+
+    ACCESS_TOKEN_METHOD = "POST"
+    AUTH_TOKEN_NAME = ZOOM_AUTH_TOKEN_NAME
+
+    AUTHORIZATION_URL = "https://zoom.us/oauth/authorize"
+    ACCESS_TOKEN_URL = "https://zoom.us/oauth/token"
+    USER_DATA_URL = "https://api.zoom.us/v2/users/me"
+
+    def authorization_url(self):
+        return self.AUTHORIZATION_URL
+
+    def access_token_url(self):
+        return self.ACCESS_TOKEN_URL
+
+    def get_user_details(self, response):
+        """
+        Return user details from Zoom account.
+
+        Sample response from /users/me:
+        {
+            "id": "string",
+            "first_name": "string",
+            "last_name": "string",
+            "email": "string",
+            "display_name": "string",
+            ...
+        }
+        """
+        return response
+
+    def user_data(self, access_token, *args, **kwargs):
+        """Fetch user data from Zoom API."""
+        try:
+            data = self.get_json(
+                self.USER_DATA_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+        except Exception as ex:
+            raise UserLoginOAuth2ZoomException(
+                f"Error while trying to fetch Zoom user: {ex}"
+            )
+
+        response = {}
+        response["user"] = {}
+        response["user"]["user_id"] = data.get("id", "")
+        response["user"]["email"] = data.get("email", "")
+        response["user"]["display_name"] = data.get("display_name",
+            f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
+        )
+        return response
+
+    def auth_params(self, state=None):
+        """
+        Override to generate `ZoomAuthToken` token to include as `state` query parameter.
+        """
+        params = super().auth_params(state)
+
+        _, token_string = ZoomAuthToken.create_auth_token(
+            self.strategy.request.user, self.strategy.request.auth.organization
+        )
+        params["state"] = token_string
+        return params
+
+    def auth_complete_credentials(self):
+        """Return credentials for access token request."""
+        return self.get_key_and_secret()

@@ -7,8 +7,10 @@ venv
 .idea
 .DS_Store
 .env
-
+grafana-plugin/.pnpm-store
 pnpm.lock
 node_modules
 
 test-results
+
+dev/.env.dev

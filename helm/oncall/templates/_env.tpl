@@ -120,6 +120,73 @@
 {{- end }}
 {{- end }}
 
+{{- define "snippet.oncall.zoom.env" -}}
+- name: FEATURE_ZOOM_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.zoom.enabled | toString | title | quote }}
+{{- if .Values.oncall.zoom.enabled }}
+{{- if .Values.oncall.zoom.existingSecret }}
+- name: ZOOM_CLIENT_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.zoom.existingSecret }}
+      key: {{ required "oncall.zoom.clientIdKey is required if oncall.zoom.existingSecret is not empty" .Values.oncall.zoom.clientIdKey | quote }}
+- name: ZOOM_CLIENT_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.zoom.existingSecret }}
+      key: {{ required "oncall.zoom.clientSecretKey is required if oncall.zoom.existingSecret is not empty" .Values.oncall.zoom.clientSecretKey | quote }}
+{{- if .Values.oncall.zoom.accountIdKey }}
+- name: ZOOM_ACCOUNT_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.zoom.existingSecret }}
+      key: {{ .Values.oncall.zoom.accountIdKey | quote }}
+{{- end }}
+{{- if .Values.oncall.zoom.botJidKey }}
+- name: ZOOM_BOT_JID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.zoom.existingSecret }}
+      key: {{ .Values.oncall.zoom.botJidKey | quote }}
+{{- end }}
+{{- if .Values.oncall.zoom.webhookSecretTokenKey }}
+- name: ZOOM_WEBHOOK_SECRET_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.zoom.existingSecret }}
+      key: {{ .Values.oncall.zoom.webhookSecretTokenKey | quote }}
+{{- end }}
+{{- else }}
+- name: ZOOM_CLIENT_ID
+  value: {{ .Values.oncall.zoom.clientId | default "" | quote }}
+- name: ZOOM_CLIENT_SECRET
+  value: {{ .Values.oncall.zoom.clientSecret | default "" | quote }}
+{{- if .Values.oncall.zoom.accountId }}
+- name: ZOOM_ACCOUNT_ID
+  value: {{ .Values.oncall.zoom.accountId | quote }}
+{{- end }}
+{{- if .Values.oncall.zoom.botJid }}
+- name: ZOOM_BOT_JID
+  value: {{ .Values.oncall.zoom.botJid | quote }}
+{{- end }}
+{{- if .Values.oncall.zoom.webhookSecretToken }}
+- name: ZOOM_WEBHOOK_SECRET_TOKEN
+  value: {{ .Values.oncall.zoom.webhookSecretToken | quote }}
+{{- end }}
+{{- end }}
+- name: ZOOM_LOGIN_RETURN_REDIRECT_HOST
+  value: {{ .Values.oncall.zoom.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
+{{- if .Values.oncall.zoom.messageFooter }}
+- name: ZOOM_MESSAGE_FOOTER
+  value: {{ .Values.oncall.zoom.messageFooter | quote }}
+{{- end }}
+{{- if .Values.oncall.zoom.messageFooterIcon }}
+- name: ZOOM_MESSAGE_FOOTER_ICON
+  value: {{ .Values.oncall.zoom.messageFooterIcon | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{- define "snippet.oncall.twilio.env" }}
 {{- with .Values.oncall.twilio }}
 {{- if .existingSecret }}
@@ -654,6 +721,7 @@ when broker.type != rabbitmq, we do not need to include rabbitmq environment var
 {{ include "snippet.oncall.env" . }}
 {{ include "snippet.oncall.slack.env" . }}
 {{ include "snippet.oncall.telegram.env" . }}
+{{ include "snippet.oncall.zoom.env" . }}
 {{ include "snippet.oncall.smtp.env" . }}
 {{ include "snippet.oncall.twilio.env" . }}
 {{ include "snippet.oncall.exporter.env" . }}

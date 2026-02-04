@@ -11,6 +11,7 @@ class ActionSource(IntegerChoices):
     API = 4, "API"
     BACKSYNC = 5, "Backsync"
     MATTERMOST = 6, "Mattermost"
+    ZOOM = 7, "Zoom"
 
 
 TASK_DELAY_SECONDS = 1

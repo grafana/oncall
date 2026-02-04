@@ -228,6 +228,7 @@ class UserView(
         "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_zoom": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "send_test_push": [RBACPermission.Permissions.USER_SETTINGS_READ],
@@ -252,6 +253,7 @@ class UserView(
             "get_telegram_verification_code",
             "unlink_slack",
             "unlink_telegram",
+            "unlink_zoom",
             "unlink_backend",
             "make_test_call",
             "send_test_sms",
@@ -704,6 +706,27 @@ class UserView(
                 linked_user_id=user.public_primary_key,
             )
         except TelegramToUserConnector.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def unlink_zoom(self, request, pk) -> Response:
+        user = self.get_object()
+
+        backend = get_messaging_backend_from_id("ZOOM")
+        if backend is None:
+            return Response("Zoom integration is not enabled", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            backend.unlink_user(user)
+            write_chatops_insight_log(
+                author=request.user,
+                event_name=ChatOpsEvent.USER_UNLINKED,
+                chatops_type=ChatOpsTypePlug.ZOOM.value,
+                linked_user=user.username,
+                linked_user_id=user.public_primary_key,
+            )
+        except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 

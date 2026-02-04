@@ -59,19 +59,47 @@ class AlertGroupMattermostRepresentative(AlertGroupAbstractRepresentative):
 
     @staticmethod
     def on_create_alert(**kwargs):
+        from apps.alerts.models import Alert
+        from apps.mattermost.models import MattermostChannel
+
         alert_pk = kwargs["alert"]
-        on_create_alert_async.apply_async((alert_pk,))
+        
+        # Get alert to check organization
+        if isinstance(alert_pk, int):
+            try:
+                alert = Alert.objects.get(pk=alert_pk)
+            except Alert.DoesNotExist:
+                return
+        else:
+            alert = alert_pk
+            alert_pk = alert.pk
+
+        # Only trigger task if organization has Mattermost channel configured
+        organization = alert.group.channel.organization
+        if MattermostChannel.objects.filter(organization=organization).exists():
+            on_create_alert_async.apply_async((alert_pk,))
 
     @staticmethod
     def on_alert_group_action_triggered(**kwargs):
         from apps.alerts.models import AlertGroupLogRecord
+        from apps.mattermost.models import MattermostMessage
 
         log_record = kwargs["log_record"]
         if isinstance(log_record, AlertGroupLogRecord):
+            log_record_obj = log_record
             log_record_id = log_record.pk
         else:
             log_record_id = log_record
-        on_alert_group_action_triggered_async.apply_async((log_record_id,))
+            try:
+                log_record_obj = AlertGroupLogRecord.objects.get(pk=log_record_id)
+            except AlertGroupLogRecord.DoesNotExist:
+                return
+
+        # Only trigger task if alert group has Mattermost message
+        if log_record_obj.alert_group.mattermost_messages.filter(
+            message_type=MattermostMessage.ALERT_GROUP_MESSAGE
+        ).exists():
+            on_alert_group_action_triggered_async.apply_async((log_record_id,))
 
     def get_handler(self):
         handler_name = self.get_handler_name()

@@ -692,6 +692,7 @@ SOCIAL_AUTH_STRATEGY = "apps.social_auth.live_setting_django_strategy.LiveSettin
 # https://python-social-auth.readthedocs.io/en/latest/configuration/settings.html
 AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.LoginMattermostOAuth2",
+    "apps.social_auth.backends.LoginZoomOAuth2",
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
     "django.contrib.auth.backends.ModelBackend",
@@ -742,10 +743,24 @@ MATTERMOST_SIGNING_SECRET = os.environ.get("MATTERMOST_SIGNING_SECRET", None)
 if FEATURE_MATTERMOST_INTEGRATION_ENABLED:
     INSTALLED_APPS += ["apps.mattermost"]
 
+# Zoom
+FEATURE_ZOOM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_ZOOM_INTEGRATION_ENABLED", default=False)
+ZOOM_CLIENT_ID = os.environ.get("ZOOM_CLIENT_ID")
+ZOOM_CLIENT_SECRET = os.environ.get("ZOOM_CLIENT_SECRET")
+ZOOM_BOT_JID = os.environ.get("ZOOM_BOT_JID")  # Bot JID from Team Chat Subscription
+ZOOM_WEBHOOK_SECRET_TOKEN = os.environ.get("ZOOM_WEBHOOK_SECRET_TOKEN")  # Secret Token for webhook verification
+ZOOM_ACCOUNT_ID = os.environ.get("ZOOM_ACCOUNT_ID")  # Account ID for Chatbot API
+ZOOM_LOGIN_RETURN_REDIRECT_HOST = os.environ.get("ZOOM_LOGIN_RETURN_REDIRECT_HOST", None)
+
+if FEATURE_ZOOM_INTEGRATION_ENABLED:
+    INSTALLED_APPS += ["apps.zoom"]
+
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
 SOCIAL_AUTH_MATTERMOST_LOGIN_KEY = MATTERMOST_CLIENT_OAUTH_ID
 SOCIAL_AUTH_MATTERMOST_LOGIN_SECRET = MATTERMOST_CLIENT_OAUTH_SECRET
+SOCIAL_AUTH_ZOOM_LOGIN_KEY = ZOOM_CLIENT_ID
+SOCIAL_AUTH_ZOOM_LOGIN_SECRET = ZOOM_CLIENT_SECRET
 
 SOCIAL_AUTH_SETTING_NAME_TO_LIVE_SETTING_NAME = {
     "SOCIAL_AUTH_SLACK_LOGIN_KEY": "SLACK_CLIENT_OAUTH_ID",
@@ -754,6 +769,8 @@ SOCIAL_AUTH_SETTING_NAME_TO_LIVE_SETTING_NAME = {
     "SOCIAL_AUTH_SLACK_INSTALL_FREE_SECRET": "SLACK_CLIENT_OAUTH_SECRET",
     "SOCIAL_AUTH_MATTERMOST_LOGIN_KEY": "MATTERMOST_CLIENT_OAUTH_ID",
     "SOCIAL_AUTH_MATTERMOST_LOGIN_SECRET": "MATTERMOST_CLIENT_OAUTH_SECRET",
+    "SOCIAL_AUTH_ZOOM_LOGIN_KEY": "ZOOM_CLIENT_ID",
+    "SOCIAL_AUTH_ZOOM_LOGIN_SECRET": "ZOOM_CLIENT_SECRET",
 }
 SOCIAL_AUTH_SLACK_INSTALL_FREE_CUSTOM_SCOPE = [
     "bot",
@@ -770,6 +787,7 @@ SOCIAL_AUTH_PIPELINE = (
     "apps.social_auth.pipeline.slack.connect_user_to_slack",
     "apps.social_auth.pipeline.slack.populate_slack_identities",
     "apps.social_auth.pipeline.mattermost.connect_user_to_mattermost",
+    "apps.social_auth.pipeline.zoom.connect_user_to_zoom",
     "apps.social_auth.pipeline.common.delete_auth_token",
 )
 
@@ -885,6 +903,10 @@ if FEATURE_EMAIL_INTEGRATION_ENABLED:
 MATTERMOST_BACKEND_INTERNAL_ID = 9
 if FEATURE_MATTERMOST_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [("apps.mattermost.backend.MattermostBackend", MATTERMOST_BACKEND_INTERNAL_ID)]
+
+ZOOM_BACKEND_INTERNAL_ID = 10
+if FEATURE_ZOOM_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS += [("apps.zoom.backend.ZoomBackend", ZOOM_BACKEND_INTERNAL_ID)]
 
 # Inbound email settings
 INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")

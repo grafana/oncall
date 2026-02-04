@@ -722,4 +722,10 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 "telegram_message_template",
                 "telegram_image_url_template",
             ]
+        # Zoom templates are always enabled when zoom app is installed
+        core_templates += [
+            "zoom_title_template",
+            "zoom_message_template",
+            "zoom_image_url_template",
+        ]
         return core_templates

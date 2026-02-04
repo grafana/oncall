@@ -38,6 +38,8 @@ from .views.slack_team_settings import (
 )
 from .views.team import TeamViewSet
 from .views.telegram_channels import TelegramChannelViewSet
+from .views.zoom_channel import ZoomChannelView
+from .views.zoom_settings import SetDefaultZoomChannel, ZoomSettingsAPIView
 from .views.user import CurrentUserView, UserView
 from .views.user_group import UserGroupViewSet
 from .views.webhooks import WebhooksView
@@ -61,6 +63,7 @@ router.register(r"webhooks", WebhooksView, basename="webhooks")
 router.register(r"resolution_notes", ResolutionNoteView, basename="resolution_note")
 router.register(r"telegram_channels", TelegramChannelViewSet, basename="telegram_channel")
 router.register(r"slack_channels", SlackChannelView, basename="slack_channel")
+router.register(r"zoom_channels", ZoomChannelView, basename="zoom_channel")
 router.register(r"user_groups", UserGroupViewSet, basename="user_group")
 router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_heartbeat")
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
@@ -100,6 +103,12 @@ urlpatterns = [
         "slack_settings/unacknowledge_timeout_options",
         UnAcknowledgeTimeoutOptionsAPIView.as_view(),
         name="unacknowledge-timeout-options",
+    ),
+    optional_slash_path("zoom_settings", ZoomSettingsAPIView.as_view(), name="zoom-settings"),
+    optional_slash_path(
+        "zoom_settings/set_default_channel",
+        SetDefaultZoomChannel.as_view(),
+        name="set-default-zoom-channel",
     ),
     optional_slash_path("features", FeaturesAPIView.as_view(), name="features"),
     optional_slash_path(

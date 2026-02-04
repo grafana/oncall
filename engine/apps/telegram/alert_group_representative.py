@@ -87,15 +87,50 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
 
         log_record = kwargs["log_record"]
         if isinstance(log_record, AlertGroupLogRecord):
+            log_record_obj = log_record
             log_record_id = log_record.pk
         else:
             log_record_id = log_record
-        on_alert_group_action_triggered_async.apply_async((log_record_id,))
+            try:
+                log_record_obj = AlertGroupLogRecord.objects.get(pk=log_record_id)
+            except AlertGroupLogRecord.DoesNotExist:
+                return
+
+        # Only trigger task if alert group has Telegram messages
+        if log_record_obj.alert_group.telegram_messages.filter(
+            message_type__in=(
+                TelegramMessage.ALERT_GROUP_MESSAGE,
+                TelegramMessage.ACTIONS_MESSAGE,
+                TelegramMessage.PERSONAL_MESSAGE,
+            )
+        ).exists():
+            on_alert_group_action_triggered_async.apply_async((log_record_id,))
 
     @staticmethod
     def on_create_alert(**kwargs):
+        from apps.alerts.models import Alert
+        from apps.telegram.models import TelegramToOrganizationConnector, TelegramToUserConnector
+
         alert_pk = kwargs["alert"]
-        on_create_alert_telegram_representative_async.apply_async((alert_pk,))
+
+        # Get alert to check organization
+        if isinstance(alert_pk, int):
+            try:
+                alert = Alert.objects.get(pk=alert_pk)
+            except Alert.DoesNotExist:
+                return
+        else:
+            alert = alert_pk
+            alert_pk = alert.pk
+
+        # Only trigger task if organization has Telegram configured
+        organization = alert.group.channel.organization
+        telegram_org_connector = TelegramToOrganizationConnector.objects.filter(organization=organization)
+        telegram_channel_configured = telegram_org_connector.exists() and telegram_org_connector.first().is_configured
+        is_user_in_org_using_telegram = TelegramToUserConnector.objects.filter(user__organization=organization).exists()
+
+        if telegram_channel_configured or is_user_in_org_using_telegram:
+            on_create_alert_telegram_representative_async.apply_async((alert_pk,))
 
     def get_handler(self):
         handler_name = self.get_handler_name()
