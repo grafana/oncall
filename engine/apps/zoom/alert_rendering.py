@@ -194,10 +194,24 @@ class AlertGroupZoomRenderer(AlertGroupBaseRenderer):
             })
 
         # Add action buttons
-        body.append({
-            "type": "actions",
-            "items": self._get_action_buttons(),
-        })
+        main_buttons, silence_buttons = self._get_action_buttons()
+        
+        # Combine main buttons with silence overflow in one row
+        if silence_buttons:
+            all_buttons = main_buttons + silence_buttons
+            body.append({
+                "type": "actions",
+                "limit": len(main_buttons),  # Show only main buttons, silence in overflow
+                "items": all_buttons,
+                "overflow": {
+                    "text": "🔇 Silence"
+                }
+            })
+        else:
+            body.append({
+                "type": "actions",
+                "items": main_buttons
+            })
 
         return body
 

@@ -123,7 +123,7 @@ Set the following environment variables in your OnCall deployment:
 | `ZOOM_ACCOUNT_ID` | Your Zoom Account ID (Server-to-Server OAuth only) |
 | `ZOOM_BOT_JID` | Your Zoom bot JID |
 | `ZOOM_WEBHOOK_SECRET_TOKEN` | Your Zoom webhook secret token |
-| `ZOOM_LOGIN_RETURN_REDIRECT_HOST` | OnCall external URL for OAuth redirect |
+| `ZOOM_LOGIN_RETURN_REDIRECT_HOST` | OnCall base URL (e.g., `https://oncall.example.com`). The OAuth callback path `/api/internal/v1/complete/zoom-login/` is appended automatically. |
 | `ZOOM_MESSAGE_FOOTER` | (Optional) Custom footer text for messages |
 | `ZOOM_MESSAGE_FOOTER_ICON` | (Optional) Custom footer icon URL |
 
@@ -140,7 +140,7 @@ oncall:
     accountId: "your-account-id"  # Optional, for Server-to-Server OAuth
     botJid: "your-bot-jid"
     webhookSecretToken: "your-webhook-secret"
-    redirectHost: "https://oncall.example.com"
+    redirectHost: "https://oncall.example.com"  # Base URL only, OAuth path is appended automatically
     messageFooter: "Your Company Alert System"
     messageFooterIcon: "https://your-logo-url"
 ```

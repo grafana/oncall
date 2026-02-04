@@ -2,6 +2,7 @@ import logging
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 
 from apps.alerts.models import Alert, AlertGroup
@@ -175,18 +176,20 @@ def notify_user_about_alert_async(user_pk, alert_group_pk, notification_policy_p
     templated_alert = AlertGroupZoomRenderer(alert_group).alert_renderer.templated_alert
 
     # Build the notification message
-    if not hasattr(user, "zoom_user_identity"):
+    # Use try/except to handle RelatedObjectDoesNotExist for OneToOneField
+    try:
+        zoom_user_identity = user.zoom_user_identity
+        # Use Zoom mention format
+        mention = zoom_user_identity.mention_format
+        message = "{}\nInviting {} to look at the alert group.".format(
+            templated_alert.title, mention
+        )
+    except ObjectDoesNotExist:
         message = "{}\nTried to invite {} to look at the alert group. Unfortunately {} is not linked to Zoom.".format(
             templated_alert.title, user.username, user.username
         )
         _create_error_log_record(
             UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_ZOOM_USER_NOT_IN_ZOOM
-        )
-    else:
-        # Use Zoom mention format
-        mention = user.zoom_user_identity.mention_format
-        message = "{}\nInviting {} to look at the alert group.".format(
-            templated_alert.title, mention
         )
 
     # Send as a reply/thread message

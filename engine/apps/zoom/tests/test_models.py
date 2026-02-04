@@ -59,9 +59,38 @@ def test_zoom_user_mention_format(
     """Test Zoom user mention format."""
     organization = make_organization()
     user = make_user_for_organization(organization)
-    zoom_user = make_zoom_user(user=user, email="test@example.com", display_name="Test User")
+    zoom_user = make_zoom_user(
+        user=user,
+        zoom_user_id="test_user_123",
+        email="test@example.com",
+        display_name="Test User"
+    )
 
-    expected_mention = '<at email="test@example.com">Test User</at>'
+    # Verify user_jid property
+    assert zoom_user.user_jid == "test_user_123@xmpp.zoom.us"
+    
+    # Verify mention format uses JID-based format
+    expected_mention = "<!test_user_123@xmpp.zoom.us|Test User>"
+    assert zoom_user.mention_format == expected_mention
+
+
+@pytest.mark.django_db
+def test_zoom_user_mention_format_without_display_name(
+    make_organization,
+    make_user_for_organization,
+    make_zoom_user,
+):
+    """Test Zoom user mention format falls back to email when display_name is not set."""
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    zoom_user = make_zoom_user(
+        user=user,
+        zoom_user_id="test_user_456",
+        email="fallback@example.com",
+        display_name=None
+    )
+
+    expected_mention = "<!test_user_456@xmpp.zoom.us|fallback@example.com>"
     assert zoom_user.mention_format == expected_mention
 
 

@@ -23,7 +23,17 @@ class ZoomUser(models.Model):
         return f"ZoomUser({self.email})"
 
     @property
+    def user_jid(self):
+        """Return the user JID for Zoom Team Chat API."""
+        return f"{self.zoom_user_id}@xmpp.zoom.us"
+
+    @property
     def mention_format(self):
-        """Return the format to mention this user in Zoom Team Chat."""
-        # Zoom uses email-based mentions in the format <at email="user@example.com">Display Name</at>
-        return f'<at email="{self.email}">{self.display_name or self.email}</at>'
+        """
+        Return the format to mention this user in Zoom Team Chat.
+        
+        Uses the JID-based mention format: <!user_jid|Display Name>
+        This format works in both regular messages and interactive card messages.
+        """
+        display = self.display_name or self.email
+        return f"<!{self.user_jid}|{display}>"
