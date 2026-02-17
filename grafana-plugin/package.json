@@ -104,7 +104,7 @@
     "jest-html-reporters": "^3.1.7",
     "knip": "^5.0.3",
     "lint-staged": "^10.2.11",
-    "lodash-es": "^4.17.21",
+    "lodash-es": "^4.17.23",
     "mailslurp-client": "^15.14.1",
     "moment-timezone": "0.5.45",
     "openapi-typescript": "^7.4.0",
