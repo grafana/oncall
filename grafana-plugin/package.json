@@ -86,7 +86,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
     "dompurify": "^3.2.4",
-    "eslint": "^8.25.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-deprecation": "^2.0.0",
     "eslint-plugin-jsdoc": "^44.2.4",
     "eslint-plugin-promise": "^6.1.1",
