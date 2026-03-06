@@ -257,7 +257,7 @@ kombu==5.5.4
     # via celery
 lxml==5.2.2
     # via -r requirements.in
-markdown==3.8
+markdown==3.8.1
     # via pymdown-extensions
 markdown2==2.4.10
     # via
@@ -430,10 +430,6 @@ rsa==4.9.1
     # via google-auth
 s3transfer==0.13.0
     # via boto3
-setuptools==80.9.0
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.17.0
     # via
     #   django-rest-polymorphic
@@ -463,6 +459,7 @@ twilio==6.37.0
 typing-extensions==4.14.0
     # via
     #   anyio
+    #   grpcio
     #   opentelemetry-sdk
     #   pyopenssl
     #   referencing
