@@ -1,15 +1,11 @@
-# 🚨 Update: Grafana OnCall OSS 🚨
+# 🚨 Archived: Grafana OnCall OSS 🚨
 
-As of 2025-03-11, Grafana OnCall (OSS) has entered maintenance mode and will be archived on 2026-03-24.
-While you may continue to use OnCall OSS in its current state, no further updates or new features will be introduced.
-However, we will still provide fixes for critical bugs and for valid CVEs with a CVSS score of 7.0 or higher.
+On 2025-03-11 Grafana OnCall (OSS) entered maintenance mode and was archived on 2026-03-24.
 
 For users seeking a fully supported and actively maintained alternative,
 **Grafana Cloud IRM** offers a modern approach to incident response and on-call management.
 
-- [Grafana OnCall OSS updates blog](https://grafana.com/blog/2025/03/11/grafana-oncall-maintenance-mode/)
-- [Grafana Cloud IRM announcement blog post](https://grafana.com/blog/2025/03/11/oncall-management-incident-response-grafana-cloud-irm/)
-- [Migration Guide](https://grafana.com/docs/oncall/latest/set-up/migration-from-other-tools/)
+- [Grafana Cloud IRM documentation](https://grafana.com/docs/grafana-cloud/alerting-and-irm/irm/)
 
 ## Grafana OnCall
 
