@@ -27,8 +27,14 @@ jobs:
     name: Verify Release Label Added
     runs-on: ubuntu-latest
     steps:
-      - uses: docker://agilepathway/pull-request-label-checker:latest
-        with:
-          prefix_mode: true
-          one_of: "release:"
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check release label
+        run: |
+          docker run --rm \
+            -e "INPUT_PREFIX_MODE=true" \
+            -e "INPUT_ONE_OF=release:" \
+            -e "INPUT_REPO_TOKEN=${{ secrets.GITHUB_TOKEN }}" \
+            -e "GITHUB_EVENT_NAME=${{ github.event_name }}" \
+            -e "GITHUB_REPOSITORY=${{ github.repository }}" \
+            -v "$GITHUB_EVENT_PATH:/github/workflow/event.json:ro" \
+            -e "GITHUB_EVENT_PATH=/github/workflow/event.json" \
+            agilepathway/pull-request-label-checker:latest
