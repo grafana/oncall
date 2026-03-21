@@ -130,7 +130,7 @@ export const Tabs = ({
       {showMsTeamsConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.MSTeamsInfo}
-          label="Ms Teams connection"
+          label="MS Teams connection"
           key={UserSettingsTab.MSTeamsInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.MSTeamsInfo)}
           data-testid="tab-msteams"
